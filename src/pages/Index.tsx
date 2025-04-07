@@ -10,6 +10,8 @@ import PesquisaEmpresa from '@/components/PesquisaEmpresa';
 import AprovacoesPendentes from '@/components/AprovacoesPendentes';
 import GeradorCarteirinha from '@/components/GeradorCarteirinha';
 import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
+import UserManagement from '@/components/usuarios/UserManagement';
+import PermissionPanel from '@/components/usuarios/PermissionPanel';
 
 const Index: React.FC = () => {
   return (
@@ -27,6 +29,10 @@ const Index: React.FC = () => {
         <Route path="/empresas/cadastrar" element={<CadastroEmpresa />} />
         <Route path="/empresas/pendentes" element={<AprovacoesPendentes />} />
         <Route path="/empresas/pesquisar" element={<PesquisaEmpresa />} />
+        
+        {/* Usuários Routes */}
+        <Route path="/usuarios/gerenciar" element={<UserManagement />} />
+        <Route path="/usuarios/permissoes" element={<PermissionPanel />} />
         
         {/* Financeiro Routes */}
         <Route path="/financeiro/integracoes" element={<IntegracaoFinanceira />} />

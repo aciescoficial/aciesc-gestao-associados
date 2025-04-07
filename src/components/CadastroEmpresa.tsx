@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useState } from 'react';
 import EmpresaForm from './empresa/EmpresaForm';
 
 const CadastroEmpresa: React.FC = () => {
