@@ -1,8 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from '@/integrations/supabase/types';
+
+type NichoType = Database['public']['Enums']['nicho_type'];
+type StatusType = Database['public']['Enums']['status_type'];
 
 interface EmpresaData {
   id: string;
@@ -13,8 +17,8 @@ interface EmpresaData {
   telefone: string;
   email: string;
   cidade: string;
-  nicho: string;
-  status: 'ativo' | 'pendente' | 'inativo';
+  nicho: NichoType;
+  status: StatusType;
 }
 
 const PesquisaEmpresa: React.FC = () => {
@@ -49,7 +53,8 @@ const PesquisaEmpresa: React.FC = () => {
       } else if (searchType === 'cnpj') {
         query = query.ilike('cnpj', `%${searchTerm}%`);
       } else if (searchType === 'nicho') {
-        query = query.eq('nicho', searchTerm);
+        // We'll search for any nicho that contains the search term
+        query = query.ilike('nicho', `%${searchTerm}%`);
       }
       
       const { data, error } = await query;
@@ -77,7 +82,7 @@ const PesquisaEmpresa: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: StatusType) => {
     switch (status) {
       case 'ativo':
         return <span className="wp-badge-success flex items-center gap-1"><Check size={14} />Ativo</span>;
