@@ -15,6 +15,7 @@ import {
   Shield,
   UserCog
 } from 'lucide-react';
+import UserProfileMenu from './auth/UserProfileMenu';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -79,7 +80,7 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
             <span>Gestão ACIESC</span>
           </div>
           <div className="flex items-center gap-4">
-            <span>Admin</span>
+            <UserProfileMenu />
           </div>
         </div>
 
