@@ -10,6 +10,7 @@ import EmpresaNichoInfo from './EmpresaNichoInfo';
 import { Database } from '@/integrations/supabase/types';
 
 type NichoType = Database['public']['Enums']['nicho_type'];
+type StatusType = Database['public']['Enums']['status_type'];
 
 export interface EmpresaFormData {
   razaoSocial: string;
@@ -56,13 +57,13 @@ const EmpresaForm: React.FC = () => {
         nicho: data.nicho,
         desconto: data.desconto,
         produtos: data.produtos,
-        status: 'pendente'
+        status: 'pendente' as StatusType
       };
       
       // Insert data into the empresas table
       const { error } = await supabase
         .from('empresas')
-        .insert([empresaData]);
+        .insert(empresaData);
         
       if (error) throw error;
       

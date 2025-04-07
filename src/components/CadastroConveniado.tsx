@@ -1,7 +1,11 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from '@/integrations/supabase/types';
+
+type StatusType = Database['public']['Enums']['status_type'];
 
 interface ConveniadoFormData {
   nome: string;
@@ -36,13 +40,13 @@ const CadastroConveniado: React.FC = () => {
         creci: data.creci || null,
         placa_principal: data.placaPrincipal || null,
         placa_secundaria: data.placaSecundaria || null,
-        status: 'pendente'
+        status: 'pendente' as StatusType
       };
       
       // Insert data into the conveniados table
       const { error } = await supabase
         .from('conveniados')
-        .insert([conveniadoData]);
+        .insert(conveniadoData);
         
       if (error) throw error;
       
