@@ -48,7 +48,10 @@ const CadastroConveniado: React.FC = () => {
         .from('conveniados')
         .insert(conveniadoData);
         
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error details:", error);
+        throw error;
+      }
       
       toast({
         title: "Cadastro realizado com sucesso!",
