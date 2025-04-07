@@ -12,7 +12,8 @@ import {
   UserPlus,
   CheckSquare,
   CreditCard,
-  Shield
+  Shield,
+  UserCog
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -24,6 +25,9 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   
   const menuItems = [
     { icon: Home, label: "Dashboard", path: "/" },
+    { header: "Admin" },
+    { icon: UserCog, label: "Usuários", path: "/usuarios/gerenciar" },
+    { icon: Shield, label: "Permissões", path: "/usuarios/permissoes" },
     { header: "Conveniados" },
     { icon: UserPlus, label: "Cadastrar", path: "/conveniados/cadastrar" },
     { icon: CheckSquare, label: "Aprovação Pendente", path: "/conveniados/pendentes" },
@@ -33,9 +37,6 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
     { icon: Building, label: "Cadastrar", path: "/empresas/cadastrar" },
     { icon: CheckSquare, label: "Aprovação Pendente", path: "/empresas/pendentes" },
     { icon: Search, label: "Pesquisar", path: "/empresas/pesquisar" },
-    { header: "Usuários" },
-    { icon: Users, label: "Gerenciar Usuários", path: "/usuarios/gerenciar" },
-    { icon: Shield, label: "Permissões", path: "/usuarios/permissoes" },
     { header: "Financeiro" },
     { icon: DollarSign, label: "Integrações", path: "/financeiro/integracoes" },
     { icon: FileText, label: "Relatórios", path: "/financeiro/relatorios" },
