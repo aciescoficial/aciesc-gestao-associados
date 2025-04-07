@@ -1,9 +1,7 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from '@/integrations/supabase/types';
 
 // Represent the form data from the empresas table
 interface EmpresaFormData {
@@ -23,9 +21,6 @@ interface EmpresaFormData {
   desconto: string;
   produtos: string;
 }
-
-// Type for the insert data
-type EmpresaInsert = Database['public']['Tables']['empresas']['Insert'];
 
 const CadastroEmpresa: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,7 +44,7 @@ const CadastroEmpresa: React.FC = () => {
     
     try {
       // Map form data to database schema
-      const empresaData: EmpresaInsert = {
+      const empresaData = {
         razao_social: data.razaoSocial,
         nome_fantasia: data.nomeFantasia,
         cnpj: data.cnpj,
@@ -62,7 +57,7 @@ const CadastroEmpresa: React.FC = () => {
         site: data.site || null,
         instagram: data.instagram || null,
         whatsapp: data.whatsapp || null,
-        nicho: data.nicho as Database['public']['Enums']['nicho_type'],
+        nicho: data.nicho,
         desconto: data.desconto,
         produtos: data.produtos,
         status: 'pendente'

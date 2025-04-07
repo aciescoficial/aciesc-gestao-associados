@@ -1,12 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from "@/integrations/supabase/client";
 
 interface EmpresaData {
   id: string;
-  razaoSocial: string;
-  nomeFantasia: string;
+  razao_social: string;
+  nome_fantasia: string;
   cnpj: string;
   responsavel: string;
   telefone: string;
@@ -23,14 +24,6 @@ const PesquisaEmpresa: React.FC = () => {
   const [results, setResults] = useState<EmpresaData[]>([]);
   const { toast } = useToast();
 
-  // Mock data - would be fetched from API in real implementation
-  const mockData: EmpresaData[] = [
-    { id: '1', razaoSocial: 'Farmácia ABC Ltda', nomeFantasia: 'Farmácia Saúde', cnpj: '00.000.000/0001-00', responsavel: 'João Silva', telefone: '(47) 3333-1111', email: 'contato@farmaciasaude.com.br', cidade: 'São José', nicho: 'Saúde', status: 'ativo' },
-    { id: '2', razaoSocial: 'Restaurante Bom Sabor Ltda', nomeFantasia: 'Bom Sabor', cnpj: '11.111.111/0001-11', responsavel: 'Maria Oliveira', telefone: '(47) 3333-2222', email: 'contato@bomsabor.com.br', cidade: 'Florianópolis', nicho: 'Alimentação', status: 'ativo' },
-    { id: '3', razaoSocial: 'Academia Fitness Ltda', nomeFantasia: 'Academia Fitness', cnpj: '22.222.222/0001-22', responsavel: 'Pedro Santos', telefone: '(47) 3333-3333', email: 'contato@academiafitness.com.br', cidade: 'Palhoça', nicho: 'Saúde', status: 'pendente' },
-    { id: '4', razaoSocial: 'Livraria Leitura Ltda', nomeFantasia: 'Leitura Fácil', cnpj: '33.333.333/0001-33', responsavel: 'Ana Costa', telefone: '(47) 3333-4444', email: 'contato@leiturafacil.com.br', cidade: 'Biguaçu', nicho: 'Educação', status: 'inativo' },
-  ];
-
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -46,36 +39,37 @@ const PesquisaEmpresa: React.FC = () => {
     setIsSearching(true);
     
     try {
-      // Mock API call - would call actual API in real implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Filter mock data based on search criteria
-      let filteredResults: EmpresaData[] = [];
+      // Search in Supabase based on search criteria
+      let query = supabase
+        .from('empresas')
+        .select('*');
       
       if (searchType === 'nome') {
-        const term = searchTerm.toLowerCase();
-        filteredResults = mockData.filter(
-          item => item.nomeFantasia.toLowerCase().includes(term) || item.razaoSocial.toLowerCase().includes(term)
-        );
+        query = query.or(`nome_fantasia.ilike.%${searchTerm}%,razao_social.ilike.%${searchTerm}%`);
       } else if (searchType === 'cnpj') {
-        filteredResults = mockData.filter(item => item.cnpj.includes(searchTerm));
+        query = query.ilike('cnpj', `%${searchTerm}%`);
       } else if (searchType === 'nicho') {
-        const term = searchTerm.toLowerCase();
-        filteredResults = mockData.filter(item => item.nicho.toLowerCase().includes(term));
+        query = query.eq('nicho', searchTerm);
       }
       
-      setResults(filteredResults);
+      const { data, error } = await query;
       
-      if (filteredResults.length === 0) {
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        setResults(data as EmpresaData[]);
+      } else {
+        setResults([]);
         toast({
           title: "Nenhum resultado encontrado",
           description: "Não foram encontradas empresas com os critérios informados.",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error searching data:", error);
       toast({
         title: "Erro na busca",
-        description: "Ocorreu um erro ao realizar a busca. Tente novamente.",
+        description: error.message || "Ocorreu um erro ao realizar a busca. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -164,8 +158,8 @@ const PesquisaEmpresa: React.FC = () => {
               <tbody>
                 {results.map((item) => (
                   <tr key={item.id}>
-                    <td>{item.nomeFantasia}</td>
-                    <td>{item.razaoSocial}</td>
+                    <td>{item.nome_fantasia}</td>
+                    <td>{item.razao_social}</td>
                     <td>{item.cnpj}</td>
                     <td>{item.nicho}</td>
                     <td>{item.cidade}</td>

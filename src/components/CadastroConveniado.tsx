@@ -1,9 +1,7 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from '@/integrations/supabase/types';
 
 interface ConveniadoFormData {
   nome: string;
@@ -17,9 +15,6 @@ interface ConveniadoFormData {
   placaSecundaria: string;
 }
 
-// Type for the insert data
-type ConveniadoInsert = Database['public']['Tables']['conveniados']['Insert'];
-
 const CadastroConveniado: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -31,7 +26,7 @@ const CadastroConveniado: React.FC = () => {
     
     try {
       // Map form data to database schema
-      const conveniadoData: ConveniadoInsert = {
+      const conveniadoData = {
         nome: data.nome,
         sobrenome: data.sobrenome,
         telefone: data.telefone,
