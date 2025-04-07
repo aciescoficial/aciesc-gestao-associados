@@ -1,13 +1,44 @@
-// Update this page (the content is just a fallback if you fail to update the page)
 
-const Index = () => {
+import React, { useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import PluginLayout from '@/components/PluginLayout';
+import Dashboard from '@/components/Dashboard';
+import CadastroConveniado from '@/components/CadastroConveniado';
+import CadastroEmpresa from '@/components/CadastroEmpresa';
+import PesquisaConveniado from '@/components/PesquisaConveniado';
+import PesquisaEmpresa from '@/components/PesquisaEmpresa';
+import AprovacoesPendentes from '@/components/AprovacoesPendentes';
+import GeradorCarteirinha from '@/components/GeradorCarteirinha';
+import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
+
+const Index: React.FC = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <PluginLayout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        
+        {/* Conveniados Routes */}
+        <Route path="/conveniados/cadastrar" element={<CadastroConveniado />} />
+        <Route path="/conveniados/pendentes" element={<AprovacoesPendentes />} />
+        <Route path="/conveniados/carteirinha" element={<GeradorCarteirinha />} />
+        <Route path="/conveniados/pesquisar" element={<PesquisaConveniado />} />
+        
+        {/* Empresas Routes */}
+        <Route path="/empresas/cadastrar" element={<CadastroEmpresa />} />
+        <Route path="/empresas/pendentes" element={<AprovacoesPendentes />} />
+        <Route path="/empresas/pesquisar" element={<PesquisaEmpresa />} />
+        
+        {/* Financeiro Routes */}
+        <Route path="/financeiro/integracoes" element={<IntegracaoFinanceira />} />
+        <Route path="/financeiro/relatorios" element={<Dashboard />} /> {/* Placeholder */}
+        
+        {/* Configuracoes Routes */}
+        <Route path="/configuracoes" element={<Dashboard />} /> {/* Placeholder */}
+        
+        {/* Default Route */}
+        <Route path="*" element={<Dashboard />} />
+      </Routes>
+    </PluginLayout>
   );
 };
 

@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -52,16 +53,18 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				}
+				// WordPress admin colors
+				wp: {
+					body: '#f0f0f1',
+					text: '#3c434a',
+					primary: '#2271b1',
+					'primary-hover': '#135e96',
+					secondary: '#f6f7f7',
+					highlight: '#72aee6',
+					success: '#00a32a',
+					warning: '#dba617',
+					error: '#d63638',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
