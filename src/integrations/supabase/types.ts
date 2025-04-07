@@ -9,7 +9,120 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      conveniados: {
+        Row: {
+          cidade: string
+          cpf: string
+          created_at: string
+          creci: string | null
+          email: string
+          id: string
+          nome: string
+          placa_principal: string | null
+          placa_secundaria: string | null
+          sobrenome: string
+          status: Database["public"]["Enums"]["status_type"]
+          telefone: string
+          updated_at: string
+        }
+        Insert: {
+          cidade: string
+          cpf: string
+          created_at?: string
+          creci?: string | null
+          email: string
+          id?: string
+          nome: string
+          placa_principal?: string | null
+          placa_secundaria?: string | null
+          sobrenome: string
+          status?: Database["public"]["Enums"]["status_type"]
+          telefone: string
+          updated_at?: string
+        }
+        Update: {
+          cidade?: string
+          cpf?: string
+          created_at?: string
+          creci?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          placa_principal?: string | null
+          placa_secundaria?: string | null
+          sobrenome?: string
+          status?: Database["public"]["Enums"]["status_type"]
+          telefone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      empresas: {
+        Row: {
+          cep: string
+          cidade: string
+          cnpj: string
+          created_at: string
+          desconto: string
+          email: string
+          endereco: string
+          id: string
+          instagram: string | null
+          nicho: Database["public"]["Enums"]["nicho_type"]
+          nome_fantasia: string
+          produtos: string
+          razao_social: string
+          responsavel: string
+          site: string | null
+          status: Database["public"]["Enums"]["status_type"]
+          telefone: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          cep: string
+          cidade: string
+          cnpj: string
+          created_at?: string
+          desconto: string
+          email: string
+          endereco: string
+          id?: string
+          instagram?: string | null
+          nicho: Database["public"]["Enums"]["nicho_type"]
+          nome_fantasia: string
+          produtos: string
+          razao_social: string
+          responsavel: string
+          site?: string | null
+          status?: Database["public"]["Enums"]["status_type"]
+          telefone: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          cep?: string
+          cidade?: string
+          cnpj?: string
+          created_at?: string
+          desconto?: string
+          email?: string
+          endereco?: string
+          id?: string
+          instagram?: string | null
+          nicho?: Database["public"]["Enums"]["nicho_type"]
+          nome_fantasia?: string
+          produtos?: string
+          razao_social?: string
+          responsavel?: string
+          site?: string | null
+          status?: Database["public"]["Enums"]["status_type"]
+          telefone?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +131,16 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      nicho_type:
+        | "Alimentação"
+        | "Saúde"
+        | "Educação"
+        | "Serviços"
+        | "Comércio"
+        | "Lazer"
+        | "Tecnologia"
+        | "Outro"
+      status_type: "ativo" | "pendente" | "inativo"
     }
     CompositeTypes: {
       [_ in never]: never

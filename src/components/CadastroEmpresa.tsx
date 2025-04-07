@@ -2,7 +2,10 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from '@/integrations/supabase/types';
 
+// Represent the form data from the empresas table
 interface EmpresaFormData {
   razaoSocial: string;
   nomeFantasia: string;
@@ -20,6 +23,9 @@ interface EmpresaFormData {
   desconto: string;
   produtos: string;
 }
+
+// Type for the insert data
+type EmpresaInsert = Database['public']['Tables']['empresas']['Insert'];
 
 const CadastroEmpresa: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,8 +48,32 @@ const CadastroEmpresa: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Mock API call - would send data to backend in real implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Map form data to database schema
+      const empresaData: EmpresaInsert = {
+        razao_social: data.razaoSocial,
+        nome_fantasia: data.nomeFantasia,
+        cnpj: data.cnpj,
+        responsavel: data.responsavel,
+        telefone: data.telefone,
+        email: data.email,
+        endereco: data.endereco,
+        cidade: data.cidade,
+        cep: data.cep,
+        site: data.site || null,
+        instagram: data.instagram || null,
+        whatsapp: data.whatsapp || null,
+        nicho: data.nicho as Database['public']['Enums']['nicho_type'],
+        desconto: data.desconto,
+        produtos: data.produtos,
+        status: 'pendente'
+      };
+      
+      // Insert data into the empresas table
+      const { error } = await supabase
+        .from('empresas')
+        .insert([empresaData]);
+        
+      if (error) throw error;
       
       toast({
         title: "Cadastro realizado com sucesso!",
@@ -51,10 +81,12 @@ const CadastroEmpresa: React.FC = () => {
       });
       
       reset();
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error inserting data:", error);
+      
       toast({
         title: "Erro no cadastro",
-        description: "Ocorreu um erro ao cadastrar a empresa. Tente novamente.",
+        description: error.message || "Ocorreu um erro ao cadastrar a empresa. Tente novamente.",
         variant: "destructive",
       });
     } finally {

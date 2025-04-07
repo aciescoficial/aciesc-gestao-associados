@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from '@/integrations/supabase/types';
 
 interface ConveniadoFormData {
   nome: string;
@@ -15,6 +17,9 @@ interface ConveniadoFormData {
   placaSecundaria: string;
 }
 
+// Type for the insert data
+type ConveniadoInsert = Database['public']['Tables']['conveniados']['Insert'];
+
 const CadastroConveniado: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -25,8 +30,26 @@ const CadastroConveniado: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Mock API call - would send data to backend in real implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Map form data to database schema
+      const conveniadoData: ConveniadoInsert = {
+        nome: data.nome,
+        sobrenome: data.sobrenome,
+        telefone: data.telefone,
+        email: data.email,
+        cidade: data.cidade,
+        cpf: data.cpf,
+        creci: data.creci || null,
+        placa_principal: data.placaPrincipal || null,
+        placa_secundaria: data.placaSecundaria || null,
+        status: 'pendente'
+      };
+      
+      // Insert data into the conveniados table
+      const { error } = await supabase
+        .from('conveniados')
+        .insert([conveniadoData]);
+        
+      if (error) throw error;
       
       toast({
         title: "Cadastro realizado com sucesso!",
@@ -34,10 +57,12 @@ const CadastroConveniado: React.FC = () => {
       });
       
       reset();
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error inserting data:", error);
+      
       toast({
         title: "Erro no cadastro",
-        description: "Ocorreu um erro ao cadastrar o conveniado. Tente novamente.",
+        description: error.message || "Ocorreu um erro ao cadastrar o conveniado. Tente novamente.",
         variant: "destructive",
       });
     } finally {
