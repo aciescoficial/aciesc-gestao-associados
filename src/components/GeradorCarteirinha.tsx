@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
-import { Search, Printer, Download } from 'lucide-react';
+import { Search, Printer, Download, RotateCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ConveniadoData {
   id: string;
@@ -17,13 +19,38 @@ const GeradorCarteirinha: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [selectedConveniado, setSelectedConveniado] = useState<ConveniadoData | null>(null);
+  const [cardView, setCardView] = useState<'front' | 'back'>('front');
   const { toast } = useToast();
 
   // Mock data - would be fetched from API in real implementation
   const mockData: ConveniadoData[] = [
-    { id: '1', nome: 'João', sobrenome: 'Silva', cpf: '123.456.789-00', creci: '12345', validade: '31/12/2025' },
-    { id: '2', nome: 'Maria', sobrenome: 'Oliveira', cpf: '987.654.321-00', creci: '54321', validade: '31/12/2025' },
-    { id: '3', nome: 'Pedro', sobrenome: 'Santos', cpf: '456.789.123-00', creci: '67890', validade: '31/12/2025' },
+    { 
+      id: '1', 
+      nome: 'João', 
+      sobrenome: 'Silva', 
+      cpf: '123.456.789-00', 
+      creci: '12345', 
+      validade: '01/2026',
+      foto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+    },
+    { 
+      id: '2', 
+      nome: 'Maria', 
+      sobrenome: 'Oliveira', 
+      cpf: '987.654.321-00', 
+      creci: '54321', 
+      validade: '01/2026',
+      foto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+    },
+    { 
+      id: '3', 
+      nome: 'Pedro', 
+      sobrenome: 'Santos', 
+      cpf: '456.789.123-00', 
+      creci: '67890', 
+      validade: '01/2026',
+      foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+    },
   ];
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -96,6 +123,10 @@ const GeradorCarteirinha: React.FC = () => {
     // In a real implementation, this would generate and download a PDF
   };
 
+  const toggleCardView = () => {
+    setCardView(prev => prev === 'front' ? 'back' : 'front');
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="wp-header">Gerar Carteirinha</h1>
@@ -157,36 +188,152 @@ const GeradorCarteirinha: React.FC = () => {
           </div>
           
           <div className="wp-card">
-            <h2 className="wp-subheader">Previsualização da Carteirinha</h2>
-            <div className="aspect-[85/54] bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg p-4 text-white flex flex-col justify-between">
-              <div className="flex justify-between">
-                <div>
-                  <img src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b" alt="ACIESC Logo" className="h-8 w-auto rounded" />
-                </div>
-                <div className="text-right">
-                  <h3 className="font-bold">CONVENIADO</h3>
-                  <p className="text-xs opacity-80">Associação Comercial e Industrial</p>
-                </div>
-              </div>
-              
-              <div className="flex">
-                <div className="w-1/4">
-                  <div className="bg-white h-20 w-20 rounded-md flex items-center justify-center text-blue-800">
-                    <span className="text-xs">FOTO</span>
-                  </div>
-                </div>
-                <div className="w-3/4 pl-4 space-y-1">
-                  <p className="font-bold text-sm">{`${selectedConveniado.nome} ${selectedConveniado.sobrenome}`}</p>
-                  <p className="text-xs">CRECI: {selectedConveniado.creci}</p>
-                  <p className="text-xs">CPF: {selectedConveniado.cpf}</p>
-                  <p className="text-xs">Validade: {selectedConveniado.validade}</p>
-                </div>
-              </div>
-              
-              <div className="text-center text-xs mt-2">
-                <p>www.aciesc.com.br</p>
-              </div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="wp-subheader mb-0">Previsualização da Carteirinha</h2>
+              <button
+                onClick={toggleCardView}
+                className="flex items-center gap-1 text-sm text-wp-primary hover:text-wp-primary-hover"
+              >
+                <RotateCw size={16} />
+                {cardView === 'front' ? 'Ver Verso' : 'Ver Frente'}
+              </button>
             </div>
+
+            <Tabs value={cardView} onValueChange={(value) => setCardView(value as 'front' | 'back')} className="w-full">
+              <TabsList className="w-full mb-4">
+                <TabsTrigger value="front" className="flex-1">Frente</TabsTrigger>
+                <TabsTrigger value="back" className="flex-1">Verso</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="front" className="mt-0">
+                <div className="aspect-video w-full rounded-lg overflow-hidden shadow-lg">
+                  <AspectRatio ratio={600/300} className="bg-[linear-gradient(90deg,#1a3b39,#2d6e6a)]">
+                    <div className="h-full w-full relative p-0">
+                      {/* Left side with patterns and photo */}
+                      <div className="absolute left-0 top-0 bottom-0 w-1/3 overflow-hidden">
+                        {/* Green pattern background */}
+                        <div className="absolute left-0 top-0 bottom-0 w-full">
+                          <svg viewBox="0 0 200 400" className="h-full">
+                            <path d="M0,0 L50,0 C80,0 80,30 80,30 L80,80 C80,110 110,110 110,110 L160,110 L160,160 C160,190 190,190 190,190 L190,400 L0,400 Z" 
+                                  fill="#00E676" />
+                          </svg>
+                        </div>
+                        
+                        {/* Validity badge */}
+                        <div className="absolute right-0 top-24 transform translate-x-1/2 bg-[#00E676] text-black rounded-full py-2 px-6 font-bold">
+                          Validade - {selectedConveniado.validade}
+                        </div>
+                        
+                        {/* Profile photo */}
+                        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/4 w-48 h-48 rounded-md overflow-hidden border-4 border-[#00E676]">
+                          {selectedConveniado.foto ? (
+                            <img 
+                              src={selectedConveniado.foto} 
+                              alt={`${selectedConveniado.nome}`} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                              Sem foto
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Right side with text content */}
+                      <div className="absolute right-0 top-0 bottom-0 w-2/3 p-4 text-white flex flex-col items-end justify-between">
+                        {/* ACIESC Logo */}
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <div className="text-4xl font-bold tracking-wider">ACIESC</div>
+                            <div className="text-xs max-w-xs">
+                              ASSOCIAÇÃO DE CORRETORES E IMOBILIÁRIAS DO ESTADO DE SANTA CATARINA
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Conveniado Info */}
+                        <div className="text-right space-y-2 mt-8">
+                          <div>
+                            <h2 className="text-3xl font-bold text-[#00E676]">CORRETOR DE</h2>
+                            <h2 className="text-3xl font-bold text-[#00E676]">IMÓVEIS</h2>
+                          </div>
+                          
+                          <div className="mt-4">
+                            <p className="font-bold">CRECI-SC: {selectedConveniado.creci}</p>
+                            <p className="font-bold">CPF: {selectedConveniado.cpf}</p>
+                          </div>
+                        </div>
+                        
+                        {/* Slogan */}
+                        <div className="text-right mt-auto">
+                          <p className="text-xl font-bold mb-1">Ser associado</p>
+                          <p className="bg-[#00E676] text-black px-4 py-1 rounded-md inline-block font-bold">
+                            que fazem a diferença!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </AspectRatio>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="back" className="mt-0">
+                <div className="aspect-video w-full rounded-lg overflow-hidden shadow-lg">
+                  <AspectRatio ratio={600/300} className="bg-[linear-gradient(90deg,#1a3b39,#2d6e6a)]">
+                    <div className="h-full w-full relative p-0">
+                      {/* Left side with patterns and QR code */}
+                      <div className="absolute left-0 top-0 bottom-0 w-1/3 overflow-hidden">
+                        {/* Green pattern background */}
+                        <div className="absolute left-0 top-0 bottom-0 w-full">
+                          <svg viewBox="0 0 200 400" className="h-full">
+                            <path d="M0,0 L50,0 C80,0 80,30 80,30 L80,80 C80,110 110,110 110,110 L160,110 L160,160 C160,190 190,190 190,190 L190,400 L0,400 Z" 
+                                  fill="#00E676" />
+                          </svg>
+                        </div>
+                        
+                        {/* QR Code */}
+                        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/4 w-48 h-48 bg-white p-2 rounded-md">
+                          <img 
+                            src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://aciesc.com.br" 
+                            alt="QR Code"
+                            className="w-full h-full"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Right side with text content */}
+                      <div className="absolute right-0 top-0 bottom-0 w-2/3 p-4 text-white flex flex-col items-end justify-between">
+                        {/* Website */}
+                        <div className="text-right">
+                          <p className="text-2xl font-bold">www.aciesc.com.br</p>
+                        </div>
+                        
+                        {/* Main content */}
+                        <div className="text-right space-y-2">
+                          <div>
+                            <h2 className="text-xl font-bold text-[#00E676]">EU SOU</h2>
+                            <h2 className="text-2xl font-bold text-[#00E676]">CORRETOR</h2>
+                            <h2 className="text-2xl font-bold text-[#00E676]">DE IMÓVEIS</h2>
+                            <h2 className="text-2xl font-bold text-[#00E676]">ASSOCIADO</h2>
+                          </div>
+                        </div>
+                        
+                        {/* ACIESC Logo bottom */}
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <div className="text-3xl font-bold tracking-wider">ACIESC</div>
+                            <div className="text-xs max-w-xs">
+                              ASSOCIAÇÃO DE CORRETORES E IMOBILIÁRIAS DO ESTADO DE SANTA CATARINA
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </AspectRatio>
+                </div>
+              </TabsContent>
+            </Tabs>
             
             <div className="mt-4 flex space-x-3">
               <button 
