@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import PluginLayout from '@/components/PluginLayout';
@@ -8,14 +7,13 @@ import CadastroEmpresa from '@/components/CadastroEmpresa';
 import PesquisaConveniado from '@/components/PesquisaConveniado';
 import PesquisaEmpresa from '@/components/PesquisaEmpresa';
 import AprovacoesPendentes from '@/components/AprovacoesPendentes';
-import GeradorCarteirinha from '@/components/GeradorCarteirinha';
+import GeradorCarteirinha from '@/components/carteirinha/GeradorCarteirinha';
 import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
 import UserManagement from '@/components/usuarios/UserManagement';
 import PermissionPanel from '@/components/usuarios/PermissionPanel';
 import ProfilePage from '@/components/auth/ProfilePage';
 import { useAuth } from '@/components/auth/AuthProvider';
 
-// Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
@@ -36,7 +34,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Admin route component
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAdmin, loading } = useAuth();
   
@@ -68,7 +65,6 @@ const Index: React.FC = () => {
         </ProtectedRoute>
       } />
       
-      {/* User Profile */}
       <Route path="/perfil" element={
         <ProtectedRoute>
           <PluginLayout>
@@ -77,7 +73,6 @@ const Index: React.FC = () => {
         </ProtectedRoute>
       } />
       
-      {/* Admin Routes */}
       <Route path="/usuarios/gerenciar" element={
         <AdminRoute>
           <PluginLayout>
@@ -94,7 +89,6 @@ const Index: React.FC = () => {
         </AdminRoute>
       } />
       
-      {/* Conveniados Routes */}
       <Route path="/conveniados/cadastrar" element={
         <ProtectedRoute>
           <PluginLayout>
@@ -127,7 +121,6 @@ const Index: React.FC = () => {
         </ProtectedRoute>
       } />
       
-      {/* Empresas Routes */}
       <Route path="/empresas/cadastrar" element={
         <ProtectedRoute>
           <PluginLayout>
@@ -152,7 +145,6 @@ const Index: React.FC = () => {
         </ProtectedRoute>
       } />
       
-      {/* Financeiro Routes */}
       <Route path="/financeiro/integracoes" element={
         <ProtectedRoute>
           <PluginLayout>
@@ -169,7 +161,6 @@ const Index: React.FC = () => {
         </ProtectedRoute>
       } />
       
-      {/* Configuracoes Routes */}
       <Route path="/configuracoes" element={
         <AdminRoute>
           <PluginLayout>
@@ -178,7 +169,6 @@ const Index: React.FC = () => {
         </AdminRoute>
       } />
       
-      {/* Default Route */}
       <Route path="*" element={
         <ProtectedRoute>
           <PluginLayout>
