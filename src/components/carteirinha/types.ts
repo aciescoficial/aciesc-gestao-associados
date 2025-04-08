@@ -28,4 +28,5 @@ export interface CardSettings {
   };
   frontBackgroundImage?: string;
   backBackgroundImage?: string;
+  defaultBackImage?: string;
 }

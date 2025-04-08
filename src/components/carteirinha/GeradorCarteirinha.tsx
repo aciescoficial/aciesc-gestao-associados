@@ -28,7 +28,8 @@ const GeradorCarteirinha: React.FC = () => {
     photoPosition: { x: 50, y: 50 },
     textPosition: { x: 70, y: 50 },
     frontBackgroundImage: undefined,
-    backBackgroundImage: undefined
+    backBackgroundImage: undefined,
+    defaultBackImage: '/lovable-uploads/3da9ac21-93f9-4795-bef1-3943d4484a78.png'
   });
 
   const handleSearch = async (e: React.FormEvent) => {

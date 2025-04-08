@@ -46,6 +46,13 @@ const IdCard: React.FC<IdCardProps> = ({
         backgroundPosition: 'center'
       };
     }
+    if (cardSettings.defaultBackImage) {
+      return {
+        backgroundImage: `url(${cardSettings.defaultBackImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      };
+    }
     return {
       background: `linear-gradient(90deg, ${cardSettings.secondaryColor}, ${cardSettings.secondaryColor})`,
     };
@@ -139,10 +146,10 @@ const IdCard: React.FC<IdCardProps> = ({
                     </h2>
                   </div>
                   
-                  {/* Name, CRECI, CPF */}
+                  {/* Nome, CRECI, CPF na ordem específica solicitada */}
                   <div className="mt-4" style={textStyle}>
                     <p className="font-bold text-lg">{fullName}</p>
-                    {cardSettings.showCreci && <p className="font-bold">CRECI-SC: {selectedConveniado?.creci}</p>}
+                    {cardSettings.showCreci && <p className="font-bold">CRECI: {selectedConveniado?.creci}</p>}
                     {cardSettings.showCPF && <p className="font-bold">CPF: {selectedConveniado?.cpf}</p>}
                   </div>
                 </div>
@@ -169,59 +176,19 @@ const IdCard: React.FC<IdCardProps> = ({
               </div>
             </>
           ) : (
-            <>
-              {/* Left side with patterns and QR code */}
-              <div className="absolute left-0 top-0 bottom-0 w-1/3 overflow-hidden">
-                {/* Green pattern background (if no custom background) */}
-                {!cardSettings.backBackgroundImage && (
-                  <div className="absolute left-0 top-0 bottom-0 w-full">
-                    <svg viewBox="0 0 200 400" className="h-full">
-                      <path d="M0,0 L50,0 C80,0 80,30 80,30 L80,80 C80,110 110,110 110,110 L160,110 L160,160 C160,190 190,190 190,190 L190,400 L0,400 Z" 
-                            fill={cardSettings.primaryColor} />
-                    </svg>
-                  </div>
-                )}
-                
-                {/* QR Code */}
-                {cardSettings.showQRCode && (
-                  <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/4 w-48 h-48 bg-white p-2 rounded-md">
-                    <img 
-                      src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://aciesc.com.br" 
-                      alt="QR Code"
-                      className="w-full h-full"
-                    />
-                  </div>
-                )}
-              </div>
-              
-              {/* Right side with text content */}
-              <div className="absolute right-0 top-0 bottom-0 w-2/3 p-4 flex flex-col items-end justify-between" style={textStyle}>
-                {/* Website */}
-                <div className="text-right">
-                  <p className="text-2xl font-bold">www.aciesc.com.br</p>
+            // Verso da carteirinha usando o fundo customizado ou padrão
+            <div className="h-full w-full relative">
+              {/* Aqui o conteúdo do verso é mantido mais simples, pois estamos usando a imagem de fundo */}
+              {cardSettings.showQRCode && (
+                <div className="absolute left-[390px] top-[105px] transform -translate-x-1/2 -translate-y-1/2 w-[160px] h-[160px] bg-white p-2 rounded-md">
+                  <img 
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://aciesc.com.br" 
+                    alt="QR Code"
+                    className="w-full h-full"
+                  />
                 </div>
-                
-                {/* Main content */}
-                <div className="text-right space-y-2">
-                  <div>
-                    <h2 className="text-xl font-bold" style={{color: cardSettings.primaryColor}}>EU SOU</h2>
-                    <h2 className="text-2xl font-bold" style={{color: cardSettings.primaryColor}}>CORRETOR</h2>
-                    <h2 className="text-2xl font-bold" style={{color: cardSettings.primaryColor}}>DE IMÓVEIS</h2>
-                    <h2 className="text-2xl font-bold" style={{color: cardSettings.primaryColor}}>ASSOCIADO</h2>
-                  </div>
-                </div>
-                
-                {/* ACIESC Logo bottom */}
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    <div className="text-3xl font-bold tracking-wider">ACIESC</div>
-                    <div className="text-xs max-w-xs">
-                      ASSOCIAÇÃO DE CORRETORES E IMOBILIÁRIAS DO ESTADO DE SANTA CATARINA
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
+              )}
+            </div>
           )}
         </div>
       </AspectRatio>
