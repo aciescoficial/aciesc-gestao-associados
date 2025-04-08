@@ -15,14 +15,20 @@ const GeradorCarteirinha: React.FC = () => {
   const [cardView, setCardView] = useState<'front' | 'back'>('front');
   const { toast } = useToast();
   
-  // Card customization settings
+  // Card customization settings with default values
   const [cardSettings, setCardSettings] = useState<CardSettings>({
     primaryColor: '#00E676',
     secondaryColor: '#1a3b39',
+    textColor: '#FFFFFF',
+    fontFamily: 'Arial, sans-serif',
     showCPF: true,
     showCreci: true,
     showQRCode: true,
-    logoPosition: 'top'
+    logoPosition: 'top',
+    photoPosition: { x: 50, y: 50 },
+    textPosition: { x: 70, y: 50 },
+    frontBackgroundImage: undefined,
+    backBackgroundImage: undefined
   });
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -100,10 +106,6 @@ const GeradorCarteirinha: React.FC = () => {
       ...prev,
       [key]: value
     }));
-    toast({
-      title: "Configuração atualizada",
-      description: "A personalização da carteirinha foi atualizada.",
-    });
   };
 
   return (
@@ -118,25 +120,25 @@ const GeradorCarteirinha: React.FC = () => {
       />
       
       {selectedConveniado && (
-        <div className="grid grid-cols-1 gap-6">
-          <div className="wp-card">
-            <h2 className="wp-subheader">Dados do Conveniado</h2>
-            <ConveniadoInfoCard selectedConveniado={selectedConveniado} />
-            
-            <CardPersonalizationPanel
+        <div className="wp-card">
+          <h2 className="wp-subheader">Dados do Conveniado</h2>
+          <ConveniadoInfoCard selectedConveniado={selectedConveniado} />
+          
+          <CardPersonalizationPanel
+            cardSettings={cardSettings}
+            updateCardSetting={updateCardSetting}
+          />
+          
+          <div className="mt-8">
+            <CardPreviewPanel
+              selectedConveniado={selectedConveniado}
+              cardView={cardView}
+              setCardView={setCardView}
               cardSettings={cardSettings}
-              updateCardSetting={updateCardSetting}
+              handlePrint={handlePrint}
+              handleDownload={handleDownload}
             />
           </div>
-          
-          <CardPreviewPanel
-            selectedConveniado={selectedConveniado}
-            cardView={cardView}
-            setCardView={setCardView}
-            cardSettings={cardSettings}
-            handlePrint={handlePrint}
-            handleDownload={handleDownload}
-          />
         </div>
       )}
     </div>
