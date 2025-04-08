@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { Search, Check, X, Car, FileUp, FileDown, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Check, X, Car } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -13,15 +13,6 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
 
 interface ConveniadoData {
   id: string;
@@ -37,22 +28,11 @@ interface ConveniadoData {
   foto?: string;
 }
 
-interface ImportValidationData {
-  fieldName: string;
-  targetField: string;
-  isValid: boolean;
-}
-
 const PesquisaConveniado: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'nome' | 'cpf' | 'creci' | 'placa'>('nome');
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<ConveniadoData[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [importData, setImportData] = useState<ConveniadoData[]>([]);
-  const [validationData, setValidationData] = useState<ImportValidationData[]>([]);
-  const [importFormat, setImportFormat] = useState<'csv' | 'xml'>('csv');
   const { toast } = useToast();
 
   // Mock data - would be fetched from API in real implementation
@@ -178,209 +158,6 @@ const PesquisaConveniado: React.FC = () => {
     }
   };
 
-  const handleImportClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const fileReader = new FileReader();
-      fileReader.onload = (event) => {
-        try {
-          const content = event.target?.result as string;
-          let parsedData: ConveniadoData[] = [];
-          
-          // Detect file format based on extension
-          const fileFormat = file.name.toLowerCase().endsWith('.xml') ? 'xml' : 'csv';
-          setImportFormat(fileFormat as 'csv' | 'xml');
-          
-          if (fileFormat === 'xml') {
-            // Simple XML parsing (in real implementation, use proper XML parser)
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(content, "text/xml");
-            const conveniados = xmlDoc.getElementsByTagName("conveniado");
-            
-            for (let i = 0; i < conveniados.length; i++) {
-              const conv = conveniados[i];
-              parsedData.push({
-                id: `import-${i}`,
-                nome: conv.getElementsByTagName("nome")[0]?.textContent || '',
-                sobrenome: conv.getElementsByTagName("sobrenome")[0]?.textContent || '',
-                cpf: conv.getElementsByTagName("cpf")[0]?.textContent || '',
-                creci: conv.getElementsByTagName("creci")[0]?.textContent || '',
-                status: 'pendente',
-                email: conv.getElementsByTagName("email")[0]?.textContent || '',
-                telefone: conv.getElementsByTagName("telefone")[0]?.textContent || '',
-                placa_principal: conv.getElementsByTagName("placa_principal")[0]?.textContent || undefined,
-                placa_secundaria: conv.getElementsByTagName("placa_secundaria")[0]?.textContent || undefined,
-              });
-            }
-          } else {
-            // CSV parsing (simple implementation, in real world use proper CSV parser)
-            const rows = content.split('\n');
-            const headers = rows[0].split(',').map(h => h.trim());
-            
-            for (let i = 1; i < rows.length; i++) {
-              if (!rows[i].trim()) continue;
-              
-              const values = rows[i].split(',').map(v => v.trim());
-              const row: any = {};
-              
-              headers.forEach((header, index) => {
-                row[header.toLowerCase()] = values[index] || '';
-              });
-              
-              parsedData.push({
-                id: `import-${i}`,
-                nome: row.nome || '',
-                sobrenome: row.sobrenome || '',
-                cpf: row.cpf || '',
-                creci: row.creci || '',
-                status: 'pendente',
-                email: row.email || '',
-                telefone: row.telefone || '',
-                placa_principal: row.placa_principal || undefined,
-                placa_secundaria: row.placa_secundaria || undefined,
-              });
-            }
-          }
-          
-          // Basic field validation
-          const validations: ImportValidationData[] = [];
-          const requiredFields = ['nome', 'sobrenome', 'cpf', 'email', 'telefone'];
-          
-          const firstRow = parsedData[0] || {};
-          Object.keys(firstRow).forEach(key => {
-            if (key === 'id' || key === 'status' || key === 'foto') return;
-            
-            const isValid = requiredFields.includes(key) 
-              ? parsedData.every(row => !!(row as any)[key])
-              : true;
-              
-            validations.push({
-              fieldName: key,
-              targetField: key,
-              isValid
-            });
-          });
-          
-          setImportData(parsedData);
-          setValidationData(validations);
-          setShowImportDialog(true);
-        } catch (error) {
-          console.error("Error parsing file:", error);
-          toast({
-            title: "Erro ao processar arquivo",
-            description: "O arquivo não pôde ser processado. Verifique o formato e tente novamente.",
-            variant: "destructive",
-          });
-        }
-      };
-      
-      fileReader.readAsText(file);
-    }
-  };
-
-  const handleImportConfirm = () => {
-    // In a real application, this would send the data to the backend
-    toast({
-      title: "Importação realizada com sucesso",
-      description: `${importData.length} conveniados foram importados.`,
-    });
-    
-    setShowImportDialog(false);
-    
-    // Add the imported data to the results for demonstration
-    setResults([...mockData, ...importData]);
-  };
-
-  const handleExport = (format: 'csv' | 'xml') => {
-    try {
-      let data: string;
-      let fileName: string;
-      let mimeType: string;
-      
-      // Get data to export (either search results or all mock data)
-      const dataToExport = results.length > 0 ? results : mockData;
-      
-      if (format === 'csv') {
-        // Create CSV
-        const headers = ['id', 'nome', 'sobrenome', 'cpf', 'creci', 'status', 'email', 'telefone', 'placa_principal', 'placa_secundaria'];
-        const csvRows = [
-          headers.join(','),
-          ...dataToExport.map(item => {
-            return [
-              item.id,
-              item.nome,
-              item.sobrenome,
-              item.cpf,
-              item.creci,
-              item.status,
-              item.email,
-              item.telefone,
-              item.placa_principal || '',
-              item.placa_secundaria || ''
-            ].join(',');
-          })
-        ];
-        
-        data = csvRows.join('\n');
-        fileName = 'conveniados.csv';
-        mimeType = 'text/csv';
-      } else {
-        // Create XML
-        const xmlRows = dataToExport.map(item => {
-          return `  <conveniado>
-    <id>${item.id}</id>
-    <nome>${item.nome}</nome>
-    <sobrenome>${item.sobrenome}</sobrenome>
-    <cpf>${item.cpf}</cpf>
-    <creci>${item.creci || ''}</creci>
-    <status>${item.status}</status>
-    <email>${item.email}</email>
-    <telefone>${item.telefone}</telefone>
-    <placa_principal>${item.placa_principal || ''}</placa_principal>
-    <placa_secundaria>${item.placa_secundaria || ''}</placa_secundaria>
-  </conveniado>`;
-        });
-        
-        data = `<?xml version="1.0" encoding="UTF-8"?>
-<conveniados>
-${xmlRows.join('\n')}
-</conveniados>`;
-        fileName = 'conveniados.xml';
-        mimeType = 'application/xml';
-      }
-      
-      // Create and trigger download
-      const blob = new Blob([data], { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Exportação realizada com sucesso",
-        description: `Os dados foram exportados para ${fileName}.`,
-      });
-    } catch (error) {
-      console.error("Error exporting data:", error);
-      toast({
-        title: "Erro na exportação",
-        description: "Ocorreu um erro ao exportar os dados. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="space-y-6">
       <h1 className="wp-header">Pesquisar Conveniados</h1>
@@ -433,45 +210,6 @@ ${xmlRows.join('\n')}
             </div>
           </div>
         </form>
-        
-        <div className="mt-5 flex justify-between items-center border-t pt-5">
-          <div className="font-medium">Importar/Exportar Conveniados</div>
-          <div className="flex space-x-3">
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-              accept=".csv,.xml" 
-              style={{ display: 'none' }}
-            />
-            <Button 
-              variant="outline"
-              onClick={handleImportClick}
-              className="flex gap-2 items-center"
-            >
-              <FileUp size={16} />
-              Importar
-            </Button>
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                onClick={() => handleExport('csv')}
-                className="flex gap-2 items-center"
-              >
-                <FileDown size={16} />
-                CSV
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => handleExport('xml')}
-                className="flex gap-2 items-center"
-              >
-                <FileDown size={16} />
-                XML
-              </Button>
-            </div>
-          </div>
-        </div>
       </div>
       
       {results.length > 0 && (
@@ -541,107 +279,6 @@ ${xmlRows.join('\n')}
           </div>
         </div>
       )}
-
-      {/* Import Data Dialog */}
-      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Importar Conveniados</DialogTitle>
-            <DialogDescription>
-              Verifique os dados a serem importados e confirme o mapeamento dos campos.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 my-4">
-            <h4 className="font-medium">Validação de Campos</h4>
-            
-            <div className="space-y-2">
-              {validationData.map((validation, idx) => (
-                <div 
-                  key={idx} 
-                  className={`flex items-center justify-between p-2 rounded-md ${validation.isValid ? 'bg-green-50 text-green-800' : 'bg-yellow-50 text-yellow-800'}`}
-                >
-                  <div className="flex items-center gap-2">
-                    {validation.isValid ? (
-                      <Check size={18} className="text-green-500" />
-                    ) : (
-                      <AlertCircle size={18} className="text-yellow-500" />
-                    )}
-                    <span className="font-medium">{validation.fieldName}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <span>Mapear para:</span>
-                    <select 
-                      className="border rounded-md p-1 bg-white"
-                      value={validation.targetField}
-                      onChange={(e) => {
-                        const newValidationData = [...validationData];
-                        newValidationData[idx] = {
-                          ...validation,
-                          targetField: e.target.value
-                        };
-                        setValidationData(newValidationData);
-                      }}
-                    >
-                      <option value="nome">Nome</option>
-                      <option value="sobrenome">Sobrenome</option>
-                      <option value="cpf">CPF</option>
-                      <option value="creci">CRECI</option>
-                      <option value="email">Email</option>
-                      <option value="telefone">Telefone</option>
-                      <option value="placa_principal">Placa Principal</option>
-                      <option value="placa_secundaria">Placa Secundária</option>
-                    </select>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <h4 className="font-medium mt-4">Pré-visualização dos dados ({importData.length} registros)</h4>
-            <div className="overflow-x-auto max-h-64">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Sobrenome</TableHead>
-                    <TableHead>CPF</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Telefone</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {importData.slice(0, 5).map((item, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>{item.nome}</TableCell>
-                      <TableCell>{item.sobrenome}</TableCell>
-                      <TableCell>{item.cpf}</TableCell>
-                      <TableCell>{item.email}</TableCell>
-                      <TableCell>{item.telefone}</TableCell>
-                    </TableRow>
-                  ))}
-                  {importData.length > 5 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center text-gray-500">
-                        + {importData.length - 5} outros registros
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowImportDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleImportConfirm}>
-              Importar {importData.length} Registros
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
