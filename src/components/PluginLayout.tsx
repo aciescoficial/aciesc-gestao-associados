@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
@@ -13,7 +13,9 @@ import {
   CheckSquare,
   CreditCard,
   Shield,
-  UserCog
+  UserCog,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import UserProfileMenu from './auth/UserProfileMenu';
 
@@ -23,6 +25,7 @@ interface LayoutProps {
 
 const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   const menuItems = [
     { icon: Home, label: "Dashboard", path: "/" },
@@ -47,29 +50,45 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   
   const isActive = (path: string) => location.pathname === path;
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
     <div className="flex min-h-screen">
       {/* WordPress Admin Sidebar */}
-      <div className="wp-sidebar">
-        <div className="px-4 py-6 flex items-center">
-          <h1 className="text-xl font-bold">ACIESC</h1>
+      <div className={`wp-sidebar transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
+        <div className={`px-4 py-6 flex items-center ${sidebarCollapsed ? 'justify-center' : ''}`}>
+          {!sidebarCollapsed && <h1 className="text-xl font-bold">ACIESC</h1>}
+          {sidebarCollapsed && <span className="text-xl font-bold">A</span>}
         </div>
         <nav>
           {menuItems.map((item, index) => (
             item.header ? (
-              <div key={index} className="wp-sidebar-header">{item.header}</div>
+              sidebarCollapsed ? null : (
+                <div key={index} className="wp-sidebar-header">{item.header}</div>
+              )
             ) : (
               <Link 
                 key={index} 
                 to={item.path!}
-                className={`wp-sidebar-link flex items-center gap-2 ${isActive(item.path!) ? 'active' : ''}`}
+                className={`wp-sidebar-link flex items-center gap-2 ${isActive(item.path!) ? 'active' : ''} ${sidebarCollapsed ? 'justify-center px-0' : ''}`}
+                title={sidebarCollapsed ? item.label : undefined}
               >
                 {item.icon && <item.icon size={18} />}
-                <span>{item.label}</span>
+                {!sidebarCollapsed && <span>{item.label}</span>}
               </Link>
             )
           ))}
         </nav>
+        {/* Toggle Button */}
+        <button 
+          className="absolute top-1/2 -right-3 bg-aciesc-primary text-white rounded-full p-1 shadow-md hover:bg-aciesc-dark transition-colors"
+          onClick={toggleSidebar}
+          aria-label={sidebarCollapsed ? "Expandir menu" : "Retrair menu"}
+        >
+          {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       </div>
 
       {/* Main Content Area */}
