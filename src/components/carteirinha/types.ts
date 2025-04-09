@@ -30,3 +30,12 @@ export interface CardSettings {
   backBackgroundImage?: string;
   defaultBackImage?: string;
 }
+
+// Cores padrão da ACIESC
+export const ACIESC_COLORS = {
+  primaryGreen: '#00A650', // Verde principal
+  darkGreen: '#007A3D',   // Verde escuro
+  lightGreen: '#8CC63F',  // Verde claro
+  white: '#FFFFFF',       // Branco
+  black: '#222222',       // Preto
+}

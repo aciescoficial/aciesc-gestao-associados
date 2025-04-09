@@ -14,8 +14,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 210 100% 40%; /* WordPress blue */
-    --primary-foreground: 210 40% 98%;
+    /* ACIESC green color */
+    --primary: 142 100% 33%; /* #00A650 converted to HSL */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 20% 96%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -31,7 +32,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 142 100% 33%; /* ACIESC green for focus rings */
 
     --radius: 0.5rem;
   }
@@ -54,19 +55,20 @@
 
 @layer components {
   .wp-button {
-    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-wp-primary text-white hover:bg-wp-primary-hover transition-colors;
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-aciesc-primary text-white hover:bg-aciesc-dark transition-colors;
   }
 
   .wp-button-secondary {
     @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-wp-secondary text-wp-text border border-gray-300 hover:bg-gray-100 transition-colors;
   }
 
+  /* ... keep existing code (CSS components) */
   .wp-notice {
     @apply p-4 mb-4 border-l-4 rounded-sm;
   }
 
   .wp-notice-success {
-    @apply wp-notice border-wp-success bg-green-50;
+    @apply wp-notice border-aciesc-primary bg-green-50;
   }
 
   .wp-notice-warning {
@@ -78,7 +80,7 @@
   }
 
   .wp-input {
-    @apply border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-wp-primary focus:border-transparent;
+    @apply border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-aciesc-primary focus:border-transparent;
   }
 
   .wp-table {
@@ -110,19 +112,19 @@
   }
 
   .wp-admin-bar {
-    @apply flex justify-between items-center bg-[#1d2327] text-white px-4 py-1;
+    @apply flex justify-between items-center bg-aciesc-primary text-white px-4 py-1;
   }
 
   .wp-sidebar {
-    @apply w-64 bg-[#1d2327] text-white min-h-screen p-0;
+    @apply w-64 bg-aciesc-dark text-white min-h-screen p-0;
   }
 
   .wp-sidebar-link {
-    @apply block px-4 py-2 hover:bg-wp-primary transition-colors;
+    @apply block px-4 py-2 hover:bg-aciesc-primary transition-colors;
   }
 
   .wp-sidebar-link.active {
-    @apply bg-wp-primary;
+    @apply bg-aciesc-primary;
   }
   
   .wp-sidebar-separator {
@@ -147,5 +149,14 @@
 
   .wp-badge-warning {
     @apply wp-badge bg-yellow-100 text-yellow-800;
+  }
+  
+  /* ACIESC specific classes */
+  .aciesc-gradient-primary {
+    @apply bg-gradient-to-r from-aciesc-primary to-aciesc-light;
+  }
+  
+  .aciesc-button {
+    @apply bg-aciesc-primary hover:bg-aciesc-dark text-white font-medium py-2 px-4 rounded transition-colors;
   }
 }

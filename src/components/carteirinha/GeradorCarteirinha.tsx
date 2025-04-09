@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { CardSettings, ConveniadoData } from './types';
+import { CardSettings, ConveniadoData, ACIESC_COLORS } from './types';
 import { mockData } from './mock-data';
 import SearchPanel from './SearchPanel';
 import ConveniadoInfoCard from './ConveniadoInfoCard';
@@ -15,11 +15,11 @@ const GeradorCarteirinha: React.FC = () => {
   const [cardView, setCardView] = useState<'front' | 'back'>('front');
   const { toast } = useToast();
   
-  // Card customization settings with default values
+  // Card customization settings with ACIESC colors as default values
   const [cardSettings, setCardSettings] = useState<CardSettings>({
-    primaryColor: '#00E676',
-    secondaryColor: '#1a3b39',
-    textColor: '#FFFFFF',
+    primaryColor: ACIESC_COLORS.primaryGreen,
+    secondaryColor: ACIESC_COLORS.darkGreen,
+    textColor: ACIESC_COLORS.white,
     fontFamily: 'Arial, sans-serif',
     showCPF: true,
     showCreci: true,
@@ -111,7 +111,7 @@ const GeradorCarteirinha: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="wp-header">Gerar Carteirinha</h1>
+      <h1 className="wp-header text-aciesc-primary">Gerar Carteirinha</h1>
       
       <SearchPanel
         searchTerm={searchTerm}
@@ -122,7 +122,7 @@ const GeradorCarteirinha: React.FC = () => {
       
       {selectedConveniado && (
         <div className="wp-card">
-          <h2 className="wp-subheader">Dados do Conveniado</h2>
+          <h2 className="wp-subheader text-aciesc-primary">Dados do Conveniado</h2>
           <ConveniadoInfoCard selectedConveniado={selectedConveniado} />
           
           <CardPersonalizationPanel

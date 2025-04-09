@@ -65,6 +65,14 @@ export default {
 					warning: '#dba617',
 					error: '#d63638',
 				},
+				// ACIESC colors
+				aciesc: {
+					primary: '#00A650',
+					dark: '#007A3D',
+					light: '#8CC63F',
+					background: '#FFFFFF',
+					text: '#222222',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
