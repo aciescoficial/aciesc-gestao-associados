@@ -1,80 +1,78 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Tipos para sincronização
-export interface SyncItemResult {
-  id: string;
+interface ApiResponse {
   success: boolean;
-  ghlId?: string;
-  error?: string;
+  message?: string;
+  count?: number;
+  data?: any;
 }
 
-export interface SyncResults {
-  successful: number;
-  failed: number;
-  details: SyncItemResult[];
-}
-
-// Testa a conexão com o Go High Level
-export const testGohighlevelConnection = async (): Promise<boolean> => {
+/**
+ * Testa a conexão com o Go High Level
+ */
+export const testConnection = async (): Promise<ApiResponse> => {
   try {
-    const { data, error } = await supabase.functions.invoke("gohighlevel-integration", {
-      body: {},
-      methodName: "test-connection"
+    const { data, error } = await supabase.functions.invoke('gohighlevel-integration', {
+      body: {
+        action: 'test-connection',
+      },
     });
 
-    if (error) throw error;
-    return !!data && !!data.id;
+    if (error) {
+      console.error('Error testing Go High Level connection:', error);
+      return { success: false, message: error.message };
+    }
+
+    return data || { success: true };
   } catch (error) {
-    console.error("Erro ao testar conexão com Go High Level:", error);
-    return false;
+    console.error('Error testing Go High Level connection:', error);
+    return { success: false, message: 'Erro ao testar conexão' };
   }
 };
 
-// Sincroniza conveniados selecionados com o Go High Level
-export const syncConveniados = async (conveniados: any[]): Promise<SyncResults> => {
+/**
+ * Sincroniza conveniados como contatos no Go High Level
+ */
+export const syncContacts = async (): Promise<ApiResponse> => {
   try {
-    const { data, error } = await supabase.functions.invoke("gohighlevel-integration", {
-      body: { conveniados },
-      methodName: "sync-conveniados"
+    const { data, error } = await supabase.functions.invoke('gohighlevel-integration', {
+      body: {
+        action: 'sync-contacts',
+      },
     });
 
-    if (error) throw error;
-    
-    const successful = data.filter((item: SyncItemResult) => item.success).length;
-    const failed = data.length - successful;
-    
-    return {
-      successful,
-      failed,
-      details: data
-    };
+    if (error) {
+      console.error('Error syncing contacts to Go High Level:', error);
+      return { success: false, message: error.message };
+    }
+
+    return data || { success: true, count: 0 };
   } catch (error) {
-    console.error("Erro ao sincronizar conveniados:", error);
-    throw error;
+    console.error('Error syncing contacts to Go High Level:', error);
+    return { success: false, message: 'Erro ao sincronizar contatos' };
   }
 };
 
-// Sincroniza empresas selecionadas com o Go High Level
-export const syncEmpresas = async (empresas: any[]): Promise<SyncResults> => {
+/**
+ * Sincroniza empresas como empresas/contas no Go High Level
+ */
+export const syncCompanies = async (): Promise<ApiResponse> => {
   try {
-    const { data, error } = await supabase.functions.invoke("gohighlevel-integration", {
-      body: { empresas },
-      methodName: "sync-empresas"
+    const { data, error } = await supabase.functions.invoke('gohighlevel-integration', {
+      body: {
+        action: 'sync-companies',
+      },
     });
 
-    if (error) throw error;
-    
-    const successful = data.filter((item: SyncItemResult) => item.success).length;
-    const failed = data.length - successful;
-    
-    return {
-      successful,
-      failed,
-      details: data
-    };
+    if (error) {
+      console.error('Error syncing companies to Go High Level:', error);
+      return { success: false, message: error.message };
+    }
+
+    return data || { success: true, count: 0 };
   } catch (error) {
-    console.error("Erro ao sincronizar empresas:", error);
-    throw error;
+    console.error('Error syncing companies to Go High Level:', error);
+    return { success: false, message: 'Erro ao sincronizar empresas' };
   }
 };

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Filter, Users, Receipt, DollarSign, HelpCircle } from 'lucide-react';
+import { Users, Receipt, DollarSign, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   ChartContainer,
@@ -12,12 +12,12 @@ import {
   AreaChart,
   CartesianGrid,
   ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis
 } from 'recharts';
 import { formatCurrency } from './utils';
 import { type ChartData, type FinancialSummary } from './types';
+import FinanceiroResumoFilter, { FinanceiroFilters } from './FinanceiroResumoFilter';
 
 const FinanceiroResumoPage: React.FC = () => {
   // This would typically come from an API or database
@@ -46,24 +46,35 @@ const FinanceiroResumoPage: React.FC = () => {
     { date: '29/Abr/2025', expected: 0, received: 0 },
   ]);
 
+  const [filters, setFilters] = useState<FinanceiroFilters>({
+    period: 'month',
+    dateFilterType: 'dueDate',
+    billingType: 'all',
+    includeCash: 'no',
+    chartGroupBy: 'day',
+  });
+
+  const handleApplyFilters = (newFilters: FinanceiroFilters) => {
+    setFilters(newFilters);
+    // Aqui seria feita uma chamada à API para buscar dados filtrados
+    console.log('Filtros aplicados:', newFilters);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="wp-header">Resumo Financeiro</h1>
-        
-        <Button variant="outline" className="flex items-center gap-2">
-          <Filter size={16} />
-          <span>Filtros (4)</span>
-        </Button>
       </div>
 
+      <FinanceiroResumoFilter onApplyFilters={handleApplyFilters} />
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Clientes Section */}
+        {/* Conveniados Section (antes era Clientes) */}
         <div className="wp-card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-medium flex items-center">
               <Users className="mr-2 h-5 w-5 text-gray-500" />
-              Clientes
+              Conveniados
             </h2>
           </div>
 
