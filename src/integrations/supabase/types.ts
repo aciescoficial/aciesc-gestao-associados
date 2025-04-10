@@ -125,25 +125,82 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           id: string
           name: string | null
+          phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           id: string
           name?: string | null
+          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           id?: string
           name?: string | null
+          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_2fa: {
+        Row: {
+          backup_codes: string[] | null
+          created_at: string
+          enabled: boolean
+          id: string
+          secret: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          backup_codes?: string[] | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          secret?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          backup_codes?: string[] | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          secret?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_access_logs: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          user_id?: string
         }
         Relationships: []
       }

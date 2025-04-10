@@ -10,11 +10,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Phone, Key, Shield, ClipboardList } from 'lucide-react';
+import { Camera, Phone, Key, Shield, ClipboardList, Lock } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { TwoFactorAuth } from './TwoFactorAuth';
+import { Separator } from "@/components/ui/separator";
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -329,67 +331,88 @@ const ProfilePage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Key className="h-5 w-5" />
-                Alterar Senha
+                <Shield className="h-5 w-5" />
+                Segurança
               </CardTitle>
               <CardDescription>
-                Atualize sua senha de acesso
+                Gerencie as configurações de segurança da sua conta
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Form {...passwordForm}>
-                <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                  <FormField
-                    control={passwordForm.control}
-                    name="currentPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Senha atual</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <div className="space-y-6">
+                {/* Password Section */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Key className="h-5 w-5" />
+                    <h3 className="text-lg font-medium">Alteração de Senha</h3>
+                  </div>
                   
-                  <FormField
-                    control={passwordForm.control}
-                    name="newPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nova senha</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={passwordForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirmar nova senha</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <Form {...passwordForm}>
+                    <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                      <FormField
+                        control={passwordForm.control}
+                        name="currentPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Senha atual</FormLabel>
+                            <FormControl>
+                              <Input type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={passwordForm.control}
+                        name="newPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nova senha</FormLabel>
+                            <FormControl>
+                              <Input type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={passwordForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirmar nova senha</FormLabel>
+                            <FormControl>
+                              <Input type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <Button 
-                    type="submit" 
-                    disabled={passwordForm.formState.isSubmitting}
-                    className="w-full"
-                  >
-                    {passwordForm.formState.isSubmitting ? "Processando..." : "Atualizar Senha"}
-                  </Button>
-                </form>
-              </Form>
+                      <Button 
+                        type="submit" 
+                        disabled={passwordForm.formState.isSubmitting}
+                      >
+                        {passwordForm.formState.isSubmitting ? "Processando..." : "Atualizar Senha"}
+                      </Button>
+                    </form>
+                  </Form>
+                </div>
+                
+                <Separator />
+                
+                {/* Two-Factor Authentication Section */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Lock className="h-5 w-5" />
+                    <h3 className="text-lg font-medium">Autenticação de Dois Fatores</h3>
+                  </div>
+                  
+                  {user && <TwoFactorAuth userId={user.id} />}
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

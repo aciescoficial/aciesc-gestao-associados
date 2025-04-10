@@ -40,10 +40,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (event === 'SIGNED_IN') {
             setTimeout(async () => {
               try {
-                await supabase.from('user_access_logs').insert({
-                  user_id: session.user.id,
-                  event: 'Login',
-                  created_at: new Date().toISOString()
+                // Use rpc to handle inserting into user_access_logs securely
+                await supabase.rpc('log_user_activity', {
+                  user_id_param: session.user.id,
+                  event_param: 'Login',
+                  created_at_param: new Date().toISOString()
                 });
               } catch (error) {
                 console.error('Error logging sign in:', error);
@@ -124,10 +125,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Log signout event before actually signing out
     if (user) {
       try {
-        await supabase.from('user_access_logs').insert({
-          user_id: user.id,
-          event: 'Logout',
-          created_at: new Date().toISOString()
+        // Use rpc to handle inserting into user_access_logs securely
+        await supabase.rpc('log_user_activity', {
+          user_id_param: user.id,
+          event_param: 'Logout',
+          created_at_param: new Date().toISOString()
         });
       } catch (error) {
         console.error('Error logging sign out:', error);
