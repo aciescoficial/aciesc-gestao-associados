@@ -56,7 +56,7 @@ const ListaAssociados: React.FC = () => {
   const fetchCidades = async () => {
     try {
       const { data, error } = await supabase
-        .from('conveniados')
+        .from('associados')
         .select('cidade')
         .order('cidade');
       
@@ -79,7 +79,7 @@ const ListaAssociados: React.FC = () => {
     try {
       // Build the query with filters
       let query = supabase
-        .from('conveniados')
+        .from('associados')
         .select('*', { count: 'exact' });
 
       // Apply status filter if not 'todos'

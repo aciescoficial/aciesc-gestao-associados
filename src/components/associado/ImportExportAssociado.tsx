@@ -5,7 +5,6 @@ import { ImportExportActions } from './ImportExportActions';
 import { ImportDialog } from './ImportDialog';
 import { ImportAssociadoData, ImportValidationData } from './types';
 import { importAssociados, exportAssociados } from './associadoService';
-import Papa from 'papaparse';
 
 export const ImportExportAssociado: React.FC = () => {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -21,14 +20,17 @@ export const ImportExportAssociado: React.FC = () => {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const csvData = event.target?.result as string;
+        
+        // Dynamically import PapaParse only when needed
+        const Papa = (await import('papaparse')).default;
         
         Papa.parse(csvData, {
           header: true,
@@ -165,27 +167,8 @@ export const ImportExportAssociado: React.FC = () => {
         return;
       }
       
-      // Define as propriedades que esperamos do objeto associados
-      type AssociadoExport = {
-        nome: string;
-        sobrenome?: string;
-        email: string;
-        telefone: string;
-        creci?: string;
-        cpf: string;
-        cidade: string;
-        estado?: string;
-        rua?: string;
-        numero?: string;
-        complemento?: string;
-        bairro?: string;
-        cep?: string;
-        valor_pago?: string;
-        valor_devido?: string;
-        tipo_pagamento?: string;
-        tipo_associado?: string;
-        validade?: string;
-      };
+      // Dynamically import PapaParse only when needed
+      const Papa = (await import('papaparse')).default;
       
       const csvContent = Papa.unparse({
         fields: [
@@ -194,7 +177,7 @@ export const ImportExportAssociado: React.FC = () => {
           'Estado', 'CEP', 'Valor Pago', 'Valor Devido',
           'Tipo Pagamento', 'Tipo Associado', 'Validade'
         ],
-        data: associados.map((a: AssociadoExport) => ([
+        data: associados.map((a: any) => ([
           `${a.nome} ${a.sobrenome || ''}`.trim(),
           a.email,
           a.telefone,
@@ -215,14 +198,7 @@ export const ImportExportAssociado: React.FC = () => {
         ]))
       });
       
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `associados_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      downloadFile(csvContent, 'text/csv;charset=utf-8;', `associados_${new Date().toISOString().split('T')[0]}.csv`);
       
     } catch (error) {
       console.error('Error exporting data:', error);
@@ -258,32 +234,10 @@ export const ImportExportAssociado: React.FC = () => {
         return;
       }
       
-      // Define as propriedades que esperamos do objeto associados
-      type AssociadoExport = {
-        nome: string;
-        sobrenome?: string;
-        email: string;
-        telefone: string;
-        creci?: string;
-        cpf: string;
-        cidade: string;
-        estado?: string;
-        rua?: string;
-        numero?: string;
-        complemento?: string;
-        bairro?: string;
-        cep?: string;
-        valor_pago?: string;
-        valor_devido?: string;
-        tipo_pagamento?: string;
-        tipo_associado?: string;
-        validade?: string;
-      };
-      
       let xml = '<?xml version="1.0" encoding="UTF-8" ?>\n';
       xml += '<associados>\n';
       
-      associados.forEach((a: AssociadoExport) => {
+      associados.forEach((a: any) => {
         xml += '  <associado>\n';
         xml += `    <nome>${a.nome} ${a.sobrenome || ''}</nome>\n`;
         xml += `    <email>${a.email}</email>\n`;
@@ -307,14 +261,7 @@ export const ImportExportAssociado: React.FC = () => {
       
       xml += '</associados>';
       
-      const blob = new Blob([xml], { type: 'application/xml;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `associados_${new Date().toISOString().split('T')[0]}.xml`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      downloadFile(xml, 'application/xml;charset=utf-8;', `associados_${new Date().toISOString().split('T')[0]}.xml`);
       
     } catch (error) {
       console.error('Error exporting data:', error);
@@ -324,6 +271,19 @@ export const ImportExportAssociado: React.FC = () => {
         variant: "destructive",
       });
     }
+  };
+  
+  // Utility to handle file download
+  const downloadFile = (content: string, mimeType: string, filename: string): void => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (

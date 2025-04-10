@@ -9,52 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      association_types: {
-        Row: {
-          active: boolean
-          created_at: string
-          description: string | null
-          id: string
-          interest_payment_by:
-            | Database["public"]["Enums"]["interest_payment_by"]
-            | null
-          max_installments: number | null
-          payment_methods: Database["public"]["Enums"]["payment_method"][]
-          title: string
-          updated_at: string
-          value: number
-        }
-        Insert: {
-          active?: boolean
-          created_at?: string
-          description?: string | null
-          id?: string
-          interest_payment_by?:
-            | Database["public"]["Enums"]["interest_payment_by"]
-            | null
-          max_installments?: number | null
-          payment_methods: Database["public"]["Enums"]["payment_method"][]
-          title: string
-          updated_at?: string
-          value: number
-        }
-        Update: {
-          active?: boolean
-          created_at?: string
-          description?: string | null
-          id?: string
-          interest_payment_by?:
-            | Database["public"]["Enums"]["interest_payment_by"]
-            | null
-          max_installments?: number | null
-          payment_methods?: Database["public"]["Enums"]["payment_method"][]
-          title?: string
-          updated_at?: string
-          value?: number
-        }
-        Relationships: []
-      }
-      conveniados: {
+      associados: {
         Row: {
           cidade: string
           cpf: string
@@ -99,6 +54,51 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_type"]
           telefone?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      association_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          interest_payment_by:
+            | Database["public"]["Enums"]["interest_payment_by"]
+            | null
+          max_installments: number | null
+          payment_methods: Database["public"]["Enums"]["payment_method"][]
+          title: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          interest_payment_by?:
+            | Database["public"]["Enums"]["interest_payment_by"]
+            | null
+          max_installments?: number | null
+          payment_methods: Database["public"]["Enums"]["payment_method"][]
+          title: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          interest_payment_by?:
+            | Database["public"]["Enums"]["interest_payment_by"]
+            | null
+          max_installments?: number | null
+          payment_methods?: Database["public"]["Enums"]["payment_method"][]
+          title?: string
+          updated_at?: string
+          value?: number
         }
         Relationships: []
       }
@@ -172,8 +172,8 @@ export type Database = {
         Row: {
           asaas_customer_id: string | null
           asaas_subscription_id: string | null
+          associado_id: string
           association_type_id: string
-          conveniado_id: string
           created_at: string
           id: string
           installments: number | null
@@ -184,8 +184,8 @@ export type Database = {
         Insert: {
           asaas_customer_id?: string | null
           asaas_subscription_id?: string | null
+          associado_id: string
           association_type_id: string
-          conveniado_id: string
           created_at?: string
           id?: string
           installments?: number | null
@@ -196,8 +196,8 @@ export type Database = {
         Update: {
           asaas_customer_id?: string | null
           asaas_subscription_id?: string | null
+          associado_id?: string
           association_type_id?: string
-          conveniado_id?: string
           created_at?: string
           id?: string
           installments?: number | null
@@ -207,17 +207,17 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "member_subscriptions_associado_id_fkey"
+            columns: ["associado_id"]
+            isOneToOne: false
+            referencedRelation: "associados"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "member_subscriptions_association_type_id_fkey"
             columns: ["association_type_id"]
             isOneToOne: false
             referencedRelation: "association_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "member_subscriptions_conveniado_id_fkey"
-            columns: ["conveniado_id"]
-            isOneToOne: false
-            referencedRelation: "conveniados"
             referencedColumns: ["id"]
           },
         ]

@@ -30,7 +30,7 @@ export const saveAssociado = async (data: AssociadoFormData) => {
   };
   
   const { data: associadoResult, error } = await supabase
-    .from('conveniados')
+    .from('associados')
     .insert(associadoData)
     .select('id')
     .single();
@@ -86,7 +86,7 @@ export const importAssociados = async (data: ImportAssociadoData[]) => {
   }));
   
   const { error } = await supabase
-    .from('conveniados')
+    .from('associados')
     .insert(associados);
     
   if (error) {
@@ -98,7 +98,7 @@ export const importAssociados = async (data: ImportAssociadoData[]) => {
 
 export const exportAssociados = async () => {
   const { data: associados, error } = await supabase
-    .from('conveniados')
+    .from('associados')
     .select('*');
     
   if (error) throw error;
