@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
-import { Search, Check, X, Car } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Check, X, Clock, Car, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -13,6 +14,14 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ConveniadoData {
   id: string;
@@ -26,6 +35,7 @@ interface ConveniadoData {
   placa_principal?: string;
   placa_secundaria?: string;
   foto?: string;
+  cidade: string;
 }
 
 const PesquisaConveniado: React.FC = () => {
@@ -33,6 +43,8 @@ const PesquisaConveniado: React.FC = () => {
   const [searchType, setSearchType] = useState<'nome' | 'cpf' | 'creci' | 'placa'>('nome');
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<ConveniadoData[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   // Mock data - would be fetched from API in real implementation
@@ -47,6 +59,7 @@ const PesquisaConveniado: React.FC = () => {
       email: 'joao@example.com', 
       telefone: '(47) 99999-1111',
       placa_principal: 'ABC1234',
+      cidade: 'Blumenau',
       foto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
     },
     { 
@@ -60,6 +73,7 @@ const PesquisaConveniado: React.FC = () => {
       telefone: '(47) 99999-2222',
       placa_principal: 'XYZ9876',
       placa_secundaria: 'DEF5432',
+      cidade: 'Florianópolis',
       foto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
     },
     { 
@@ -71,7 +85,8 @@ const PesquisaConveniado: React.FC = () => {
       status: 'pendente', 
       email: 'pedro@example.com', 
       telefone: '(47) 99999-3333',
-      placa_principal: 'GHI7890'
+      placa_principal: 'GHI7890',
+      cidade: 'Joinville',
     },
     { 
       id: '4', 
@@ -82,9 +97,43 @@ const PesquisaConveniado: React.FC = () => {
       status: 'inativo', 
       email: 'ana@example.com', 
       telefone: '(47) 99999-4444',
-      placa_principal: 'JKL4567'
+      placa_principal: 'JKL4567',
+      cidade: 'Criciúma',
     },
   ];
+
+  const fetchAllConveniados = async () => {
+    setIsLoading(true);
+    try {
+      // In a real implementation, this would fetch from Supabase
+      // For now using mock data with a delay to simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Filter by status if not 'todos'
+      let filteredResults = [...mockData];
+      
+      if (statusFilter !== 'todos') {
+        filteredResults = mockData.filter(item => item.status === statusFilter);
+      }
+      
+      setResults(filteredResults);
+      
+      if (filteredResults.length === 0) {
+        toast({
+          title: "Nenhum conveniado encontrado",
+          description: "Não foram encontrados conveniados com os critérios informados.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro na busca",
+        description: "Ocorreu um erro ao buscar os conveniados. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,6 +175,11 @@ const PesquisaConveniado: React.FC = () => {
         );
       }
       
+      // Apply status filter if set
+      if (statusFilter !== 'todos') {
+        filteredResults = filteredResults.filter(item => item.status === statusFilter);
+      }
+      
       setResults(filteredResults);
       
       if (filteredResults.length === 0) {
@@ -150,7 +204,7 @@ const PesquisaConveniado: React.FC = () => {
       case 'ativo':
         return <Badge variant="default" className="bg-green-500 hover:bg-green-600 flex items-center gap-1"><Check size={14} />Ativo</Badge>;
       case 'pendente':
-        return <Badge variant="secondary" className="bg-yellow-500 text-white hover:bg-yellow-600">Pendente</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-500 text-white hover:bg-yellow-600 flex items-center gap-1"><Clock size={14} />Pendente</Badge>;
       case 'inativo':
         return <Badge variant="destructive" className="flex items-center gap-1"><X size={14} />Inativo</Badge>;
       default:
@@ -200,13 +254,43 @@ const PesquisaConveniado: React.FC = () => {
             </div>
             
             <div className="flex items-end">
-              <button 
+              <Button 
                 type="submit" 
-                className="wp-button w-full"
+                className="w-full"
                 disabled={isSearching}
               >
                 {isSearching ? 'Buscando...' : 'Buscar'}
-              </button>
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex flex-col md:flex-row md:justify-between gap-4 mt-4">
+            <div className="flex gap-2 items-center">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="gap-2"
+                onClick={fetchAllConveniados}
+                disabled={isLoading}
+              >
+                {isLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : null}
+                Listar Todos
+              </Button>
+              
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => setStatusFilter(value)}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Status</SelectItem>
+                  <SelectItem value="ativo">Ativos</SelectItem>
+                  <SelectItem value="pendente">Pendentes</SelectItem>
+                  <SelectItem value="inativo">Inativos</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </form>
@@ -221,10 +305,10 @@ const PesquisaConveniado: React.FC = () => {
                 <TableRow>
                   <TableHead>Conveniado</TableHead>
                   <TableHead>CPF</TableHead>
+                  <TableHead>Cidade</TableHead>
                   <TableHead>CRECI</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Placa Principal</TableHead>
-                  <TableHead>Placa Secundária</TableHead>
                   <TableHead>Contato</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -242,6 +326,7 @@ const PesquisaConveniado: React.FC = () => {
                       </div>
                     </TableCell>
                     <TableCell>{item.cpf}</TableCell>
+                    <TableCell>{item.cidade}</TableCell>
                     <TableCell>{item.creci}</TableCell>
                     <TableCell>{getStatusBadge(item.status)}</TableCell>
                     <TableCell>
@@ -253,14 +338,6 @@ const PesquisaConveniado: React.FC = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {item.placa_secundaria && (
-                        <div className="flex items-center space-x-1">
-                          <Car size={16} />
-                          <span>{item.placa_secundaria}</span>
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
                       <div className="text-sm">
                         <p>{item.email}</p>
                         <p>{item.telefone}</p>
@@ -268,8 +345,8 @@ const PesquisaConveniado: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <button className="wp-button-secondary text-xs py-1 px-2">Ver</button>
-                        <button className="wp-button text-xs py-1 px-2">Carteirinha</button>
+                        <Button variant="outline" size="sm">Ver</Button>
+                        <Button size="sm">Carteirinha</Button>
                       </div>
                     </TableCell>
                   </TableRow>

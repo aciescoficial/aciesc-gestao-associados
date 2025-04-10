@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, UserCheck, UserX, RefreshCw } from 'lucide-react';
+import { Search, UserCheck, UserX, Clock, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
@@ -46,7 +46,7 @@ const ListaConveniados: React.FC = () => {
   const [conveniados, setConveniados] = useState<Conveniado[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [statusFilter, setStatusFilter] = useState<ConveniadoStatus | 'todos'>('todos');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const { toast } = useToast();
@@ -108,7 +108,7 @@ const ListaConveniados: React.FC = () => {
       case 'ativo':
         return <Badge variant="default" className="bg-green-500 hover:bg-green-600"><UserCheck className="h-3 w-3 mr-1" />Ativo</Badge>;
       case 'pendente':
-        return <Badge variant="secondary" className="bg-yellow-500 text-white hover:bg-yellow-600">Pendente</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-500 text-white hover:bg-yellow-600"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
       case 'inativo':
         return <Badge variant="destructive"><UserX className="h-3 w-3 mr-1" />Inativo</Badge>;
       default:
@@ -143,7 +143,7 @@ const ListaConveniados: React.FC = () => {
             <Select
               value={statusFilter}
               onValueChange={(value) => {
-                setStatusFilter(value);
+                setStatusFilter(value as ConveniadoStatus | 'todos');
                 setCurrentPage(1);
               }}
             >
