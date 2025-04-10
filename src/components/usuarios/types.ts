@@ -1,11 +1,11 @@
 
-export type UserRole = 'admin' | 'diretoria' | 'conveniado' | 'associado' | 'user';
+export type UserRole = 'admin' | 'diretoria' | 'associado' | 'associado' | 'user';
 
 export type Permission = {
   id: string;
   name: string;
   description: string;
-  module: 'conveniados' | 'empresas' | 'financeiro' | 'configuracoes';
+  module: 'associados' | 'empresas' | 'financeiro' | 'configuracoes';
   defaultRoles: UserRole[];
 };
 

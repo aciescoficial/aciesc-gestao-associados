@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -43,16 +44,16 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   const { isAdmin, isDirector, isAssociado, isEmpresa, userRole } = useAuth();
   
   const allMenuItems: MenuItem[] = [
-    { icon: Home, label: "Dashboard", path: "/", roles: ['admin', 'diretoria', 'associado', 'conveniado'] },
+    { icon: Home, label: "Dashboard", path: "/", roles: ['admin', 'diretoria', 'associado', 'associado'] },
     { header: "Admin", roles: ['admin'] },
     { icon: UserCog, label: "Usuários", path: "/usuarios/gerenciar", roles: ['admin'] },
     { icon: Shield, label: "Permissões", path: "/usuarios/permissoes", roles: ['admin'] },
-    { header: "Conveniados", roles: ['admin', 'diretoria'] },
-    { icon: UserPlus, label: "Cadastrar", path: "/conveniados/cadastrar", roles: ['admin', 'diretoria'] },
-    { icon: CheckSquare, label: "Aprovação Pendente", path: "/conveniados/pendentes", roles: ['admin', 'diretoria'] },
-    { icon: CreditCard, label: "Gerar Carteirinha", path: "/conveniados/carteirinha", roles: ['admin', 'diretoria'] },
-    { icon: Search, label: "Pesquisar", path: "/conveniados/pesquisar", roles: ['admin', 'diretoria', 'conveniado'] },
-    { icon: Users, label: "Listar Todos", path: "/conveniados/listar", roles: ['admin', 'diretoria'] },
+    { header: "Associados", roles: ['admin', 'diretoria'] },
+    { icon: UserPlus, label: "Cadastrar", path: "/associados/cadastrar", roles: ['admin', 'diretoria'] },
+    { icon: CheckSquare, label: "Aprovação Pendente", path: "/associados/pendentes", roles: ['admin', 'diretoria'] },
+    { icon: CreditCard, label: "Gerar Carteirinha", path: "/associados/carteirinha", roles: ['admin', 'diretoria'] },
+    { icon: Search, label: "Pesquisar", path: "/associados/pesquisar", roles: ['admin', 'diretoria', 'associado'] },
+    { icon: Users, label: "Listar Todos", path: "/associados/listar", roles: ['admin', 'diretoria'] },
     { header: "Empresas", roles: ['admin', 'diretoria'] },
     { icon: Building, label: "Cadastrar", path: "/empresas/cadastrar", roles: ['admin', 'diretoria'] },
     { icon: CheckSquare, label: "Aprovação Pendente", path: "/empresas/pendentes", roles: ['admin', 'diretoria'] },
@@ -71,11 +72,11 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
     { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['associado'] },
     { icon: Building, label: "Empresas Conveniadas", path: "/empresas-conveniadas", roles: ['associado'] },
     // Empresa specific menu items
-    { header: "Área da Empresa", roles: ['conveniado'] },
-    { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['conveniado'] },
+    { header: "Área da Empresa", roles: ['associado'] },
+    { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['associado'] },
     // Mensagens for all users
-    { header: "Comunicação", roles: ['admin', 'diretoria', 'associado', 'conveniado'] },
-    { icon: MessageSquare, label: "Mensagens", path: "/mensagens", roles: ['admin', 'diretoria', 'associado', 'conveniado'] },
+    { header: "Comunicação", roles: ['admin', 'diretoria', 'associado', 'associado'] },
+    { icon: MessageSquare, label: "Mensagens", path: "/mensagens", roles: ['admin', 'diretoria', 'associado', 'associado'] },
   ];
   
   // Filter menu items based on user role

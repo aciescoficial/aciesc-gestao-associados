@@ -14,9 +14,9 @@ import {
 
 // Component imports
 import Dashboard from '@/components/Dashboard';
-import CadastroConveniado from '@/components/CadastroConveniado';
+import CadastroAssociado from '@/components/CadastroAssociado';
 import CadastroEmpresa from '@/components/CadastroEmpresa';
-import PesquisaConveniado from '@/components/PesquisaConveniado';
+import PesquisaAssociado from '@/components/PesquisaAssociado';
 import PesquisaEmpresa from '@/components/PesquisaEmpresa';
 import AprovacoesPendentes from '@/components/AprovacoesPendentes';
 import GeradorCarteirinha from '@/components/carteirinha/GeradorCarteirinha';
@@ -24,7 +24,7 @@ import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
 import UserManagement from '@/components/usuarios/UserManagement';
 import PermissionPanel from '@/components/usuarios/PermissionPanel';
 import ProfilePage from '@/components/auth/ProfilePage';
-import ListaConveniados from '@/components/conveniado/ListaConveniados';
+import ListaAssociados from '@/components/associado/ListaAssociados';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 
@@ -67,23 +67,23 @@ const Index: React.FC = () => {
       } />
       
       {/* Admin, Diretoria routes */}
-      <Route path="/conveniados/cadastrar" element={
+      <Route path="/associados/cadastrar" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <LayoutWrapper>
-            <CadastroConveniado />
+            <CadastroAssociado />
           </LayoutWrapper>
         </ProtectedRoute>
       } />
       
-      <Route path="/conveniados/listar" element={
+      <Route path="/associados/listar" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <LayoutWrapper>
-            <ListaConveniados />
+            <ListaAssociados />
           </LayoutWrapper>
         </ProtectedRoute>
       } />
       
-      <Route path="/conveniados/pendentes" element={
+      <Route path="/associados/pendentes" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <LayoutWrapper>
             <AprovacoesPendentes />
@@ -91,7 +91,7 @@ const Index: React.FC = () => {
         </ProtectedRoute>
       } />
       
-      <Route path="/conveniados/carteirinha" element={
+      <Route path="/associados/carteirinha" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <LayoutWrapper>
             <GeradorCarteirinha />
@@ -100,10 +100,10 @@ const Index: React.FC = () => {
       } />
       
       {/* Admin, Diretoria, Empresa routes */}
-      <Route path="/conveniados/pesquisar" element={
-        <ProtectedRoute allowedRoles={['admin', 'diretoria', 'conveniado']}>
+      <Route path="/associados/pesquisar" element={
+        <ProtectedRoute allowedRoles={['admin', 'diretoria', 'associado']}>
           <LayoutWrapper>
-            <PesquisaConveniado />
+            <PesquisaAssociado />
           </LayoutWrapper>
         </ProtectedRoute>
       } />

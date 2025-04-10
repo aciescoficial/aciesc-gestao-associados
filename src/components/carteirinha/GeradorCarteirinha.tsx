@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CardSettings, ConveniadoData, ACIESC_COLORS } from './types';
 import { mockData } from './mock-data';
 import SearchPanel from './SearchPanel';
-import ConveniadoInfoCard from './ConveniadoInfoCard';
+import AssociadoInfoCard from './ConveniadoInfoCard';
 import CardPersonalizationPanel from './CardPersonalizationPanel';
 import CardPreviewPanel from './CardPreviewPanel';
 
@@ -38,7 +38,7 @@ const GeradorCarteirinha: React.FC = () => {
     if (!searchTerm.trim()) {
       toast({
         title: "Campo de busca vazio",
-        description: "Por favor, insira um nome ou CPF para buscar o conveniado.",
+        description: "Por favor, insira um nome ou CPF para buscar o associado.",
         variant: "destructive",
       });
       return;
@@ -61,7 +61,7 @@ const GeradorCarteirinha: React.FC = () => {
       if (filteredResults.length === 0) {
         toast({
           title: "Nenhum resultado encontrado",
-          description: "Não foram encontrados conveniados com os critérios informados.",
+          description: "Não foram encontrados associados com os critérios informados.",
         });
         setSelectedConveniado(null);
       } else if (filteredResults.length === 1) {
@@ -72,7 +72,7 @@ const GeradorCarteirinha: React.FC = () => {
         setSelectedConveniado(filteredResults[0]);
         toast({
           title: "Múltiplos resultados",
-          description: `Encontramos ${filteredResults.length} conveniados. Exibindo o primeiro resultado.`,
+          description: `Encontramos ${filteredResults.length} associados. Exibindo o primeiro resultado.`,
         });
       }
     } catch (error) {
@@ -122,8 +122,8 @@ const GeradorCarteirinha: React.FC = () => {
       
       {selectedConveniado && (
         <div className="wp-card">
-          <h2 className="wp-subheader text-aciesc-primary">Dados do Conveniado</h2>
-          <ConveniadoInfoCard selectedConveniado={selectedConveniado} />
+          <h2 className="wp-subheader text-aciesc-primary">Dados do Associado</h2>
+          <AssociadoInfoCard selectedConveniado={selectedConveniado} />
           
           <CardPersonalizationPanel
             cardSettings={cardSettings}

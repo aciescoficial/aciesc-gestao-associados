@@ -2,11 +2,11 @@
 import React from 'react';
 import { ConveniadoData } from './types';
 
-interface ConveniadoInfoCardProps {
+interface AssociadoInfoCardProps {
   selectedConveniado: ConveniadoData;
 }
 
-const ConveniadoInfoCard: React.FC<ConveniadoInfoCardProps> = ({ selectedConveniado }) => {
+const AssociadoInfoCard: React.FC<AssociadoInfoCardProps> = ({ selectedConveniado }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between border-b pb-2">
@@ -29,4 +29,4 @@ const ConveniadoInfoCard: React.FC<ConveniadoInfoCardProps> = ({ selectedConveni
   );
 };
 
-export default ConveniadoInfoCard;
+export default AssociadoInfoCard;
