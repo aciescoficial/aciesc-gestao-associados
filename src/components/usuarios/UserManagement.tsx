@@ -33,6 +33,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, PlusCircle, RefreshCw, Search } from 'lucide-react';
 
+type UserRole = "associado" | "admin" | "user" | "diretoria" | "conveniado" | "empresa";
+
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);

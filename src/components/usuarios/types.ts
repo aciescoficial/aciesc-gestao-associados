@@ -1,19 +1,29 @@
 
-export type UserRole = 'admin' | 'diretoria' | 'associado' | 'empresa' | 'conveniado' | 'user';
+export type UserRole = "associado" | "admin" | "user" | "diretoria" | "conveniado" | "empresa";
 
-export type Permission = {
+export interface UserProfile {
   id: string;
-  name: string;
-  description: string;
-  module: 'associados' | 'empresas' | 'financeiro' | 'configuracoes';
-  defaultRoles: UserRole[];
-};
-
-export type User = {
-  id: string;
+  user_id: string;
   name: string;
   email: string;
   role: UserRole;
-  active: boolean;
-  createdAt: Date;
-};
+  created_at?: string;
+  avatar_url?: string;
+  active?: boolean;
+  last_sign_in?: string;
+}
+
+export interface RoleInfo {
+  id: UserRole;
+  name: string;
+  description: string;
+  icon: JSX.Element;
+}
+
+export interface Permission {
+  id: string;
+  name: string;
+  description: string;
+  module: 'associados' | 'financeiro' | 'sistema' | 'empresas';
+  roles: UserRole[];
+}

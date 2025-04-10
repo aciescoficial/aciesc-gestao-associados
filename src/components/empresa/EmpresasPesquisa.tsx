@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Search, Map, MapPin, Navigation, Locate, Building,
   Check, X
@@ -7,8 +7,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from '@/integrations/supabase/types';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { GoogleMap, useLoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import { useGoogleMapsApi } from '@/hooks/use-google-maps-api';
 import {
   Select,
   SelectContent,
@@ -37,37 +37,33 @@ interface EmpresaData {
   cep: string;
 }
 
-// Temporary Mapbox token input component
-const MapboxTokenInput = ({ onTokenSet }: { onTokenSet: (token: string) => void }) => {
-  const [token, setToken] = useState('');
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (token.trim()) {
-      onTokenSet(token);
-      localStorage.setItem('mapbox_token', token);
-    }
-  };
-
+// Componente que redireciona para a página de configuração quando não há chave da API
+const ApiKeyRedirect: React.FC = () => {
   return (
     <div className="wp-card p-4 mb-4">
-      <h3 className="font-medium mb-2">Configuração do Mapa</h3>
+      <h3 className="font-medium mb-2">Configuração do Google Maps Necessária</h3>
       <p className="text-sm text-gray-500 mb-4">
-        Para usar o mapa, insira seu token público do Mapbox. 
-        Você pode obter um token em <a href="https://mapbox.com/" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">mapbox.com</a>
+        Para utilizar o mapa, é necessário configurar a chave da API do Google Maps.
       </p>
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input 
-          type="text" 
-          className="wp-input flex-grow"
-          placeholder="Insira seu token público do Mapbox" 
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-        />
-        <button type="submit" className="wp-button">Salvar</button>
-      </form>
+      <a href="/configuracoes" className="wp-button inline-block">Ir para Configurações</a>
     </div>
   );
+};
+
+// Estilo do mapa
+const mapContainerStyle = {
+  width: '100%',
+  height: '500px',
+  borderRadius: '0.5rem',
+};
+
+// Opções do mapa
+const defaultMapOptions = {
+  disableDefaultUI: false,
+  zoomControl: true,
+  mapTypeControl: true,
+  streetViewControl: false,
+  fullscreenControl: true,
 };
 
 const EmpresasPesquisa: React.FC = () => {
@@ -76,94 +72,22 @@ const EmpresasPesquisa: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<EmpresaData[]>([]);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string | null>(localStorage.getItem('mapbox_token'));
+  const [selectedEmpresa, setSelectedEmpresa] = useState<EmpresaData | null>(null);
   const { toast } = useToast();
+  const { apiKey, isLoading: isLoadingApiKey } = useGoogleMapsApi();
   
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const markers = useRef<mapboxgl.Marker[]>([]);
-  const [mapRendered, setMapRendered] = useState(false);
-
-  // Initialize map when token is available
+  // Carrega a API do Google Maps
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: apiKey || '',
+    libraries: ['places'],
+  });
+  
+  // Inicializar a localização atual
   useEffect(() => {
-    if (!mapboxToken || !mapContainer.current) return;
-    
-    mapboxgl.accessToken = mapboxToken;
-    
-    if (!map.current) {
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: currentLocation ? [currentLocation.lng, currentLocation.lat] : [-47.9292, -15.7801], // Default to Brasília if no location
-        zoom: 10
-      });
-      
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      map.current.addControl(
-        new mapboxgl.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true
-          },
-          trackUserLocation: true
-        })
-      );
-
-      setMapRendered(true);
-
-      // Get current location on map load
-      if (!currentLocation) {
-        getCurrentLocation();
-      }
+    if (searchType === 'mapa' && !currentLocation) {
+      getCurrentLocation();
     }
-
-    // Clean up on unmount
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
-  }, [mapboxToken, currentLocation]);
-
-  // Update markers when results change
-  useEffect(() => {
-    if (!map.current) return;
-    
-    // Clear existing markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
-    
-    // Add new markers
-    results.forEach((empresa) => {
-      if (empresa.latitude && empresa.longitude) {
-        const popup = new mapboxgl.Popup({ offset: 25 })
-          .setHTML(`
-            <h3 class="font-bold">${empresa.nome_fantasia}</h3>
-            <p>${empresa.nicho}</p>
-            <p>${empresa.endereco}, ${empresa.cidade}</p>
-            <div class="mt-2">
-              <a href="tel:${empresa.telefone}" class="text-blue-500 hover:underline">${empresa.telefone}</a>
-            </div>
-          `);
-          
-        const marker = new mapboxgl.Marker({ color: '#3B82F6' })
-          .setLngLat([empresa.longitude, empresa.latitude])
-          .setPopup(popup)
-          .addTo(map.current!);
-          
-        markers.current.push(marker);
-      }
-    });
-    
-    // Fit bounds to markers if there are any
-    if (markers.current.length > 0 && map.current) {
-      const bounds = new mapboxgl.LngLatBounds();
-      markers.current.forEach(marker => {
-        bounds.extend(marker.getLngLat());
-      });
-      map.current.fitBounds(bounds, { padding: 50 });
-    }
-  }, [results, map.current]);
+  }, [searchType]);
 
   // Get user's current location
   const getCurrentLocation = () => {
@@ -180,13 +104,6 @@ const EmpresasPesquisa: React.FC = () => {
       (position) => {
         const { latitude, longitude } = position.coords;
         setCurrentLocation({ lat: latitude, lng: longitude });
-        
-        if (map.current) {
-          map.current.flyTo({
-            center: [longitude, latitude],
-            zoom: 13
-          });
-        }
         
         // Search for companies near the location
         searchNearbyCompanies(latitude, longitude);
@@ -328,6 +245,87 @@ const EmpresasPesquisa: React.FC = () => {
     }
   };
 
+  // Função para localizar uma empresa no mapa
+  const locateEmpresa = useCallback((empresa: EmpresaData) => {
+    if (!isLoaded || !empresa.latitude || !empresa.longitude) return;
+    
+    setSelectedEmpresa(empresa);
+    setCurrentLocation({ lat: empresa.latitude, lng: empresa.longitude });
+  }, [isLoaded]);
+
+  // Renderiza o mapa
+  const renderMap = () => {
+    if (loadError) {
+      return (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+          Erro ao carregar o mapa do Google Maps. Verifique sua chave da API.
+        </div>
+      );
+    }
+
+    if (!isLoaded) {
+      return (
+        <div className="flex justify-center items-center h-[500px] bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      );
+    }
+
+    return (
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        zoom={12}
+        center={currentLocation || { lat: -15.7801, lng: -47.9292 }} // Brasília como padrão
+        options={defaultMapOptions}
+      >
+        {/* Marcador para a localização atual */}
+        {currentLocation && (
+          <Marker
+            position={currentLocation}
+            icon={{
+              url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+              scaledSize: new google.maps.Size(50, 50)
+            }}
+          />
+        )}
+        
+        {/* Marcadores para as empresas */}
+        {results.map((empresa) => (
+          <Marker
+            key={empresa.id}
+            position={{ 
+              lat: empresa.latitude || -15.7801, 
+              lng: empresa.longitude || -47.9292 
+            }}
+            onClick={() => setSelectedEmpresa(empresa)}
+          />
+        ))}
+        
+        {/* Janela de informações para a empresa selecionada */}
+        {selectedEmpresa && (
+          <InfoWindow
+            position={{ 
+              lat: selectedEmpresa.latitude || -15.7801, 
+              lng: selectedEmpresa.longitude || -47.9292
+            }}
+            onCloseClick={() => setSelectedEmpresa(null)}
+          >
+            <div className="p-2 max-w-xs">
+              <h3 className="font-bold text-base">{selectedEmpresa.nome_fantasia}</h3>
+              <p className="text-sm my-1">{selectedEmpresa.nicho}</p>
+              <p className="text-sm">{selectedEmpresa.endereco}, {selectedEmpresa.cidade}</p>
+              <div className="mt-2">
+                <a href={`tel:${selectedEmpresa.telefone}`} className="text-blue-500 hover:underline text-sm">
+                  {selectedEmpresa.telefone}
+                </a>
+              </div>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="wp-header flex items-center gap-2">
@@ -335,8 +333,9 @@ const EmpresasPesquisa: React.FC = () => {
         GeoDirectório de Empresas Conveniadas
       </h1>
       
-      {searchType === 'mapa' && !mapboxToken && (
-        <MapboxTokenInput onTokenSet={setMapboxToken} />
+      {/* Exibir redirecionamento para configuração se não houver chave da API */}
+      {searchType === 'mapa' && !apiKey && !isLoadingApiKey && (
+        <ApiKeyRedirect />
       )}
       
       <div className="wp-card">
@@ -396,6 +395,7 @@ const EmpresasPesquisa: React.FC = () => {
                     type="button" 
                     onClick={getCurrentLocation}
                     className="wp-button-secondary flex items-center gap-2 h-10"
+                    disabled={!apiKey}
                   >
                     <Locate size={16} />
                     Usar minha localização
@@ -408,7 +408,7 @@ const EmpresasPesquisa: React.FC = () => {
               <button 
                 type="submit" 
                 className="wp-button w-full flex items-center justify-center gap-2"
-                disabled={isSearching || (searchType === 'mapa' && !mapboxToken)}
+                disabled={isSearching || (searchType === 'mapa' && !apiKey)}
               >
                 {searchType === 'mapa' ? (
                   <>
@@ -424,8 +424,8 @@ const EmpresasPesquisa: React.FC = () => {
         </form>
       </div>
       
-      {/* Map View - Now always visible when mapbox token is set */}
-      {mapboxToken && (
+      {/* Map View - Agora usando Google Maps */}
+      {apiKey && (
         <div className="wp-card">
           <h2 className="wp-subheader mb-4 flex items-center gap-2">
             <MapPin className="h-5 w-5" />
@@ -436,10 +436,9 @@ const EmpresasPesquisa: React.FC = () => {
               </span>
             )}
           </h2>
-          <div 
-            ref={mapContainer} 
-            className="h-[500px] w-full rounded-lg border border-gray-200 overflow-hidden"
-          />
+          
+          {renderMap()}
+          
           <div className="flex items-center justify-between mt-3">
             <p className="text-sm text-gray-500">
               Clique nos marcadores para ver detalhes das empresas.
@@ -447,6 +446,7 @@ const EmpresasPesquisa: React.FC = () => {
             <button
               onClick={getCurrentLocation}
               className="wp-button-secondary text-sm px-4 py-1 flex items-center gap-2"
+              disabled={!apiKey}
             >
               <Navigation size={14} />
               Atualizar minha localização
@@ -484,15 +484,8 @@ const EmpresasPesquisa: React.FC = () => {
                       <div className="flex space-x-2">
                         <button 
                           className="wp-button-secondary text-xs py-1 px-2 flex items-center gap-1"
-                          onClick={() => {
-                            if (item.latitude && item.longitude && map.current) {
-                              map.current.flyTo({
-                                center: [item.longitude, item.latitude],
-                                zoom: 16,
-                                duration: 1500
-                              });
-                            }
-                          }}
+                          onClick={() => locateEmpresa(item)}
+                          disabled={!apiKey || !isLoaded}
                         >
                           <MapPin size={12} />
                           Localizar
