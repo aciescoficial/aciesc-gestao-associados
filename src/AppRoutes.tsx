@@ -16,6 +16,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/" element={<RouteComponents.Index />} />
         <Route path="*" element={<RouteComponents.NotFound />} />
 
+        {/* Fixed route by using element with children prop properly through Outlet */}
         <Route path="/" element={<PluginLayout />}>
           <Route path="/dashboard" element={<RouteComponents.Dashboard />} />
 
