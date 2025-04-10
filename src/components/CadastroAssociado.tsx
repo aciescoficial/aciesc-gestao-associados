@@ -1,6 +1,7 @@
 
 import React from 'react';
 import AssociadoForm from './associado/AssociadoForm';
+import { ImportExportAssociado } from './associado/ImportExportAssociado';
 
 const CadastroAssociado: React.FC = () => {
   return (
@@ -9,6 +10,7 @@ const CadastroAssociado: React.FC = () => {
       
       <div className="wp-card">
         <AssociadoForm />
+        <ImportExportAssociado />
       </div>
     </div>
   );
