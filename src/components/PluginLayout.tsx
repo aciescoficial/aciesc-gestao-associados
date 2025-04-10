@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -24,13 +23,14 @@ import {
 } from 'lucide-react';
 import UserProfileMenu from './auth/UserProfileMenu';
 import { useAuth } from './auth/AuthProvider';
+import { LucideIcon } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 interface MenuItem {
-  icon?: React.FC<{ size?: number }>;
+  icon?: LucideIcon;
   label?: string;
   path?: string;
   header?: string;

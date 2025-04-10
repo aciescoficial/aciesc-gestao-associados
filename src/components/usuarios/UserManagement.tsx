@@ -1,17 +1,16 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash, Check, X } from 'lucide-react';
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogFooter,
-  DialogTrigger
+  DialogFooter
 } from '@/components/ui/dialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { User, UserRole } from './types';
+import { supabase } from '@/integrations/supabase/client';
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([
@@ -27,7 +26,7 @@ const UserManagement: React.FC = () => {
       id: '2',
       name: 'Normal User',
       email: 'user@aciesc.com.br',
-      role: 'normal',
+      role: 'associado',
       active: true,
       createdAt: new Date()
     },
@@ -47,10 +46,45 @@ const UserManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: 'normal' as UserRole,
+    role: 'associado' as UserRole,
     password: '',
     confirmPassword: ''
   });
+
+  useEffect(() => {
+    const updateUserRole = async () => {
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', 'agencia.hubimobi@gmail.com')
+          .single();
+
+        if (userError) {
+          console.error('Error fetching user:', userError);
+          return;
+        }
+
+        if (userData && userData.role !== 'admin') {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ role: 'admin' })
+            .eq('email', 'agencia.hubimobi@gmail.com');
+
+          if (updateError) {
+            console.error('Error updating user role:', updateError);
+          } else {
+            console.log('User role updated to admin successfully');
+            toast.success('Usuário agencia.hubimobi@gmail.com atualizado para Administrador');
+          }
+        }
+      } catch (error) {
+        console.error('Error in updateUserRole:', error);
+      }
+    };
+
+    updateUserRole();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -100,7 +134,6 @@ const UserManagement: React.FC = () => {
     }
 
     if (editingUser) {
-      // Editing existing user
       setUsers(users.map(user => {
         if (user.id !== editingUser.id) return user;
         return { 
@@ -112,7 +145,6 @@ const UserManagement: React.FC = () => {
       }));
       toast.success('Usuário atualizado com sucesso!');
     } else {
-      // Creating new user
       const newUser: User = {
         id: Date.now().toString(),
         name: formData.name,
@@ -130,7 +162,7 @@ const UserManagement: React.FC = () => {
     setFormData({
       name: '',
       email: '',
-      role: 'normal',
+      role: 'associado',
       password: '',
       confirmPassword: ''
     });
@@ -141,7 +173,7 @@ const UserManagement: React.FC = () => {
     setFormData({
       name: '',
       email: '',
-      role: 'normal',
+      role: 'associado',
       password: '',
       confirmPassword: ''
     });
@@ -188,8 +220,8 @@ const UserManagement: React.FC = () => {
                   }`}>
                     {user.role === 'admin' 
                       ? 'Administrador' 
-                      : user.role === 'normal' 
-                        ? 'Normal' 
+                      : user.role === 'associado' 
+                        ? 'Associado' 
                         : 'Conveniado'}
                   </span>
                 </TableCell>
@@ -277,7 +309,8 @@ const UserManagement: React.FC = () => {
                   required
                 >
                   <option value="admin">Administrador</option>
-                  <option value="normal">Normal</option>
+                  <option value="diretoria">Diretoria</option>
+                  <option value="associado">Associado</option>
                   <option value="conveniado">Conveniado</option>
                 </select>
               </div>
