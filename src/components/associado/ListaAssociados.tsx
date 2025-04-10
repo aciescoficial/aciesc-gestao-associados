@@ -45,7 +45,7 @@ const ListaAssociados: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<AssociadoStatus | 'todos'>('todos');
-  const [cidadeFilter, setCidadeFilter] = useState<string>('');
+  const [cidadeFilter, setCidadeFilter] = useState<string>('todas');
   const [cidades, setCidades] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -87,8 +87,8 @@ const ListaAssociados: React.FC = () => {
         query = query.eq('status', statusFilter);
       }
       
-      // Apply city filter if provided
-      if (cidadeFilter) {
+      // Apply city filter if provided and not 'todas'
+      if (cidadeFilter !== 'todas') {
         query = query.eq('cidade', cidadeFilter);
       }
 
@@ -187,7 +187,7 @@ const ListaAssociados: React.FC = () => {
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="todas">Todas</SelectItem>
                   {cidades.map((cidade) => (
                     <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
                   ))}
