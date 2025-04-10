@@ -98,10 +98,18 @@ const AssociationTypeForm: React.FC<AssociationTypeFormProps> = ({ onSuccess, in
           description: 'Tipo de associação atualizado com sucesso.',
         });
       } else {
-        // Create new association type
+        // Create new association type - Fix: ensure required fields are present
+        const formData = {
+          ...values,
+          // Ensure required fields have values
+          title: values.title || '',
+          value: values.value || 0,
+          payment_methods: values.payment_methods || [],
+        };
+        
         const { error } = await supabase
           .from('association_types')
-          .insert(values); // Fix: passing values directly, not as an array
+          .insert(formData);
         
         if (error) throw error;
         
