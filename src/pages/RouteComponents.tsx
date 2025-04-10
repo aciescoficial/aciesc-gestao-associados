@@ -29,8 +29,8 @@ export const CobrancasPage = () => (
   </div>
 );
 
-// Page for messages was replaced with the actual implementation
-export const MensagensPageRoute = () => <MensagensPage />;
+// Export MensagensPage route component
+export { MensagensPage };
 
 // Placeholder for member payment page
 export const PagamentosAssociadoPage = () => (
