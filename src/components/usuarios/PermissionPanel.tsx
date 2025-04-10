@@ -37,16 +37,16 @@ const PermissionPanel: React.FC = () => {
       setPermissions([
         {
           id: '1',
-          name: 'view_conveniados',
-          description: 'Visualizar conveniados',
-          module: 'conveniados',
+          name: 'view_associados',
+          description: 'Visualizar associados',
+          module: 'associados',
           defaultRoles: ['admin', 'diretoria', 'associado']
         },
         {
           id: '2',
-          name: 'edit_conveniados',
-          description: 'Editar conveniados',
-          module: 'conveniados',
+          name: 'edit_associados',
+          description: 'Editar associados',
+          module: 'associados',
           defaultRoles: ['admin', 'diretoria']
         },
         {
@@ -149,11 +149,11 @@ const PermissionPanel: React.FC = () => {
       </TableHeader>
       <TableBody>
         {permissions
-          .filter(p => p.module === 'conveniados')
+          .filter(p => p.module === 'associados')
           .map(permission => {
             const permissionKey = `${permission.id}-${role}`;
             return (
-              <TableRow key={`${permission.id}-${role}-conveniados`}>
+              <TableRow key={`${permission.id}-${role}-associados`}>
                 <TableCell>{permission.name}</TableCell>
                 <TableCell>{permission.description}</TableCell>
                 <TableCell>
@@ -244,7 +244,7 @@ const PermissionPanel: React.FC = () => {
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="admin">Administrador</TabsTrigger>
               <TabsTrigger value="diretoria">Diretoria</TabsTrigger>
-              <TabsTrigger value="conveniado">Conveniado</TabsTrigger>
+              <TabsTrigger value="empresa">Empresa</TabsTrigger>
               <TabsTrigger value="associado">Associado</TabsTrigger>
             </TabsList>
             
@@ -259,8 +259,8 @@ const PermissionPanel: React.FC = () => {
               {renderPermissionsTable('diretoria')}
             </TabsContent>
             
-            <TabsContent value="conveniado">
-              {renderPermissionsTable('conveniado')}
+            <TabsContent value="empresa">
+              {renderPermissionsTable('empresa')}
             </TabsContent>
 
             <TabsContent value="associado">
