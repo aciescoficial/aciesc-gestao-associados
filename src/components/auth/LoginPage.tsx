@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Navigate, Link } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, EyeOff, Key } from "lucide-react";
+import { UserRole } from '@/components/usuarios/types';
 
 const LoginPage = () => {
   const { signIn, signUp, user, resetPassword } = useAuth();
@@ -19,7 +20,7 @@ const LoginPage = () => {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [organizationType, setOrganizationType] = useState('associado');
+  const [organizationType, setOrganizationType] = useState<UserRole>('associado');
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { toast } = useToast();
@@ -50,7 +51,7 @@ const LoginPage = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await signUp(email, password, name);
+    const { error } = await signUp(email, password, name, organizationType);
     
     if (error) {
       toast({
@@ -174,14 +175,14 @@ const LoginPage = () => {
                     <Label>Tipo de Acesso</Label>
                     <Select 
                       value={organizationType} 
-                      onValueChange={setOrganizationType}
+                      onValueChange={(value) => setOrganizationType(value as UserRole)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo de acesso" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="associado">Associado</SelectItem>
-                        <SelectItem value="empresa">Empresa Conveniada</SelectItem>
+                        <SelectItem value="conveniado">Empresa Conveniada</SelectItem>
                         <SelectItem value="diretoria">Diretoria</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
                       </SelectContent>
@@ -303,14 +304,14 @@ const LoginPage = () => {
                       <Label>Tipo de Acesso</Label>
                       <Select 
                         value={organizationType} 
-                        onValueChange={setOrganizationType}
+                        onValueChange={(value) => setOrganizationType(value as UserRole)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o tipo de acesso" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="associado">Associado</SelectItem>
-                          <SelectItem value="empresa">Empresa Conveniada</SelectItem>
+                          <SelectItem value="conveniado">Empresa Conveniada</SelectItem>
                           <SelectItem value="diretoria">Diretoria</SelectItem>
                           <SelectItem value="admin">Administrador</SelectItem>
                         </SelectContent>

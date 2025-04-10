@@ -1,5 +1,5 @@
 
-export type UserRole = 'admin' | 'normal' | 'conveniado';
+export type UserRole = 'admin' | 'diretoria' | 'conveniado' | 'associado';
 
 export type Permission = {
   id: string;

@@ -3,16 +3,21 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { UserRole } from '@/components/usuarios/types';
 
 type AuthContextType = {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{error: any}>;
-  signUp: (email: string, password: string, name: string) => Promise<{error: any}>;
+  signUp: (email: string, password: string, name: string, role?: UserRole) => Promise<{error: any}>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{error: any}>;
   isAdmin: boolean;
+  isDirector: boolean;
+  isAssociado: boolean;
+  isEmpresa: boolean;
+  userRole: UserRole | null;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +27,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isDirector, setIsDirector] = useState(false);
+  const [isAssociado, setIsAssociado] = useState(false);
+  const [isEmpresa, setIsEmpresa] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,7 +64,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }, 0);
           }
         } else {
-          setIsAdmin(false);
+          resetRoles();
         }
       }
     );
@@ -76,16 +85,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
+  const resetRoles = () => {
+    setIsAdmin(false);
+    setIsDirector(false);
+    setIsAssociado(false);
+    setIsEmpresa(false);
+    setUserRole(null);
+  };
+
   const checkUserRole = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // First check for admin role
+      const { data: adminData, error: adminError } = await supabase
         .rpc('has_role', { user_id: userId, role_to_check: 'admin' });
       
-      if (error) throw error;
-      setIsAdmin(!!data);
+      if (adminError) throw adminError;
+      
+      if (adminData) {
+        setIsAdmin(true);
+        setUserRole('admin');
+        return;
+      }
+      
+      // Check user's role from profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      
+      if (profileError) throw profileError;
+      
+      if (profileData) {
+        const role = profileData.role as UserRole;
+        setUserRole(role);
+        setIsAdmin(role === 'admin');
+        setIsDirector(role === 'diretoria');
+        setIsAssociado(role === 'associado');
+        setIsEmpresa(role === 'conveniado');
+      }
     } catch (error) {
       console.error("Error checking user role:", error);
-      setIsAdmin(false);
+      resetRoles();
     }
   };
 
@@ -104,7 +145,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, role: UserRole = 'associado') => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -112,6 +153,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         options: {
           data: {
             name,
+            role,
           },
         },
       });
@@ -164,6 +206,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
     resetPassword,
     isAdmin,
+    isDirector,
+    isAssociado,
+    isEmpresa,
+    userRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

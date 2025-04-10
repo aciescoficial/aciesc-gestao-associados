@@ -30,8 +30,56 @@ const CobrancasPage = () => (
   </div>
 );
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+// Placeholder for messages page
+const MensagensPage = () => (
+  <div className="space-y-6">
+    <h1 className="wp-header">Mensagens</h1>
+    <div className="wp-card">
+      <p className="text-muted-foreground">
+        Esta página de mensagens está em construção.
+      </p>
+    </div>
+  </div>
+);
+
+// Placeholder for member payment page
+const PagamentosAssociadoPage = () => (
+  <div className="space-y-6">
+    <h1 className="wp-header">Meus Pagamentos</h1>
+    <div className="wp-card">
+      <p className="text-muted-foreground">
+        Esta página de pagamentos está em construção.
+      </p>
+    </div>
+  </div>
+);
+
+// Placeholder for member ID card request page
+const SolicitarCarteirinhaPage = () => (
+  <div className="space-y-6">
+    <h1 className="wp-header">Solicitar Carteirinha</h1>
+    <div className="wp-card">
+      <p className="text-muted-foreground">
+        Esta página para solicitar carteirinha está em construção.
+      </p>
+    </div>
+  </div>
+);
+
+// Placeholder for listing partner companies page
+const EmpresasConveniadasPage = () => (
+  <div className="space-y-6">
+    <h1 className="wp-header">Empresas Conveniadas</h1>
+    <div className="wp-card">
+      <p className="text-muted-foreground">
+        Esta página de empresas conveniadas está em construção.
+      </p>
+    </div>
+  </div>
+);
+
+const ProtectedRoute = ({ children, allowedRoles = [] }: { children: React.ReactNode, allowedRoles?: string[] }) => {
+  const { user, loading, userRole, isAdmin } = useAuth();
   
   if (loading) {
     return (
@@ -45,6 +93,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (!user) {
     return <Navigate to="/login" />;
+  }
+  
+  // Admin can access everything
+  if (isAdmin) {
+    return <>{children}</>;
+  }
+  
+  // Check if current user role is allowed
+  if (allowedRoles.length > 0 && userRole && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/" />;
   }
   
   return <>{children}</>;
@@ -71,6 +129,8 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Index: React.FC = () => {
+  const { userRole, isAdmin } = useAuth();
+  
   return (
     <Routes>
       <Route path="/" element={
@@ -89,6 +149,7 @@ const Index: React.FC = () => {
         </ProtectedRoute>
       } />
       
+      {/* Admin only routes */}
       <Route path="/usuarios/gerenciar" element={
         <AdminRoute>
           <PluginLayout>
@@ -105,8 +166,9 @@ const Index: React.FC = () => {
         </AdminRoute>
       } />
       
+      {/* Admin, Diretoria routes */}
       <Route path="/conveniados/cadastrar" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <CadastroConveniado />
           </PluginLayout>
@@ -114,7 +176,7 @@ const Index: React.FC = () => {
       } />
       
       <Route path="/conveniados/listar" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <ListaConveniados />
           </PluginLayout>
@@ -122,7 +184,7 @@ const Index: React.FC = () => {
       } />
       
       <Route path="/conveniados/pendentes" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <AprovacoesPendentes />
           </PluginLayout>
@@ -130,23 +192,25 @@ const Index: React.FC = () => {
       } />
       
       <Route path="/conveniados/carteirinha" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <GeradorCarteirinha />
           </PluginLayout>
         </ProtectedRoute>
       } />
       
+      {/* Admin, Diretoria, Empresa routes */}
       <Route path="/conveniados/pesquisar" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria', 'conveniado']}>
           <PluginLayout>
             <PesquisaConveniado />
           </PluginLayout>
         </ProtectedRoute>
       } />
       
+      {/* Admin, Diretoria routes */}
       <Route path="/empresas/cadastrar" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <CadastroEmpresa />
           </PluginLayout>
@@ -154,7 +218,7 @@ const Index: React.FC = () => {
       } />
       
       <Route path="/empresas/pendentes" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <AprovacoesPendentes />
           </PluginLayout>
@@ -162,15 +226,16 @@ const Index: React.FC = () => {
       } />
       
       <Route path="/empresas/pesquisar" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <PesquisaEmpresa />
           </PluginLayout>
         </ProtectedRoute>
       } />
       
+      {/* Admin, Diretoria routes */}
       <Route path="/financeiro/resumo" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <FinanceiroResumoPage />
           </PluginLayout>
@@ -178,7 +243,7 @@ const Index: React.FC = () => {
       } />
       
       <Route path="/financeiro/cobrancas" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <CobrancasPage />
           </PluginLayout>
@@ -194,7 +259,7 @@ const Index: React.FC = () => {
       } />
       
       <Route path="/financeiro/integracoes" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <IntegracaoFinanceira />
           </PluginLayout>
@@ -202,7 +267,7 @@ const Index: React.FC = () => {
       } />
       
       <Route path="/financeiro/relatorios" element={
-        <ProtectedRoute>
+        <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <PluginLayout>
             <Dashboard />
           </PluginLayout>
@@ -215,6 +280,40 @@ const Index: React.FC = () => {
             <Dashboard />
           </PluginLayout>
         </AdminRoute>
+      } />
+      
+      {/* Associado specific routes */}
+      <Route path="/meus-pagamentos" element={
+        <ProtectedRoute allowedRoles={['associado']}>
+          <PluginLayout>
+            <PagamentosAssociadoPage />
+          </PluginLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/solicitar-carteirinha" element={
+        <ProtectedRoute allowedRoles={['associado']}>
+          <PluginLayout>
+            <SolicitarCarteirinhaPage />
+          </PluginLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/empresas-conveniadas" element={
+        <ProtectedRoute allowedRoles={['associado']}>
+          <PluginLayout>
+            <EmpresasConveniadasPage />
+          </PluginLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Mensagens route - accessible to all users */}
+      <Route path="/mensagens" element={
+        <ProtectedRoute>
+          <PluginLayout>
+            <MensagensPage />
+          </PluginLayout>
+        </ProtectedRoute>
       } />
       
       <Route path="*" element={
