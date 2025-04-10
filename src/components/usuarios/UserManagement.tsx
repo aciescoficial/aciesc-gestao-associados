@@ -56,18 +56,26 @@ const UserManagement: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
+      // Use "profiles" table instead of "users"
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .order('name');
         
       if (error) throw error;
       
       if (data) {
-        setUsers(data.map(user => ({
-          ...user,
-          createdAt: new Date(user.createdAt)
-        })));
+        // Transform the data to match the User type
+        const formattedUsers: User[] = data.map(profile => ({
+          id: profile.id,
+          name: profile.name || '',
+          email: profile.email || '', // This might need to be fetched separately
+          role: profile.role as UserRole,
+          active: true, // Assuming active by default
+          createdAt: new Date(profile.created_at)
+        }));
+        
+        setUsers(formattedUsers);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -354,7 +362,7 @@ const UserManagement: React.FC = () => {
             <Button variant="outline" onClick={() => setIsAddUserDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={addUser}>Adicionar</Button>
+            <Button onClick={() => addUser()}>Adicionar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -418,7 +426,7 @@ const UserManagement: React.FC = () => {
             <Button variant="outline" onClick={() => setIsEditUserDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={updateUser}>Salvar Alterações</Button>
+            <Button onClick={() => updateUser()}>Salvar Alterações</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
