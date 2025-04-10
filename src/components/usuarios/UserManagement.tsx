@@ -160,7 +160,7 @@ const UserManagement: React.FC = () => {
         .from('profiles')
         .update({
           name: selectedUser.name,
-          role: selectedUser.role
+          role: selectedUser.role // This is the line causing the error - line 163
         })
         .eq('id', selectedUser.id);
         
