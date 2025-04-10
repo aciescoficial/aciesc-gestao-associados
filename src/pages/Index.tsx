@@ -15,6 +15,7 @@ import PermissionPanel from '@/components/usuarios/PermissionPanel';
 import ProfilePage from '@/components/auth/ProfilePage';
 import { useAuth } from '@/components/auth/AuthProvider';
 import ListaConveniados from '@/components/conveniado/ListaConveniados';
+import AssociadosPage from '@/components/financeiro/AssociadosPage';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -153,6 +154,14 @@ const Index: React.FC = () => {
             <PesquisaEmpresa />
           </PluginLayout>
         </ProtectedRoute>
+      } />
+      
+      <Route path="/financeiro/associados" element={
+        <AdminRoute>
+          <PluginLayout>
+            <AssociadosPage />
+          </PluginLayout>
+        </AdminRoute>
       } />
       
       <Route path="/financeiro/integracoes" element={

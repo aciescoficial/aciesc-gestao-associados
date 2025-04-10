@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      association_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          interest_payment_by:
+            | Database["public"]["Enums"]["interest_payment_by"]
+            | null
+          max_installments: number | null
+          payment_methods: Database["public"]["Enums"]["payment_method"][]
+          title: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          interest_payment_by?:
+            | Database["public"]["Enums"]["interest_payment_by"]
+            | null
+          max_installments?: number | null
+          payment_methods: Database["public"]["Enums"]["payment_method"][]
+          title: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          interest_payment_by?:
+            | Database["public"]["Enums"]["interest_payment_by"]
+            | null
+          max_installments?: number | null
+          payment_methods?: Database["public"]["Enums"]["payment_method"][]
+          title?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
       conveniados: {
         Row: {
           cidade: string
@@ -123,6 +168,60 @@ export type Database = {
         }
         Relationships: []
       }
+      member_subscriptions: {
+        Row: {
+          asaas_customer_id: string | null
+          asaas_subscription_id: string | null
+          association_type_id: string
+          conveniado_id: string
+          created_at: string
+          id: string
+          installments: number | null
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
+          association_type_id: string
+          conveniado_id: string
+          created_at?: string
+          id?: string
+          installments?: number | null
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
+          association_type_id?: string
+          conveniado_id?: string
+          created_at?: string
+          id?: string
+          installments?: number | null
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_subscriptions_association_type_id_fkey"
+            columns: ["association_type_id"]
+            isOneToOne: false
+            referencedRelation: "association_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_subscriptions_conveniado_id_fkey"
+            columns: ["conveniado_id"]
+            isOneToOne: false
+            referencedRelation: "conveniados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -218,6 +317,7 @@ export type Database = {
       }
     }
     Enums: {
+      interest_payment_by: "associacao" | "associado"
       nicho_type:
         | "Alimentação"
         | "Saúde"
@@ -227,6 +327,7 @@ export type Database = {
         | "Lazer"
         | "Tecnologia"
         | "Outro"
+      payment_method: "cartao" | "pix" | "boleto"
       status_type: "ativo" | "pendente" | "inativo"
       user_role: "admin" | "user"
     }
@@ -344,6 +445,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      interest_payment_by: ["associacao", "associado"],
       nicho_type: [
         "Alimentação",
         "Saúde",
@@ -354,6 +456,7 @@ export const Constants = {
         "Tecnologia",
         "Outro",
       ],
+      payment_method: ["cartao", "pix", "boleto"],
       status_type: ["ativo", "pendente", "inativo"],
       user_role: ["admin", "user"],
     },

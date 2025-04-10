@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -15,7 +14,8 @@ import {
   Shield,
   UserCog,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  UserCheck
 } from 'lucide-react';
 import UserProfileMenu from './auth/UserProfileMenu';
 
@@ -37,11 +37,13 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
     { icon: CheckSquare, label: "Aprovação Pendente", path: "/conveniados/pendentes" },
     { icon: CreditCard, label: "Gerar Carteirinha", path: "/conveniados/carteirinha" },
     { icon: Search, label: "Pesquisar", path: "/conveniados/pesquisar" },
+    { icon: Users, label: "Listar Todos", path: "/conveniados/listar" },
     { header: "Empresas" },
     { icon: Building, label: "Cadastrar", path: "/empresas/cadastrar" },
     { icon: CheckSquare, label: "Aprovação Pendente", path: "/empresas/pendentes" },
     { icon: Search, label: "Pesquisar", path: "/empresas/pesquisar" },
     { header: "Financeiro" },
+    { icon: UserCheck, label: "Associados", path: "/financeiro/associados" },
     { icon: DollarSign, label: "Integrações", path: "/financeiro/integracoes" },
     { icon: FileText, label: "Relatórios", path: "/financeiro/relatorios" },
     { header: "Configurações" },
@@ -56,7 +58,6 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="flex min-h-screen">
-      {/* WordPress Admin Sidebar */}
       <div className={`wp-sidebar transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
         <div className={`px-4 py-6 flex items-center ${sidebarCollapsed ? 'justify-center' : ''}`}>
           {!sidebarCollapsed && <h1 className="text-xl font-bold">ACIESC</h1>}
@@ -81,7 +82,6 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
             )
           ))}
         </nav>
-        {/* Toggle Button */}
         <button 
           className="absolute top-1/2 -right-3 bg-aciesc-primary text-white rounded-full p-1 shadow-md hover:bg-aciesc-dark transition-colors"
           onClick={toggleSidebar}
@@ -91,9 +91,7 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
         </button>
       </div>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
-        {/* Admin Bar */}
         <div className="wp-admin-bar">
           <div className="flex items-center">
             <span>Gestão ACIESC</span>
@@ -103,7 +101,6 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </div>
 
-        {/* Content */}
         <main className="flex-1 p-6 bg-wp-body overflow-auto">
           <div className="wp-container">
             {children}
