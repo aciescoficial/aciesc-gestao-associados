@@ -1,6 +1,6 @@
 
 import React, { lazy, Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Outlet } from "react-router-dom";
 import RouteComponents from "./pages/RouteComponents";
 import { ProtectedRoute, AdminRoute } from "./pages/AuthRoutes";
 import PluginLayout from "./components/PluginLayout";
@@ -17,7 +17,7 @@ const AppRoutes: React.FC = () => {
         <Route path="*" element={<RouteComponents.NotFound />} />
 
         {/* Fixed route by using element with children prop properly through Outlet */}
-        <Route path="/" element={<PluginLayout />}>
+        <Route path="/" element={<PluginLayout><Outlet /></PluginLayout>}>
           <Route path="/dashboard" element={<RouteComponents.Dashboard />} />
 
           <Route path="/associados/cadastro" element={<RouteComponents.CadastroAssociado />} />

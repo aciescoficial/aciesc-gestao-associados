@@ -1,10 +1,12 @@
+
 import React, { useState, useRef } from 'react';
-import { Download, Upload, CheckCircle, AlertCircle, HelpCircle, Trash2 } from 'lucide-react';
+import { Download, Upload, CheckCircle, AlertCircle, HelpCircle, Trash2, XCircle, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
 import Papa from 'papaparse';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Table,
   TableBody,
@@ -14,6 +16,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { Database } from '@/integrations/supabase/types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type NichoType = Database['public']['Enums']['nicho_type'];
 type StatusType = Database['public']['Enums']['status_type'];
@@ -47,6 +50,7 @@ interface EmpresaData {
 interface ImportError {
   row: number;
   message: string;
+  field?: string;
   data: any;
 }
 
@@ -58,40 +62,111 @@ interface ImportPreviewProps {
 }
 
 const ImportPreview: React.FC<ImportPreviewProps> = ({ data, onConfirm, onCancel, errors }) => {
+  // Agrupar erros por linha para exibição
+  const errorsByRow: Record<number, ImportError[]> = {};
+  errors.forEach(error => {
+    if (!errorsByRow[error.row]) {
+      errorsByRow[error.row] = [];
+    }
+    errorsByRow[error.row].push(error);
+  });
+
   return (
     <>
-      <div className="overflow-auto max-h-[500px]">
+      <div className="mb-4">
+        <h4 className="text-sm font-medium mb-2">Validação dos campos</h4>
+        <div className="bg-slate-50 p-4 rounded-md border">
+          <div className="flex items-center gap-2 mb-3">
+            <Info size={16} className="text-blue-500" />
+            <span className="text-sm">Campos obrigatórios: nome_fantasia, razao_social, cnpj, responsavel, telefone, email, cidade, nicho, endereco, cep</span>
+          </div>
+          
+          {errors.length > 0 && (
+            <div className="flex items-center gap-2 text-red-500 text-sm mb-2">
+              <AlertCircle size={16} />
+              <span>Foram encontrados {errors.length} problemas que precisam ser corrigidos antes da importação.</span>
+            </div>
+          )}
+          
+          {/* Lista de erros agrupada por tipo */}
+          <ScrollArea className="h-[120px]">
+            <div className="space-y-2">
+              {Object.entries(
+                errors.reduce<Record<string, {message: string, count: number}>>((acc, error) => {
+                  const key = error.field ? `${error.field}: ${error.message}` : error.message;
+                  if (!acc[key]) acc[key] = {message: error.message, count: 0};
+                  acc[key].count++;
+                  return acc;
+                }, {})
+              ).map(([key, {message, count}]) => (
+                <div key={key} className="bg-red-50 text-red-700 px-3 py-2 rounded-md flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <XCircle size={16} />
+                    <span>{key}</span>
+                  </div>
+                  <span className="bg-red-100 px-2 py-1 rounded-full text-xs font-medium">{count} {count === 1 ? 'ocorrência' : 'ocorrências'}</span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      </div>
+
+      <ScrollArea className="h-[300px] border rounded-md">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-slate-50 sticky top-0">
             <TableRow>
+              <TableHead className="w-[50px]">Linha</TableHead>
               <TableHead>Nome Fantasia</TableHead>
               <TableHead>CNPJ</TableHead>
               <TableHead>Responsável</TableHead>
               <TableHead>Nicho</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Cidade</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="w-[80px]">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item, index) => (
-              <TableRow key={index} className={errors.some(err => err.row === index) ? "bg-red-50" : ""}>
-                <TableCell>{item.nome_fantasia}</TableCell>
-                <TableCell>{item.cnpj}</TableCell>
-                <TableCell>{item.responsavel}</TableCell>
-                <TableCell>{item.nicho}</TableCell>
-                <TableCell>{item.status}</TableCell>
-                <TableCell>{item.cidade}</TableCell>
-                <TableCell>
-                  {errors.some(err => err.row === index) 
-                    ? <AlertCircle className="h-5 w-5 text-red-500" /> 
-                    : <CheckCircle className="h-5 w-5 text-green-500" />}
-                </TableCell>
-              </TableRow>
-            ))}
+            {data.map((item, index) => {
+              const rowErrors = errorsByRow[index] || [];
+              return (
+                <TableRow 
+                  key={index} 
+                  className={rowErrors.length > 0 ? "bg-red-50" : ""}
+                >
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{item.nome_fantasia}</TableCell>
+                  <TableCell>{item.cnpj}</TableCell>
+                  <TableCell>{item.responsavel}</TableCell>
+                  <TableCell>{item.nicho}</TableCell>
+                  <TableCell>{item.status}</TableCell>
+                  <TableCell>{item.cidade}</TableCell>
+                  <TableCell>
+                    {rowErrors.length > 0 ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <AlertCircle className="h-5 w-5 text-red-500" />
+                          </TooltipTrigger>
+                          <TooltipContent className="w-[280px]">
+                            <div className="text-xs space-y-1">
+                              {rowErrors.map((err, i) => (
+                                <p key={i}>{err.field ? `${err.field}: ` : ''}{err.message}</p>
+                              ))}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
-      </div>
+      </ScrollArea>
 
       <DialogFooter className="mt-4">
         <div className="flex w-full justify-between items-center">
@@ -138,6 +213,9 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
+        console.log("CSV parse results:", results);
+        
+        // Process and validate the data
         const parsedData = results.data as Record<string, string>[];
         const errors: ImportError[] = [];
         
@@ -171,10 +249,57 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
           if (row.video_url) empresa.video_url = row.video_url;
           
           // Validate required fields
-          if (!empresa.nome_fantasia || !empresa.cnpj || !empresa.email) {
+          const requiredFields = [
+            { field: 'nome_fantasia', label: 'Nome Fantasia' },
+            { field: 'razao_social', label: 'Razão Social' },
+            { field: 'cnpj', label: 'CNPJ' },
+            { field: 'responsavel', label: 'Responsável' },
+            { field: 'telefone', label: 'Telefone' },
+            { field: 'email', label: 'Email' },
+            { field: 'cidade', label: 'Cidade' },
+            { field: 'endereco', label: 'Endereço' },
+            { field: 'cep', label: 'CEP' },
+            { field: 'nicho', label: 'Nicho' }
+          ];
+          
+          requiredFields.forEach(({field, label}) => {
+            if (!empresa[field as keyof EmpresaData]) {
+              errors.push({
+                row: index,
+                field,
+                message: `Campo ${label} é obrigatório`,
+                data: row
+              });
+            }
+          });
+          
+          // Validate email format
+          if (empresa.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(empresa.email)) {
             errors.push({
               row: index,
-              message: 'Campos obrigatórios ausentes',
+              field: 'email',
+              message: 'Email inválido',
+              data: row
+            });
+          }
+          
+          // Validate CNPJ format (simplified validation)
+          if (empresa.cnpj && !validateCNPJ(empresa.cnpj)) {
+            errors.push({
+              row: index,
+              field: 'cnpj',
+              message: 'CNPJ inválido ou mal formatado',
+              data: row
+            });
+          }
+          
+          // Validate nicho - must be one of the valid types
+          const validNichos: NichoType[] = ['Alimentação', 'Saúde', 'Educação', 'Serviços', 'Comércio', 'Lazer', 'Tecnologia', 'Outro'];
+          if (empresa.nicho && !validNichos.includes(empresa.nicho)) {
+            errors.push({
+              row: index,
+              field: 'nicho',
+              message: `Nicho inválido. Valores permitidos: ${validNichos.join(', ')}`,
               data: row
             });
           }
@@ -202,6 +327,26 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+  
+  // Helper function to validate CNPJ
+  const validateCNPJ = (cnpj: string): boolean => {
+    // Remove non-numeric characters
+    cnpj = cnpj.replace(/[^\d]/g, '');
+    
+    // CNPJ must have 14 digits
+    if (cnpj.length !== 14) {
+      return false;
+    }
+    
+    // Check if all digits are the same (invalid)
+    if (/^(\d)\1+$/.test(cnpj)) {
+      return false;
+    }
+    
+    // For a complete validation, we would implement the check digits algorithm
+    // but for simplicity, we'll just check the format
+    return true;
   };
 
   const handleExportEmpresas = async () => {
@@ -338,7 +483,7 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
           
           <ul className="list-disc pl-5 text-sm space-y-1">
             <li>Prepare um arquivo CSV com as colunas necessárias para importação</li>
-            <li>As colunas obrigatórias são: nome_fantasia, razao_social, cnpj, responsavel, telefone, email, cidade, nicho e status</li>
+            <li>As colunas obrigatórias são: nome_fantasia, razao_social, cnpj, responsavel, telefone, email, cidade, nicho, endereco e cep</li>
             <li>Para o campo "nicho", use um dos seguintes valores: Alimentação, Saúde, Educação, Serviços, Comércio, Lazer, Tecnologia, Outro</li>
             <li>Para o campo "status", use um dos seguintes valores: ativo, pendente, inativo</li>
             <li>Certifique-se de que o CSV está corretamente formatado antes de importar</li>
