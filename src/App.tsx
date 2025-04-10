@@ -9,26 +9,26 @@ import Index from "./pages/Index";
 import LoginPage from "./components/auth/LoginPage";
 import NotFound from "./pages/NotFound";
 
-// Create a client
-const queryClient = new QueryClient();
-
 function App() {
+  // Create a client
+  const queryClient = new QueryClient();
+
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <BrowserRouter>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/*" element={<Index />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </AuthProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 

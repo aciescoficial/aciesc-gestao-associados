@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
@@ -101,7 +101,7 @@ const AssociationTypeForm: React.FC<AssociationTypeFormProps> = ({ onSuccess, in
         // Create new association type
         const { error } = await supabase
           .from('association_types')
-          .insert([values]);
+          .insert(values); // Fix: passing values directly, not as an array
         
         if (error) throw error;
         
