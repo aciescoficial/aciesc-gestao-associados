@@ -52,6 +52,7 @@ const CardPreviewPanel: React.FC<CardPreviewPanelProps> = ({
           <button
             onClick={toggleCardView}
             className="flex items-center gap-1 text-sm text-wp-primary hover:text-wp-primary-hover"
+            aria-label={cardView === 'front' ? 'Alternar para verso da carteirinha' : 'Alternar para frente da carteirinha'}
           >
             <RotateCw size={16} />
             {cardView === 'front' ? 'Alternar para Verso' : 'Alternar para Frente'}
@@ -78,6 +79,7 @@ const CardPreviewPanel: React.FC<CardPreviewPanelProps> = ({
         <button 
           className="wp-button flex items-center gap-2"
           onClick={handlePrint}
+          aria-label="Imprimir carteirinha"
         >
           <Printer size={18} />
           Imprimir
@@ -85,6 +87,7 @@ const CardPreviewPanel: React.FC<CardPreviewPanelProps> = ({
         <button 
           className="wp-button-secondary flex items-center gap-2"
           onClick={handleDownload}
+          aria-label="Baixar carteirinha em PDF"
         >
           <Download size={18} />
           Download PDF

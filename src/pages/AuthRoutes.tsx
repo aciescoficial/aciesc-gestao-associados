@@ -1,16 +1,18 @@
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { LoaderCircle } from 'lucide-react';
 
-// Loading component for auth routes
+// Improved loading component with better UX
 const LoadingSpinner = () => (
-  <div className="flex justify-center items-center h-64">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+  <div className="flex flex-col justify-center items-center h-64">
+    <LoaderCircle className="animate-spin h-8 w-8 text-gray-900 mb-2" />
+    <p className="text-sm text-gray-600">Carregando...</p>
   </div>
 );
 
-// Protected route component for role-based access control
+// Protected route component with improved type safety and error handling
 export const ProtectedRoute = ({ 
   children, 
   allowedRoles = [] 
@@ -19,38 +21,70 @@ export const ProtectedRoute = ({
   allowedRoles?: string[] 
 }) => {
   const { user, loading, userRole, isAdmin } = useAuth();
+  const location = useLocation();
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  
+  useEffect(() => {
+    // Only run the authorization check once we have the user data
+    if (!loading) {
+      if (!user) {
+        setIsAuthorized(false);
+        setAuthChecked(true);
+        return;
+      }
+      
+      // Admin can access everything
+      if (isAdmin) {
+        setIsAuthorized(true);
+        setAuthChecked(true);
+        return;
+      }
+      
+      // Check if current user role is allowed
+      if (allowedRoles.length > 0 && userRole) {
+        setIsAuthorized(allowedRoles.includes(userRole));
+        setAuthChecked(true);
+        return;
+      }
+      
+      // If no specific roles required, authorized by default
+      setIsAuthorized(true);
+      setAuthChecked(true);
+    }
+  }, [loading, user, userRole, isAdmin, allowedRoles]);
+  
+  if (loading || isAuthorized === null) {
+    return <LoadingSpinner />;
+  }
+  
+  if (!isAuthorized) {
+    // Redirect to login if not authenticated
+    if (!user) {
+      return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+    // Redirect to home if authenticated but not authorized
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Admin-only route component with improved error handling
+export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAdmin, loading, user } = useAuth();
+  const location = useLocation();
   
   if (loading) {
     return <LoadingSpinner />;
   }
   
   if (!user) {
-    return <Navigate to="/login" />;
-  }
-  
-  // Admin can access everything
-  if (isAdmin) {
-    return <>{children}</>;
-  }
-  
-  // Check if current user role is allowed
-  if (allowedRoles.length > 0 && userRole && !allowedRoles.includes(userRole)) {
-    return <Navigate to="/" />;
-  }
-  
-  return <>{children}</>;
-};
-
-// Admin-only route component
-export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAdmin, loading } = useAuth();
-  
-  if (loading) {
-    return <LoadingSpinner />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
   if (!isAdmin) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
   
   return <>{children}</>;

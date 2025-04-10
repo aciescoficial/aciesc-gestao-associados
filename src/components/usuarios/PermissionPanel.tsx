@@ -4,15 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Permission, UserRole } from './types';
-import { Check, X } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 const PermissionPanel: React.FC = () => {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchPermissions();
@@ -21,8 +22,18 @@ const PermissionPanel: React.FC = () => {
   const fetchPermissions = async () => {
     setLoading(true);
     try {
-      // In a real app, fetch permissions from your API/backend
-      // For demonstration, we'll use some mock data
+      // In a real app with Supabase, we would fetch permissions from a permissions table
+      // For demonstration, we'll use the same mock data but with better structure
+      
+      // Example of how we would fetch from a permissions table:
+      // const { data, error } = await supabase
+      //   .from('permissions')
+      //   .select('*')
+      //   .order('module, name');
+      // if (error) throw error;
+      // setPermissions(data || []);
+      
+      // For now, using the mock data:
       setPermissions([
         {
           id: '1',
@@ -66,9 +77,46 @@ const PermissionPanel: React.FC = () => {
   };
 
   const updatePermission = async (permission: Permission, role: UserRole, hasPermission: boolean) => {
+    const permissionKey = `${permission.id}-${role}`;
+    setSaveLoading(prev => ({ ...prev, [permissionKey]: true }));
+    
     try {
-      // In a real app, save to your API/backend
+      // In a real app with Supabase, we would update a role_permissions junction table
+      // For demonstration, we'll just log and show a toast
+      
+      // Example of how we would update permissions:
+      // if (hasPermission) {
+      //   // Add permission to role
+      //   const { error } = await supabase
+      //     .from('role_permissions')
+      //     .insert({ role, permission_id: permission.id });
+      //   if (error) throw error;
+      // } else {
+      //   // Remove permission from role
+      //   const { error } = await supabase
+      //     .from('role_permissions')
+      //     .delete()
+      //     .eq('role', role)
+      //     .eq('permission_id', permission.id);
+      //   if (error) throw error;
+      // }
+      
+      // For demonstration purposes:
       console.log(`${role} ${hasPermission ? 'now has' : 'no longer has'} ${permission.name} permission`);
+      
+      // Update local state to reflect changes
+      setPermissions(prevPermissions => 
+        prevPermissions.map(p => {
+          if (p.id === permission.id) {
+            const updatedRoles = hasPermission
+              ? [...p.defaultRoles, role].filter((v, i, a) => a.indexOf(v) === i) // Add role uniquely
+              : p.defaultRoles.filter(r => r !== role); // Remove role
+            
+            return { ...p, defaultRoles: updatedRoles };
+          }
+          return p;
+        })
+      );
       
       toast({
         title: "Permissão atualizada",
@@ -81,6 +129,8 @@ const PermissionPanel: React.FC = () => {
         description: "Não foi possível salvar a alteração.",
         variant: "destructive"
       });
+    } finally {
+      setSaveLoading(prev => ({ ...prev, [permissionKey]: false }));
     }
   };
 
@@ -98,47 +148,71 @@ const PermissionPanel: React.FC = () => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {permissions.filter(p => p.module === 'conveniados').map(permission => (
-          <TableRow key={`${permission.id}-${role}-conveniados`}>
-            <TableCell>{permission.name}</TableCell>
-            <TableCell>{permission.description}</TableCell>
-            <TableCell>
-              <Checkbox 
-                checked={hasPermission(permission, role)}
-                onCheckedChange={(checked) => updatePermission(permission, role, !!checked)}
-                disabled={role === 'admin'} // Admin always has all permissions
-              />
-            </TableCell>
-          </TableRow>
-        ))}
+        {permissions
+          .filter(p => p.module === 'conveniados')
+          .map(permission => {
+            const permissionKey = `${permission.id}-${role}`;
+            return (
+              <TableRow key={`${permission.id}-${role}-conveniados`}>
+                <TableCell>{permission.name}</TableCell>
+                <TableCell>{permission.description}</TableCell>
+                <TableCell>
+                  {saveLoading[permissionKey] ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Checkbox 
+                      checked={hasPermission(permission, role)}
+                      onCheckedChange={(checked) => updatePermission(permission, role, !!checked)}
+                      disabled={role === 'admin'} // Admin always has all permissions
+                    />
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          })}
 
-        {permissions.filter(p => p.module === 'empresas').map(permission => (
-          <TableRow key={`${permission.id}-${role}-empresas`}>
-            <TableCell>{permission.name}</TableCell>
-            <TableCell>{permission.description}</TableCell>
-            <TableCell>
-              <Checkbox 
-                checked={hasPermission(permission, role)}
-                onCheckedChange={(checked) => updatePermission(permission, role, !!checked)}
-                disabled={role === 'admin'} // Admin always has all permissions
-              />
-            </TableCell>
-          </TableRow>
-        ))}
+        {/* Continue with other modules, same pattern */}
+        {permissions.filter(p => p.module === 'empresas').map(permission => {
+          const permissionKey = `${permission.id}-${role}`;
+          return (
+            <TableRow key={`${permission.id}-${role}-empresas`}>
+              <TableCell>{permission.name}</TableCell>
+              <TableCell>{permission.description}</TableCell>
+              <TableCell>
+                {saveLoading[permissionKey] ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Checkbox 
+                    checked={hasPermission(permission, role)}
+                    onCheckedChange={(checked) => updatePermission(permission, role, !!checked)}
+                    disabled={role === 'admin'} // Admin always has all permissions
+                  />
+                )}
+              </TableCell>
+            </TableRow>
+          );
+        })}
 
-        {permissions.filter(p => p.module === 'financeiro').map(permission => (
-          <TableRow key={`${permission.id}-${role}-financeiro`}>
-            <TableCell>{permission.name}</TableCell>
-            <TableCell>{permission.description}</TableCell>
-            <TableCell>
-              <Checkbox 
-                checked={hasPermission(permission, role)}
-                onCheckedChange={(checked) => updatePermission(permission, role, !!checked)}
-                disabled={role === 'admin'} // Admin always has all permissions
-              />
-            </TableCell>
-          </TableRow>
-        ))}
+        {permissions.filter(p => p.module === 'financeiro').map(permission => {
+          const permissionKey = `${permission.id}-${role}`;
+          return (
+            <TableRow key={`${permission.id}-${role}-financeiro`}>
+              <TableCell>{permission.name}</TableCell>
+              <TableCell>{permission.description}</TableCell>
+              <TableCell>
+                {saveLoading[permissionKey] ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Checkbox 
+                    checked={hasPermission(permission, role)}
+                    onCheckedChange={(checked) => updatePermission(permission, role, !!checked)}
+                    disabled={role === 'admin'} // Admin always has all permissions
+                  />
+                )}
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );
@@ -148,38 +222,52 @@ const PermissionPanel: React.FC = () => {
       <div className="flex justify-between items-center">
         <h1 className="wp-header">Gerenciamento de Permissões</h1>
         <Button onClick={fetchPermissions} disabled={loading}>
-          {loading ? "Carregando..." : "Atualizar"}
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Carregando...
+            </>
+          ) : (
+            "Atualizar"
+          )}
         </Button>
       </div>
       
       <div className="wp-card">
-        <Tabs defaultValue="admin" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="admin">Administrador</TabsTrigger>
-            <TabsTrigger value="diretoria">Diretoria</TabsTrigger>
-            <TabsTrigger value="conveniado">Conveniado</TabsTrigger>
-            <TabsTrigger value="associado">Associado</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="admin">
-            <div className="p-4 rounded-md bg-muted/50 mb-4">
-              <p className="text-muted-foreground">Administradores têm acesso total ao sistema. Essas permissões não podem ser modificadas.</p>
-            </div>
-            {renderPermissionsTable('admin')}
-          </TabsContent>
-          
-          <TabsContent value="diretoria">
-            {renderPermissionsTable('diretoria')}
-          </TabsContent>
-          
-          <TabsContent value="conveniado">
-            {renderPermissionsTable('conveniado')}
-          </TabsContent>
+        {loading ? (
+          <div className="flex justify-center items-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin mr-2" />
+            <span>Carregando permissões...</span>
+          </div>
+        ) : (
+          <Tabs defaultValue="admin" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="admin">Administrador</TabsTrigger>
+              <TabsTrigger value="diretoria">Diretoria</TabsTrigger>
+              <TabsTrigger value="conveniado">Conveniado</TabsTrigger>
+              <TabsTrigger value="associado">Associado</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="admin">
+              <div className="p-4 rounded-md bg-muted/50 mb-4">
+                <p className="text-muted-foreground">Administradores têm acesso total ao sistema. Essas permissões não podem ser modificadas.</p>
+              </div>
+              {renderPermissionsTable('admin')}
+            </TabsContent>
+            
+            <TabsContent value="diretoria">
+              {renderPermissionsTable('diretoria')}
+            </TabsContent>
+            
+            <TabsContent value="conveniado">
+              {renderPermissionsTable('conveniado')}
+            </TabsContent>
 
-          <TabsContent value="associado">
-            {renderPermissionsTable('associado')}
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="associado">
+              {renderPermissionsTable('associado')}
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   );

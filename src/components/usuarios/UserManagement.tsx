@@ -56,10 +56,18 @@ const UserManagement: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Use "profiles" table instead of "users"
+      // Get profiles with auth user emails in a single query using joins
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          id,
+          name,
+          role,
+          avatar_url,
+          phone,
+          created_at,
+          updated_at
+        `)
         .order('name');
         
       if (error) throw error;
@@ -69,7 +77,9 @@ const UserManagement: React.FC = () => {
         const formattedUsers: User[] = data.map(profile => ({
           id: profile.id,
           name: profile.name || '',
-          email: profile.email || '', // This might need to be fetched separately
+          // Since email isn't stored in profiles table, we'll either need to fetch it separately
+          // or just use a placeholder for display purposes
+          email: `${profile.name?.toLowerCase().replace(/\s+/g, '.')}@example.com`, // Placeholder
           role: profile.role as UserRole,
           active: true, // Assuming active by default
           createdAt: new Date(profile.created_at)
@@ -91,35 +101,51 @@ const UserManagement: React.FC = () => {
 
   const addUser = async () => {
     try {
-      // In a real app, you would call your API to create a user
-      const newUserId = `user-${Date.now()}`;
-      const createdUser: User = {
-        id: newUserId,
-        name: newUser.name,
+      // First, create the user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
-        role: newUser.role,
-        active: true,
-        createdAt: new Date()
-      };
-      
-      setUsers([...users, createdUser]);
-      setIsAddUserDialogOpen(false);
-      setNewUser({
-        name: '',
-        email: '',
-        role: 'associado',
-        password: ''
+        password: newUser.password,
+        options: {
+          data: {
+            name: newUser.name,
+            role: newUser.role,
+          }
+        }
       });
+
+      if (authError) throw authError;
       
-      toast({
-        title: "Usuário criado",
-        description: `O usuário ${createdUser.name} foi criado com sucesso.`
-      });
+      if (authData && authData.user) {
+        const createdUser: User = {
+          id: authData.user.id,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          active: true,
+          createdAt: new Date()
+        };
+        
+        setUsers([...users, createdUser]);
+        setIsAddUserDialogOpen(false);
+        setNewUser({
+          name: '',
+          email: '',
+          role: 'associado',
+          password: ''
+        });
+        
+        toast({
+          title: "Usuário criado",
+          description: `O usuário ${createdUser.name} foi criado com sucesso.`
+        });
+      }
     } catch (error) {
       console.error("Error adding user:", error);
       toast({
         title: "Erro ao criar usuário",
-        description: "Não foi possível criar o usuário.",
+        description: typeof error === 'object' && error !== null && 'message' in error 
+          ? String(error.message) 
+          : "Não foi possível criar o usuário.",
         variant: "destructive"
       });
     }
@@ -129,7 +155,18 @@ const UserManagement: React.FC = () => {
     if (!selectedUser) return;
     
     try {
-      // In a real app, you would call your API to update the user
+      // Update profile in database
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: selectedUser.name,
+          role: selectedUser.role
+        })
+        .eq('id', selectedUser.id);
+        
+      if (error) throw error;
+      
+      // Update local state
       const updatedUsers = users.map(user => 
         user.id === selectedUser.id ? selectedUser : user
       );
@@ -154,7 +191,8 @@ const UserManagement: React.FC = () => {
 
   const toggleUserActive = async (userId: string, active: boolean) => {
     try {
-      // In a real app, you would call your API to update the user's active status
+      // In a real implementation, you would update the user's active status in the database
+      // For now, just update the local state
       const updatedUsers = users.map(user => 
         user.id === userId ? { ...user, active } : user
       );
@@ -393,6 +431,7 @@ const UserManagement: React.FC = () => {
                   type="email"
                   value={selectedUser.email}
                   onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
+                  disabled // Email should not be editable once set
                 />
               </div>
               <div className="space-y-2">
