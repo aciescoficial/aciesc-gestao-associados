@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -35,6 +35,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setTimeout(() => {
             checkUserRole(session.user.id);
           }, 0);
+          
+          // Log authentication events
+          if (event === 'SIGNED_IN') {
+            setTimeout(async () => {
+              try {
+                await supabase.from('user_access_logs').insert({
+                  user_id: session.user.id,
+                  event: 'Login',
+                  created_at: new Date().toISOString()
+                });
+              } catch (error) {
+                console.error('Error logging sign in:', error);
+              }
+            }, 0);
+          }
         } else {
           setIsAdmin(false);
         }
@@ -106,6 +121,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    // Log signout event before actually signing out
+    if (user) {
+      try {
+        await supabase.from('user_access_logs').insert({
+          user_id: user.id,
+          event: 'Logout',
+          created_at: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error('Error logging sign out:', error);
+      }
+    }
     await supabase.auth.signOut();
     navigate('/login');
   };
