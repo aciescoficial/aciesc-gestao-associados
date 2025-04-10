@@ -329,7 +329,7 @@ export type Database = {
         | "Outro"
       payment_method: "cartao" | "pix" | "boleto"
       status_type: "ativo" | "pendente" | "inativo"
-      user_role: "admin" | "user"
+      user_role: "admin" | "user" | "diretoria" | "conveniado" | "associado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -458,7 +458,7 @@ export const Constants = {
       ],
       payment_method: ["cartao", "pix", "boleto"],
       status_type: ["ativo", "pendente", "inativo"],
-      user_role: ["admin", "user"],
+      user_role: ["admin", "user", "diretoria", "conveniado", "associado"],
     },
   },
 } as const
