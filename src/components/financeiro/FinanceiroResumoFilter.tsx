@@ -1,23 +1,25 @@
 
 import React, { useState } from 'react';
-import { Filter } from 'lucide-react';
+import { Filter, CalendarRange } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export type FilterPeriod = 'start' | 'year' | 'month' | 'custom';
 export type DateFilterType = 'dueDate' | 'paymentDate';
-export type BillingType = 'all' | 'subscription' | 'oneTime';
-export type CashInclude = 'yes' | 'no';
 export type ChartGroup = 'month' | 'day';
 
 export interface FinanceiroFilters {
   period: FilterPeriod;
   dateFilterType: DateFilterType;
-  billingType: BillingType;
-  includeCash: CashInclude;
+  startDate?: Date | null;
+  endDate?: Date | null;
   chartGroupBy: ChartGroup;
 }
 
@@ -30,8 +32,6 @@ const FinanceiroResumoFilter: React.FC<FinanceiroResumoFilterProps> = ({ onApply
   const [filters, setFilters] = useState<FinanceiroFilters>({
     period: 'month',
     dateFilterType: 'dueDate',
-    billingType: 'all',
-    includeCash: 'no',
     chartGroupBy: 'day',
   });
 
@@ -45,23 +45,25 @@ const FinanceiroResumoFilter: React.FC<FinanceiroResumoFilterProps> = ({ onApply
     const defaultFilters: FinanceiroFilters = {
       period: 'month',
       dateFilterType: 'dueDate',
-      billingType: 'all',
-      includeCash: 'no',
       chartGroupBy: 'day',
+      startDate: null,
+      endDate: null,
     };
     setFilters(defaultFilters);
     onApplyFilters(defaultFilters);
     toast.success('Filtros limpos com sucesso');
   };
 
-  const handleFilterChange = (key: keyof FinanceiroFilters, value: string) => {
+  const handleFilterChange = (key: keyof FinanceiroFilters, value: any) => {
     setFilters(prev => ({
       ...prev,
       [key]: value,
     }));
   };
 
-  const activeFiltersCount = Object.values(filters).filter(Boolean).length;
+  const activeFiltersCount = Object.values(filters).filter(value => 
+    value !== null && value !== undefined && value !== ''
+  ).length;
 
   return (
     <div>
@@ -76,7 +78,7 @@ const FinanceiroResumoFilter: React.FC<FinanceiroResumoFilterProps> = ({ onApply
 
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleContent className="border rounded-lg p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Período de exibição */}
             <div>
               <h3 className="text-sm font-medium mb-4">Selecione o período de exibição</h3>
@@ -102,6 +104,67 @@ const FinanceiroResumoFilter: React.FC<FinanceiroResumoFilterProps> = ({ onApply
                   <label htmlFor="period-custom">Personalizado</label>
                 </div>
               </RadioGroup>
+
+              {/* Date Range Selector for Custom Period */}
+              {filters.period === 'custom' && (
+                <div className="mt-4 space-y-4">
+                  {/* Start Date */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Data de início</h4>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !filters.startDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarRange className="mr-2 h-4 w-4" />
+                          {filters.startDate ? format(filters.startDate, 'dd/MM/yyyy') : <span>Selecionar data</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={filters.startDate || undefined}
+                          onSelect={(date) => handleFilterChange('startDate', date)}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  {/* End Date */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Data de término</h4>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !filters.endDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarRange className="mr-2 h-4 w-4" />
+                          {filters.endDate ? format(filters.endDate, 'dd/MM/yyyy') : <span>Selecionar data</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={filters.endDate || undefined}
+                          onSelect={(date) => handleFilterChange('endDate', date)}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Filtrar por data */}
@@ -117,38 +180,6 @@ const FinanceiroResumoFilter: React.FC<FinanceiroResumoFilterProps> = ({ onApply
                 <SelectContent>
                   <SelectItem value="dueDate">Data de vencimento</SelectItem>
                   <SelectItem value="paymentDate">Data de pagamento</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Tipos de cobrança */}
-            <div>
-              <h3 className="text-sm font-medium mb-4">Tipos de cobrança</h3>
-              <Select 
-                value={filters.billingType} 
-                onValueChange={(value) => handleFilterChange('billingType', value as BillingType)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecionar tipo de cobrança" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="subscription">Assinaturas</SelectItem>
-                  <SelectItem value="oneTime">Cobranças avulsas</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <h3 className="text-sm font-medium mt-6 mb-4">Incluir recebimento em dinheiro</h3>
-              <Select 
-                value={filters.includeCash} 
-                onValueChange={(value) => handleFilterChange('includeCash', value as CashInclude)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Incluir recebimento em dinheiro" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="yes">Sim</SelectItem>
-                  <SelectItem value="no">Não</SelectItem>
                 </SelectContent>
               </Select>
             </div>

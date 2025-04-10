@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Users, Receipt, DollarSign, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,8 +48,6 @@ const FinanceiroResumoPage: React.FC = () => {
   const [filters, setFilters] = useState<FinanceiroFilters>({
     period: 'month',
     dateFilterType: 'dueDate',
-    billingType: 'all',
-    includeCash: 'no',
     chartGroupBy: 'day',
   });
 
