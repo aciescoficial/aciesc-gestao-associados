@@ -1,11 +1,18 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Check, X, Map, MapPin, Navigation } from 'lucide-react';
+import { Search, Check, X, Map, MapPin, Navigation, Locate, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from '@/integrations/supabase/types';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type NichoType = Database['public']['Enums']['nicho_type'];
 type StatusType = Database['public']['Enums']['status_type'];
@@ -62,7 +69,7 @@ const MapboxTokenInput = ({ onTokenSet }: { onTokenSet: (token: string) => void 
 
 const PesquisaEmpresa: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState<'nome' | 'cnpj' | 'nicho' | 'mapa'>('nome');
+  const [searchType, setSearchType] = useState<'nome' | 'cnpj' | 'nicho' | 'mapa'>('mapa');
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<EmpresaData[]>([]);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -72,10 +79,11 @@ const PesquisaEmpresa: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
+  const [mapRendered, setMapRendered] = useState(false);
 
   // Initialize map when token is available
   useEffect(() => {
-    if (!mapboxToken || !mapContainer.current || searchType !== 'mapa') return;
+    if (!mapboxToken || !mapContainer.current) return;
     
     mapboxgl.accessToken = mapboxToken;
     
@@ -96,6 +104,13 @@ const PesquisaEmpresa: React.FC = () => {
           trackUserLocation: true
         })
       );
+
+      setMapRendered(true);
+
+      // Get current location on map load
+      if (!currentLocation) {
+        getCurrentLocation();
+      }
     }
 
     // Clean up on unmount
@@ -105,7 +120,7 @@ const PesquisaEmpresa: React.FC = () => {
         map.current = null;
       }
     };
-  }, [mapboxToken, searchType, currentLocation]);
+  }, [mapboxToken, currentLocation]);
 
   // Update markers when results change
   useEffect(() => {
@@ -312,20 +327,49 @@ const PesquisaEmpresa: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="wp-header">Pesquisar Empresas Conveniadas</h1>
+      <h1 className="wp-header flex items-center gap-2">
+        <Map className="h-6 w-6" />
+        GeoDirectório de Empresas Conveniadas
+      </h1>
       
       {searchType === 'mapa' && !mapboxToken && (
         <MapboxTokenInput onTokenSet={setMapboxToken} />
       )}
       
       <div className="wp-card">
-        <form onSubmit={handleSearch} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className={searchType !== 'mapa' ? "md:col-span-2" : "md:col-span-3"}>
-              <label className="block text-sm font-medium mb-1">
-                {searchType === 'mapa' ? 'Buscar empresas próximas' : 'Termo de busca'}
-              </label>
-              {searchType !== 'mapa' ? (
+        <form onSubmit={handleSearch}>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1">Tipo de busca</label>
+              <Select 
+                value={searchType} 
+                onValueChange={(value) => setSearchType(value as 'nome' | 'cnpj' | 'nicho' | 'mapa')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo de busca" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mapa">
+                    <div className="flex items-center gap-2">
+                      <Map size={16} />
+                      <span>Mapa (GeoDirectório)</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="nome">
+                    <div className="flex items-center gap-2">
+                      <Building size={16} />
+                      <span>Nome da Empresa</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="cnpj">CNPJ</SelectItem>
+                  <SelectItem value="nicho">Nicho de Atuação</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {searchType !== 'mapa' && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">Termo de busca</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -338,35 +382,23 @@ const PesquisaEmpresa: React.FC = () => {
                     <Search className="h-5 w-5 text-gray-400" />
                   </div>
                 </div>
-              ) : (
-                <div className="flex gap-3">
+              </div>
+            )}
+            
+            <div className={searchType === 'mapa' ? "md:col-span-2" : "md:col-span-1"}>
+              {searchType === 'mapa' && (
+                <div className="flex flex-col h-full">
+                  <label className="block text-sm font-medium mb-1">Localização</label>
                   <button 
                     type="button" 
                     onClick={getCurrentLocation}
-                    className="wp-button-secondary flex items-center gap-2"
+                    className="wp-button-secondary flex items-center gap-2 h-10"
                   >
-                    <Navigation size={16} />
+                    <Locate size={16} />
                     Usar minha localização
                   </button>
-                  <span className="text-gray-500 flex items-center">
-                    {currentLocation ? `Lat: ${currentLocation.lat.toFixed(5)}, Lng: ${currentLocation.lng.toFixed(5)}` : 'Localização não definida'}
-                  </span>
                 </div>
               )}
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">Buscar por</label>
-              <select 
-                className="wp-input w-full"
-                value={searchType}
-                onChange={(e) => setSearchType(e.target.value as 'nome' | 'cnpj' | 'nicho' | 'mapa')}
-              >
-                <option value="nome">Nome</option>
-                <option value="cnpj">CNPJ</option>
-                <option value="nicho">Nicho</option>
-                <option value="mapa">Mapa</option>
-              </select>
             </div>
             
             <div className="flex items-end">
@@ -378,7 +410,7 @@ const PesquisaEmpresa: React.FC = () => {
                 {searchType === 'mapa' ? (
                   <>
                     <MapPin size={16} />
-                    {isSearching ? 'Buscando...' : 'Buscar por proximidade'}
+                    {isSearching ? 'Buscando...' : 'Buscar empresas próximas'}
                   </>
                 ) : (
                   <>{isSearching ? 'Buscando...' : 'Buscar'}</>
@@ -389,17 +421,34 @@ const PesquisaEmpresa: React.FC = () => {
         </form>
       </div>
       
-      {/* Map View */}
-      {searchType === 'mapa' && mapboxToken && (
+      {/* Map View - Now always visible when mapbox token is set */}
+      {mapboxToken && (
         <div className="wp-card">
-          <h2 className="wp-subheader mb-4">Mapa de Empresas</h2>
+          <h2 className="wp-subheader mb-4 flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
+            GeoDirectório de Empresas
+            {currentLocation && (
+              <span className="text-sm text-gray-500 font-normal ml-4">
+                Lat: {currentLocation.lat.toFixed(5)}, Lng: {currentLocation.lng.toFixed(5)}
+              </span>
+            )}
+          </h2>
           <div 
             ref={mapContainer} 
-            className="h-[400px] w-full rounded-lg border border-gray-200 overflow-hidden"
+            className="h-[500px] w-full rounded-lg border border-gray-200 overflow-hidden"
           />
-          <p className="text-sm text-gray-500 mt-2">
-            Clique nos marcadores para ver detalhes das empresas.
-          </p>
+          <div className="flex items-center justify-between mt-3">
+            <p className="text-sm text-gray-500">
+              Clique nos marcadores para ver detalhes das empresas.
+            </p>
+            <button
+              onClick={getCurrentLocation}
+              className="wp-button-secondary text-sm px-4 py-1 flex items-center gap-2"
+            >
+              <Navigation size={14} />
+              Atualizar minha localização
+            </button>
+          </div>
         </div>
       )}
       
@@ -430,7 +479,21 @@ const PesquisaEmpresa: React.FC = () => {
                     <td>{getStatusBadge(item.status)}</td>
                     <td>
                       <div className="flex space-x-2">
-                        <button className="wp-button-secondary text-xs py-1 px-2">Ver</button>
+                        <button 
+                          className="wp-button-secondary text-xs py-1 px-2 flex items-center gap-1"
+                          onClick={() => {
+                            if (item.latitude && item.longitude && map.current) {
+                              map.current.flyTo({
+                                center: [item.longitude, item.latitude],
+                                zoom: 16,
+                                duration: 1500
+                              });
+                            }
+                          }}
+                        >
+                          <MapPin size={12} />
+                          Localizar
+                        </button>
                         <button className="wp-button text-xs py-1 px-2">Editar</button>
                       </div>
                     </td>
