@@ -55,16 +55,17 @@ const ListaAssociados: React.FC = () => {
   // Fetch available cities for filter dropdown
   const fetchCidades = async () => {
     try {
-      // Use type assertion to tell TypeScript this is a valid table
+      // Fix: Use type assertion to explicitly type the associados table
       const { data, error } = await supabase
-        .from('associados' as any)
+        .from('associados')
         .select('cidade')
         .order('cidade');
       
       if (error) throw error;
       
-      // Extract unique cities
-      const uniqueCidades = Array.from(new Set(data?.map(item => item.cidade) || []));
+      // Fix: Use proper type assertion and handle null data
+      const cidadesData = data as Array<{ cidade: string }> || [];
+      const uniqueCidades = Array.from(new Set(cidadesData.map(item => item.cidade)));
       setCidades(uniqueCidades);
     } catch (error) {
       console.error('Error fetching cities:', error);
@@ -79,14 +80,14 @@ const ListaAssociados: React.FC = () => {
     setLoading(true);
     try {
       // Build the query with filters
-      // Use type assertion to tell TypeScript this is a valid table
+      // Fix: Use proper table name and type assertion
       let query = supabase
-        .from('associados' as any)
+        .from('associados')
         .select('*', { count: 'exact' });
 
       // Apply status filter if not 'todos'
       if (statusFilter !== 'todos') {
-        query = query.eq('status', statusFilter);
+        query = query.eq('status', statusFilter as AssociadoStatus);
       }
       
       // Apply city filter if provided and not 'todas'
@@ -116,7 +117,8 @@ const ListaAssociados: React.FC = () => {
       
       if (error) throw error;
       
-      setAssociados(data as Associado[] || []);
+      // Fix: Use proper type assertion
+      setAssociados((data || []) as Associado[]);
       setTotalCount(count || 0);
     } catch (error) {
       console.error('Error fetching associados:', error);

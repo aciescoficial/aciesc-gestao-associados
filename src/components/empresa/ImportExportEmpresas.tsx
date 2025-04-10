@@ -307,7 +307,30 @@ const ImportExportEmpresas: React.FC<{
         return;
       }
       
-      const exportData = data.map(empresa => ({
+      // Fix: Define the empresa type to match the database structure
+      interface EmpresaExport {
+        razao_social: string;
+        nome_fantasia: string;
+        cnpj: string;
+        responsavel: string;
+        telefone: string;
+        email: string;
+        endereco: string;
+        cidade: string;
+        cep: string;
+        site: string | null;
+        instagram: string | null;
+        whatsapp: string | null;
+        nicho: NichoType;
+        desconto: string;
+        produtos: string;
+        logo_url: string | null;
+        capa_url: string | null;
+        video_url: string | null;
+        status: StatusType;
+      }
+      
+      const exportData = (data as EmpresaExport[]).map(empresa => ({
         razaoSocial: empresa.razao_social,
         nomeFantasia: empresa.nome_fantasia,
         cnpj: empresa.cnpj,

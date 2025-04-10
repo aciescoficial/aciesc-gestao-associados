@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
 type AssociadoStatus = 'pendente' | 'ativo' | 'inativo';
 
@@ -33,7 +34,7 @@ interface Associado {
 const PesquisaAssociado: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'nome' | 'cpf' | 'creci'>('nome');
-  const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [statusFilter, setStatusFilter] = useState<AssociadoStatus | 'todos'>('todos');
   const [cidadeFilter, setcidadeFilter] = useState<string>('todas');
   const [cidades, setCidades] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -88,7 +89,8 @@ const PesquisaAssociado: React.FC = () => {
       }
       
       if (statusFilter !== 'todos') {
-        query = query.eq('status', statusFilter);
+        // Fix: Explicitly cast statusFilter to AssociadoStatus when it's not 'todos'
+        query = query.eq('status', statusFilter as AssociadoStatus);
       }
       
       if (cidadeFilter !== 'todas') {
