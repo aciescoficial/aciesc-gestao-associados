@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -187,7 +186,7 @@ const ListaConveniados: React.FC = () => {
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="todas">Todas</SelectItem>
                   {cidades.map((cidade) => (
                     <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
                   ))}
