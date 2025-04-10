@@ -40,28 +40,28 @@ const PermissionPanel: React.FC = () => {
           name: 'view_associados',
           description: 'Visualizar associados',
           module: 'associados',
-          defaultRoles: ['admin', 'diretoria', 'associado']
+          roles: ['admin', 'diretoria', 'associado']
         },
         {
           id: '2',
           name: 'edit_associados',
           description: 'Editar associados',
           module: 'associados',
-          defaultRoles: ['admin', 'diretoria']
+          roles: ['admin', 'diretoria']
         },
         {
           id: '3',
           name: 'view_empresas',
           description: 'Visualizar empresas',
           module: 'empresas',
-          defaultRoles: ['admin', 'diretoria']
+          roles: ['admin', 'diretoria']
         },
         {
           id: '4',
           name: 'edit_financeiro',
           description: 'Editar dados financeiros',
           module: 'financeiro',
-          defaultRoles: ['admin']
+          roles: ['admin']
         }
       ]);
     } catch (error) {
@@ -109,10 +109,10 @@ const PermissionPanel: React.FC = () => {
         prevPermissions.map(p => {
           if (p.id === permission.id) {
             const updatedRoles = hasPermission
-              ? [...p.defaultRoles, role].filter((v, i, a) => a.indexOf(v) === i) // Add role uniquely
-              : p.defaultRoles.filter(r => r !== role); // Remove role
+              ? [...p.roles, role].filter((v, i, a) => a.indexOf(v) === i) // Add role uniquely
+              : p.roles.filter(r => r !== role); // Remove role
             
-            return { ...p, defaultRoles: updatedRoles };
+            return { ...p, roles: updatedRoles };
           }
           return p;
         })
@@ -135,7 +135,7 @@ const PermissionPanel: React.FC = () => {
   };
 
   const hasPermission = (permission: Permission, role: UserRole) => {
-    return permission.defaultRoles.includes(role);
+    return permission.roles.includes(role);
   };
 
   const renderPermissionsTable = (role: UserRole) => (

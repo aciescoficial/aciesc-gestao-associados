@@ -18,6 +18,7 @@ import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import MensagensPage from '@/components/mensagens/MensagensPage';
 import EmpresasConveniadas from '@/components/associado/EmpresasConveniadas';
 import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
+import Index from './Index';
 
 // Placeholder component for Cobranças page
 export const CobrancasPage = () => (
@@ -69,8 +70,42 @@ export const EmpresasPesquisaPage = () => (
 );
 
 // Layout wrapper component
-export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => (
+export interface LayoutProps {
+  children: React.ReactNode;
+}
+
+export const LayoutWrapper = ({ children }: LayoutProps) => (
   <PluginLayout>
     {children}
   </PluginLayout>
 );
+
+// Export all components
+const RouteComponents = {
+  Index,
+  Dashboard,
+  CadastroAssociado,
+  CadastroEmpresa,
+  PesquisaAssociado,
+  PesquisaEmpresa,
+  AprovacoesPendentes,
+  GeradorCarteirinha,
+  IntegracaoFinanceira,
+  UserManagement,
+  PermissionPanel,
+  ProfilePage,
+  ListaAssociados,
+  AssociadosPage,
+  FinanceiroResumoPage,
+  MensagensPage,
+  EmpresasConveniadas,
+  EmpresasPesquisa,
+  CobrancasPage,
+  PagamentosAssociadoPage,
+  SolicitarCarteirinhaPage,
+  EmpresasConveniadasPage,
+  EmpresasPesquisaPage,
+  NotFound: () => <div>Página não encontrada</div>
+};
+
+export default RouteComponents;

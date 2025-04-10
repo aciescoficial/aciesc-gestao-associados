@@ -2,7 +2,7 @@
 import React, { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import RouteComponents from "./pages/RouteComponents";
-import AuthRoutes from "./pages/AuthRoutes";
+import { ProtectedRoute, AdminRoute } from "./pages/AuthRoutes";
 import PluginLayout from "./components/PluginLayout";
 
 // Página de configurações
@@ -12,7 +12,7 @@ const AppRoutes: React.FC = () => {
   return (
     <Suspense fallback={<div className="p-4">Carregando...</div>}>
       <Routes>
-        <Route path="/auth/*" element={<AuthRoutes />} />
+        <Route path="/auth/*" element={<RouteComponents.Index />} />
         <Route path="/" element={<RouteComponents.Index />} />
         <Route path="*" element={<RouteComponents.NotFound />} />
 

@@ -27,3 +27,13 @@ export interface Permission {
   module: 'associados' | 'financeiro' | 'sistema' | 'empresas';
   roles: UserRole[];
 }
+
+// User type for user management
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  active: boolean;
+  createdAt: Date;
+}

@@ -1,8 +1,7 @@
-
 import React, { useState, useRef } from 'react';
-import { ImportExport, Download, Upload, CheckCircle, AlertCircle, HelpCircle, Trash2 } from 'lucide-react';
+import { Download, Upload, CheckCircle, AlertCircle, HelpCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 import Papa from 'papaparse';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -260,9 +259,10 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
         created_at: new Date().toISOString()
       }));
       
+      // Using an explicit type cast to match the database structure
       const { data, error } = await supabase
         .from('empresas')
-        .insert(dataToInsert);
+        .insert(dataToInsert as any[]);
       
       if (error) throw error;
       
@@ -292,7 +292,7 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div>
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              <ImportExport className="h-5 w-5" />
+              <Download className="h-5 w-5" />
               Importação e Exportação de Empresas
             </h3>
             <p className="text-sm text-gray-600 mt-1">

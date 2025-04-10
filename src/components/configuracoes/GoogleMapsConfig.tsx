@@ -15,21 +15,22 @@ const GoogleMapsConfig: React.FC = () => {
       setApiKey(storedKey);
     }
 
-    // Verificar se existe uma chave no perfil do usuário ou configurações
+    // Verificar se existe uma chave no banco de dados
     const fetchApiKey = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.id) {
-        const { data: configData } = await supabase
+      try {
+        const { data, error } = await supabase
           .from('system_config')
-          .select('value')
+          .select('*')
           .eq('key', 'google_maps_api_key')
-          .single();
-
-        if (configData?.value) {
-          setApiKey(configData.value);
+          .maybeSingle();
+        
+        if (!error && data && 'value' in data) {
+          setApiKey(data.value);
           // Atualizar também o localStorage para compatibilidade
-          localStorage.setItem('google_maps_api_key', configData.value);
+          localStorage.setItem('google_maps_api_key', data.value);
         }
+      } catch (err) {
+        console.error("Error fetching API key:", err);
       }
     };
 
@@ -50,7 +51,7 @@ const GoogleMapsConfig: React.FC = () => {
           key: 'google_maps_api_key', 
           value: apiKey,
           updated_at: new Date().toISOString()
-        }, { onConflict: 'key' });
+        });
 
       if (error) throw error;
 
