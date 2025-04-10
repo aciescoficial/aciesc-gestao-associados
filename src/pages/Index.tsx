@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import PluginLayout from '@/components/PluginLayout';
@@ -16,6 +17,18 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import ListaConveniados from '@/components/conveniado/ListaConveniados';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
+
+// Placeholder component for Cobranças page
+const CobrancasPage = () => (
+  <div className="space-y-6">
+    <h1 className="wp-header">Lista de Cobranças</h1>
+    <div className="wp-card">
+      <p className="text-muted-foreground">
+        Esta página está em construção.
+      </p>
+    </div>
+  </div>
+);
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -160,6 +173,14 @@ const Index: React.FC = () => {
         <ProtectedRoute>
           <PluginLayout>
             <FinanceiroResumoPage />
+          </PluginLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/financeiro/cobrancas" element={
+        <ProtectedRoute>
+          <PluginLayout>
+            <CobrancasPage />
           </PluginLayout>
         </ProtectedRoute>
       } />

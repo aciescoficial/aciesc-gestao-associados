@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Users, Receipt, DollarSign, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -57,6 +58,11 @@ const FinanceiroResumoPage: React.FC = () => {
     console.log('Filtros aplicados:', newFilters);
   };
 
+  // Function to open links in new windows/tabs
+  const openInNewTab = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -76,16 +82,22 @@ const FinanceiroResumoPage: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {/* EM DIA */}
-            <div className="bg-gray-50 p-4 rounded-md">
+            {/* EM DIA - Now clickable */}
+            <div 
+              className="bg-gray-50 p-4 rounded-md cursor-pointer hover:bg-gray-100 transition-colors"
+              onClick={() => openInNewTab('/conveniados/listar?status=ativo')}
+            >
               <div className="text-xs text-gray-500 mb-1">EM DIA</div>
               <div className="text-5xl font-bold text-green-500">
                 {summaryData.clients.total}
               </div>
             </div>
 
-            {/* INADIMPLENTES */}
-            <div className="bg-gray-50 p-4 rounded-md">
+            {/* INADIMPLENTES - Now clickable */}
+            <div 
+              className="bg-gray-50 p-4 rounded-md cursor-pointer hover:bg-gray-100 transition-colors"
+              onClick={() => openInNewTab('/conveniados/listar?status=inadimplente')}
+            >
               <div className="text-xs text-gray-500 mb-1">INADIMPLENTES</div>
               <div className="text-5xl font-bold text-red-600">
                 {summaryData.clients.defaulters}
@@ -104,24 +116,33 @@ const FinanceiroResumoPage: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {/* PREVISTAS */}
-            <div className="bg-gray-50 p-4 rounded-md">
+            {/* PREVISTAS - Now clickable */}
+            <div 
+              className="bg-gray-50 p-4 rounded-md cursor-pointer hover:bg-gray-100 transition-colors"
+              onClick={() => openInNewTab('/financeiro/cobrancas?status=prevista')}
+            >
               <div className="text-xs text-gray-500 mb-1">PREVISTAS</div>
               <div className="text-5xl font-bold text-amber-500">
                 {summaryData.bills.expected}
               </div>
             </div>
 
-            {/* VENCIDAS */}
-            <div className="bg-gray-50 p-4 rounded-md">
+            {/* VENCIDAS - Now clickable */}
+            <div 
+              className="bg-gray-50 p-4 rounded-md cursor-pointer hover:bg-gray-100 transition-colors"
+              onClick={() => openInNewTab('/financeiro/cobrancas?status=vencida')}
+            >
               <div className="text-xs text-gray-500 mb-1">VENCIDAS</div>
               <div className="text-5xl font-bold text-red-600">
                 {summaryData.bills.overdue}
               </div>
             </div>
 
-            {/* RECEBIDAS */}
-            <div className="bg-gray-50 p-4 rounded-md">
+            {/* RECEBIDAS - Now clickable */}
+            <div 
+              className="bg-gray-50 p-4 rounded-md cursor-pointer hover:bg-gray-100 transition-colors"
+              onClick={() => openInNewTab('/financeiro/cobrancas?status=recebida')}
+            >
               <div className="text-xs text-gray-500 mb-1">RECEBIDAS</div>
               <div className="text-5xl font-bold text-green-500">
                 {summaryData.bills.received}
