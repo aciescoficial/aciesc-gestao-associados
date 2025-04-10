@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Send, Users, Mail } from 'lucide-react';
+import { Send, Users, Mail, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ import { UserRole } from '../usuarios/types';
 const mensagemSchema = z.object({
   assunto: z.string().min(3, { message: 'O assunto deve ter pelo menos 3 caracteres' }),
   mensagem: z.string().min(10, { message: 'A mensagem deve ter pelo menos 10 caracteres' }),
-  tipoEnvio: z.enum(['email', 'notificacao', 'ambos']),
+  tipoEnvio: z.enum(['email', 'notificacao', 'push', 'ambos']),
   destinatario: z.enum(['usuario', 'grupo']),
   emailDestinatario: z.string().email().optional(),
   grupoDestinatarios: z.enum(['associados', 'conveniados', 'diretoria', 'admin', 'todos']).optional(),
@@ -107,7 +107,8 @@ const MensagensPage: React.FC = () => {
                     <SelectContent>
                       <SelectItem value="email">E-mail</SelectItem>
                       <SelectItem value="notificacao">Notificação no sistema</SelectItem>
-                      <SelectItem value="ambos">Ambos</SelectItem>
+                      <SelectItem value="push">Notificação Push</SelectItem>
+                      <SelectItem value="ambos">Todos os tipos</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
