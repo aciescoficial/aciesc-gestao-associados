@@ -3,3 +3,6 @@ project_id = "wpcstzjczfgbfwgzwktf"
 
 [functions.asaas-integration]
 verify_jwt = true
+
+[functions.gohighlevel-integration]
+verify_jwt = true
