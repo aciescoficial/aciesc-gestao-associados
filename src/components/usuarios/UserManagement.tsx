@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +55,6 @@ const UserManagement: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Get profiles with auth user emails in a single query using joins
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -73,15 +71,12 @@ const UserManagement: React.FC = () => {
       if (error) throw error;
       
       if (data) {
-        // Transform the data to match the User type
         const formattedUsers: User[] = data.map(profile => ({
           id: profile.id,
           name: profile.name || '',
-          // Since email isn't stored in profiles table, we'll either need to fetch it separately
-          // or just use a placeholder for display purposes
-          email: `${profile.name?.toLowerCase().replace(/\s+/g, '.')}@example.com`, // Placeholder
+          email: `${profile.name?.toLowerCase().replace(/\s+/g, '.')}@example.com`,
           role: profile.role as UserRole,
-          active: true, // Assuming active by default
+          active: true,
           createdAt: new Date(profile.created_at)
         }));
         
@@ -101,7 +96,6 @@ const UserManagement: React.FC = () => {
 
   const addUser = async () => {
     try {
-      // First, create the user in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
@@ -155,18 +149,16 @@ const UserManagement: React.FC = () => {
     if (!selectedUser) return;
     
     try {
-      // Update profile in database
       const { error } = await supabase
         .from('profiles')
         .update({
           name: selectedUser.name,
-          role: selectedUser.role // This is the line causing the error - line 163
+          role: selectedUser.role
         })
         .eq('id', selectedUser.id);
         
       if (error) throw error;
       
-      // Update local state
       const updatedUsers = users.map(user => 
         user.id === selectedUser.id ? selectedUser : user
       );
@@ -191,8 +183,6 @@ const UserManagement: React.FC = () => {
 
   const toggleUserActive = async (userId: string, active: boolean) => {
     try {
-      // In a real implementation, you would update the user's active status in the database
-      // For now, just update the local state
       const updatedUsers = users.map(user => 
         user.id === userId ? { ...user, active } : user
       );
@@ -224,6 +214,7 @@ const UserManagement: React.FC = () => {
         return 'bg-red-100 text-red-800 border-red-200';
       case 'diretoria':
         return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'empresa':
       case 'conveniado':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'associado':
@@ -239,8 +230,9 @@ const UserManagement: React.FC = () => {
         return 'Administrador';
       case 'diretoria':
         return 'Diretoria';
+      case 'empresa':
       case 'conveniado':
-        return 'Conveniado';
+        return 'Empresa/Conveniado';
       case 'associado':
         return 'Associado';
       default:
@@ -342,7 +334,6 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Add User Dialog */}
       <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -390,7 +381,7 @@ const UserManagement: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="admin">Administrador</SelectItem>
                   <SelectItem value="diretoria">Diretoria</SelectItem>
-                  <SelectItem value="conveniado">Conveniado</SelectItem>
+                  <SelectItem value="empresa">Empresa</SelectItem>
                   <SelectItem value="associado">Associado</SelectItem>
                 </SelectContent>
               </Select>
@@ -405,7 +396,6 @@ const UserManagement: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit User Dialog */}
       <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -431,7 +421,7 @@ const UserManagement: React.FC = () => {
                   type="email"
                   value={selectedUser.email}
                   onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
-                  disabled // Email should not be editable once set
+                  disabled
                 />
               </div>
               <div className="space-y-2">
@@ -446,7 +436,7 @@ const UserManagement: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="admin">Administrador</SelectItem>
                     <SelectItem value="diretoria">Diretoria</SelectItem>
-                    <SelectItem value="conveniado">Conveniado</SelectItem>
+                    <SelectItem value="empresa">Empresa</SelectItem>
                     <SelectItem value="associado">Associado</SelectItem>
                   </SelectContent>
                 </Select>

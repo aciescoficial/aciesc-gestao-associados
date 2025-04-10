@@ -122,7 +122,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsAdmin(role === 'admin');
         setIsDirector(role === 'diretoria');
         setIsAssociado(role === 'associado');
-        setIsEmpresa(role === 'conveniado');
+        // Handle both 'empresa' and 'conveniado' roles for isEmpresa flag
+        setIsEmpresa(role === 'empresa' || role === 'conveniado');
       }
     } catch (error) {
       console.error("Error checking user role:", error);

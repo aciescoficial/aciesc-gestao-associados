@@ -7,16 +7,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import DadosPessoaisForm from "./DadosPessoaisForm";
-import EnderecoForm from "./EnderecoForm";
-import ContatoForm from "./ContatoForm";
-import FinanceiroForm from "./FinanceiroForm";
+import { DadosPessoaisForm } from "./DadosPessoaisForm";
+import { EnderecoForm } from "./EnderecoForm";
+import { ContatoForm } from "./ContatoForm";
+import { FinanceiroForm } from "./FinanceiroForm";
 import { AssociadoFormData } from './types';
 import { saveAssociado, uploadFoto } from './associadoService';
 
 const AssociadoForm: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dados-pessoais");
   const [submitting, setSubmitting] = useState(false);
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const { toast } = useToast();
   
   // Schema for form validation
@@ -66,6 +67,23 @@ const AssociadoForm: React.FC = () => {
     },
   });
   
+  const handleFotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleFotoRemove = () => {
+    setFotoPreview(null);
+    // Reset the file input
+    form.setValue('foto', undefined);
+  };
+  
   const handleFormSubmit = async (data: AssociadoFormData) => {
     setSubmitting(true);
     
@@ -85,6 +103,7 @@ const AssociadoForm: React.FC = () => {
       // Reset form
       form.reset();
       setActiveTab("dados-pessoais");
+      setFotoPreview(null);
       
     } catch (error) {
       console.error("Erro ao cadastrar associado:", error);
@@ -113,7 +132,12 @@ const AssociadoForm: React.FC = () => {
         </TabsList>
         
         <TabsContent value="dados-pessoais">
-          <DadosPessoaisForm form={form} />
+          <DadosPessoaisForm 
+            form={form} 
+            fotoPreview={fotoPreview}
+            onFotoUpload={handleFotoUpload}
+            onFotoRemove={handleFotoRemove}
+          />
           
           <div className="flex justify-end mt-6">
             <Button
