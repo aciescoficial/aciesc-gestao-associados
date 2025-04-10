@@ -143,6 +143,7 @@ export type Database = {
       }
       empresas: {
         Row: {
+          capa_url: string | null
           cep: string
           cidade: string
           cnpj: string
@@ -152,6 +153,7 @@ export type Database = {
           endereco: string
           id: string
           instagram: string | null
+          logo_url: string | null
           nicho: Database["public"]["Enums"]["nicho_type"]
           nome_fantasia: string
           produtos: string
@@ -161,9 +163,11 @@ export type Database = {
           status: Database["public"]["Enums"]["status_type"]
           telefone: string
           updated_at: string
+          video_url: string | null
           whatsapp: string | null
         }
         Insert: {
+          capa_url?: string | null
           cep: string
           cidade: string
           cnpj: string
@@ -173,6 +177,7 @@ export type Database = {
           endereco: string
           id?: string
           instagram?: string | null
+          logo_url?: string | null
           nicho: Database["public"]["Enums"]["nicho_type"]
           nome_fantasia: string
           produtos: string
@@ -182,9 +187,11 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_type"]
           telefone: string
           updated_at?: string
+          video_url?: string | null
           whatsapp?: string | null
         }
         Update: {
+          capa_url?: string | null
           cep?: string
           cidade?: string
           cnpj?: string
@@ -194,6 +201,7 @@ export type Database = {
           endereco?: string
           id?: string
           instagram?: string | null
+          logo_url?: string | null
           nicho?: Database["public"]["Enums"]["nicho_type"]
           nome_fantasia?: string
           produtos?: string
@@ -203,6 +211,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_type"]
           telefone?: string
           updated_at?: string
+          video_url?: string | null
           whatsapp?: string | null
         }
         Relationships: []

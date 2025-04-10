@@ -7,6 +7,7 @@ import EmpresaDadosGerais from './EmpresaDadosGerais';
 import EmpresaContato from './EmpresaContato';
 import EmpresaEndereco from './EmpresaEndereco';
 import EmpresaNichoInfo from './EmpresaNichoInfo';
+import EmpresaImageUpload from './EmpresaImageUpload';
 import { Database } from '@/integrations/supabase/types';
 
 type NichoType = Database['public']['Enums']['nicho_type'];
@@ -28,13 +29,16 @@ export interface EmpresaFormData {
   nicho: NichoType;
   desconto: string;
   produtos: string;
+  logoUrl: string;
+  capaUrl: string;
+  videoUrl: string;
 }
 
 const EmpresaForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<EmpresaFormData>();
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<EmpresaFormData>();
   
   const onSubmit = async (data: EmpresaFormData) => {
     setIsSubmitting(true);
@@ -57,6 +61,9 @@ const EmpresaForm: React.FC = () => {
         nicho: data.nicho,
         desconto: data.desconto,
         produtos: data.produtos,
+        logo_url: data.logoUrl || null,
+        capa_url: data.capaUrl || null,
+        video_url: data.videoUrl || null,
         status: 'pendente' as StatusType
       };
       
@@ -93,6 +100,11 @@ const EmpresaForm: React.FC = () => {
         <EmpresaContato register={register} errors={errors} />
         <EmpresaEndereco register={register} errors={errors} />
         <EmpresaNichoInfo register={register} errors={errors} />
+        <EmpresaImageUpload 
+          register={register}
+          errors={errors}
+          setValue={setValue}
+        />
       </div>
       
       <div className="wp-notice-warning">

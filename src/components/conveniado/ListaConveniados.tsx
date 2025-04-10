@@ -51,7 +51,6 @@ const ListaConveniados: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const { toast } = useToast();
 
-  // Fetch available cities for filter dropdown
   const fetchCidades = async () => {
     try {
       const { data, error } = await supabase
@@ -61,7 +60,6 @@ const ListaConveniados: React.FC = () => {
       
       if (error) throw error;
       
-      // Extract unique cities
       const uniqueCidades = Array.from(new Set(data?.map(item => item.cidade) || []));
       setCidades(uniqueCidades);
     } catch (error) {
@@ -76,27 +74,22 @@ const ListaConveniados: React.FC = () => {
   const fetchConveniados = async () => {
     setLoading(true);
     try {
-      // Build the query with filters
       let query = supabase
         .from('conveniados')
         .select('*', { count: 'exact' });
 
-      // Apply status filter if not 'todos'
       if (statusFilter !== 'todos') {
         query = query.eq('status', statusFilter);
       }
       
-      // Apply city filter if provided
       if (cidadeFilter) {
         query = query.eq('cidade', cidadeFilter);
       }
 
-      // Apply search term filter if provided
       if (searchTerm) {
         query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,telefone.ilike.%${searchTerm}%,creci.ilike.%${searchTerm}%`);
       }
 
-      // Add pagination if not showing all
       if (itemsPerPage !== -1) {
         const from = (currentPage - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
@@ -105,7 +98,6 @@ const ListaConveniados: React.FC = () => {
           .order('created_at', { ascending: false })
           .range(from, to);
       } else {
-        // If showing all, just order them
         query = query.order('created_at', { ascending: false });
       }
       
@@ -133,7 +125,7 @@ const ListaConveniados: React.FC = () => {
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
     fetchConveniados();
   };
 
@@ -150,7 +142,6 @@ const ListaConveniados: React.FC = () => {
     }
   };
 
-  // Calculate total pages, accounting for "All" option
   const totalPages = itemsPerPage === -1 ? 1 : Math.ceil(totalCount / itemsPerPage);
 
   return (
@@ -310,7 +301,6 @@ const ListaConveniados: React.FC = () => {
                 </PaginationItem>
                 
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  // Logic for showing pages around current page
                   let pageNum = i + 1;
                   if (totalPages > 5 && currentPage > 3) {
                     pageNum = currentPage - 3 + i;
