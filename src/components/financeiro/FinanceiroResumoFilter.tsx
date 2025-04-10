@@ -42,7 +42,7 @@ const FinanceiroResumoFilter: React.FC<FinanceiroResumoFilterProps> = ({ onApply
   };
 
   const handleClearFilters = () => {
-    const defaultFilters = {
+    const defaultFilters: FinanceiroFilters = {
       period: 'month',
       dateFilterType: 'dueDate',
       billingType: 'all',
