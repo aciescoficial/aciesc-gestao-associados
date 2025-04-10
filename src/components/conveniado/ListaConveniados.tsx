@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, UserCheck, UserX, Clock, RefreshCw } from 'lucide-react';
+import { Search, UserCheck, UserX, Clock, RefreshCw, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
@@ -40,16 +40,39 @@ interface Conveniado {
   created_at: string;
 }
 
-const ITEMS_PER_PAGE = 10;
-
 const ListaConveniados: React.FC = () => {
   const [conveniados, setConveniados] = useState<Conveniado[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<ConveniadoStatus | 'todos'>('todos');
+  const [cidadeFilter, setCidadeFilter] = useState<string>('');
+  const [cidades, setCidades] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const { toast } = useToast();
+
+  // Fetch available cities for filter dropdown
+  const fetchCidades = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('conveniados')
+        .select('cidade')
+        .order('cidade');
+      
+      if (error) throw error;
+      
+      // Extract unique cities
+      const uniqueCidades = Array.from(new Set(data?.map(item => item.cidade) || []));
+      setCidades(uniqueCidades);
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCidades();
+  }, []);
 
   const fetchConveniados = async () => {
     setLoading(true);
@@ -63,19 +86,31 @@ const ListaConveniados: React.FC = () => {
       if (statusFilter !== 'todos') {
         query = query.eq('status', statusFilter);
       }
+      
+      // Apply city filter if provided
+      if (cidadeFilter) {
+        query = query.eq('cidade', cidadeFilter);
+      }
 
       // Apply search term filter if provided
       if (searchTerm) {
-        query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+        query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,telefone.ilike.%${searchTerm}%,creci.ilike.%${searchTerm}%`);
       }
 
-      // Add pagination
-      const from = (currentPage - 1) * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
+      // Add pagination if not showing all
+      if (itemsPerPage !== -1) {
+        const from = (currentPage - 1) * itemsPerPage;
+        const to = from + itemsPerPage - 1;
+        
+        query = query
+          .order('created_at', { ascending: false })
+          .range(from, to);
+      } else {
+        // If showing all, just order them
+        query = query.order('created_at', { ascending: false });
+      }
       
-      const { data, error, count } = await query
-        .order('created_at', { ascending: false })
-        .range(from, to);
+      const { data, error, count } = await query;
       
       if (error) throw error;
       
@@ -95,7 +130,7 @@ const ListaConveniados: React.FC = () => {
 
   useEffect(() => {
     fetchConveniados();
-  }, [currentPage, statusFilter]);
+  }, [currentPage, statusFilter, cidadeFilter, itemsPerPage]);
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +151,8 @@ const ListaConveniados: React.FC = () => {
     }
   };
 
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  // Calculate total pages, accounting for "All" option
+  const totalPages = itemsPerPage === -1 ? 1 : Math.ceil(totalCount / itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -127,7 +163,7 @@ const ListaConveniados: React.FC = () => {
           <form onSubmit={handleSearch} className="flex flex-1 gap-2">
             <div className="relative flex-1">
               <Input
-                placeholder="Buscar por nome, CPF ou email..."
+                placeholder="Buscar por nome, CPF, CRECI, telefone ou email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -139,7 +175,26 @@ const ListaConveniados: React.FC = () => {
             <Button type="submit" variant="default">Buscar</Button>
           </form>
           
-          <div className="flex gap-2 items-center">
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-500">Cidade:</span>
+              <Select
+                value={cidadeFilter}
+                onValueChange={setCidadeFilter}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas</SelectItem>
+                  {cidades.map((cidade) => (
+                    <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
             <Select
               value={statusFilter}
               onValueChange={(value) => {
@@ -147,14 +202,34 @@ const ListaConveniados: React.FC = () => {
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrar por status" />
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos</SelectItem>
                 <SelectItem value="ativo">Ativos</SelectItem>
                 <SelectItem value="pendente">Pendentes</SelectItem>
                 <SelectItem value="inativo">Inativos</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(value) => {
+                setItemsPerPage(value === 'all' ? -1 : Number(value));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[110px]">
+                <SelectValue placeholder="Por página" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10 por página</SelectItem>
+                <SelectItem value="50">50 por página</SelectItem>
+                <SelectItem value="100">100 por página</SelectItem>
+                <SelectItem value="200">200 por página</SelectItem>
+                <SelectItem value="500">500 por página</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
               </SelectContent>
             </Select>
             
