@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import PluginLayout from '@/components/PluginLayout';
@@ -13,6 +14,7 @@ import UserManagement from '@/components/usuarios/UserManagement';
 import PermissionPanel from '@/components/usuarios/PermissionPanel';
 import ProfilePage from '@/components/auth/ProfilePage';
 import { useAuth } from '@/components/auth/AuthProvider';
+import ListaConveniados from '@/components/conveniado/ListaConveniados';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -93,6 +95,14 @@ const Index: React.FC = () => {
         <ProtectedRoute>
           <PluginLayout>
             <CadastroConveniado />
+          </PluginLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/conveniados/listar" element={
+        <ProtectedRoute>
+          <PluginLayout>
+            <ListaConveniados />
           </PluginLayout>
         </ProtectedRoute>
       } />
