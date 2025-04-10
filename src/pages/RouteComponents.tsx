@@ -16,6 +16,7 @@ import ListaConveniados from '@/components/conveniado/ListaConveniados';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import MensagensPage from '@/components/mensagens/MensagensPage';
+import EmpresasConveniadas from '@/components/associado/EmpresasConveniadas';
 
 // Placeholder component for Cobranças page
 export const CobrancasPage = () => (
@@ -56,16 +57,9 @@ export const SolicitarCarteirinhaPage = () => (
   </div>
 );
 
-// Placeholder for listing partner companies page
+// Component for listing partner companies page - using our new component
 export const EmpresasConveniadasPage = () => (
-  <div className="space-y-6">
-    <h1 className="wp-header">Empresas Conveniadas</h1>
-    <div className="wp-card">
-      <p className="text-muted-foreground">
-        Esta página de empresas conveniadas está em construção.
-      </p>
-    </div>
-  </div>
+  <EmpresasConveniadas />
 );
 
 // Layout wrapper component
