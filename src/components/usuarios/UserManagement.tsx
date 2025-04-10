@@ -1,360 +1,425 @@
+
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash, Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter
+  Table, 
+  TableBody, 
+  TableCaption, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { User, UserRole } from './types';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, PlusCircle, RefreshCw, Search } from 'lucide-react';
 
 const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([
-    { 
-      id: '1', 
-      name: 'Admin User', 
-      email: 'admin@aciesc.com.br', 
-      role: 'admin', 
-      active: true,
-      createdAt: new Date()
-    },
-    {
-      id: '2',
-      name: 'Normal User',
-      email: 'user@aciesc.com.br',
-      role: 'associado',
-      active: true,
-      createdAt: new Date()
-    },
-    {
-      id: '3',
-      name: 'Conveniado User',
-      email: 'conveniado@aciesc.com.br',
-      role: 'conveniado',
-      active: false,
-      createdAt: new Date()
-    }
-  ]);
-
-  const [isOpen, setIsOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  
-  const [formData, setFormData] = useState({
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [newUser, setNewUser] = useState({
     name: '',
     email: '',
     role: 'associado' as UserRole,
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
+  const { toast } = useToast();
 
   useEffect(() => {
-    const updateUserRole = async () => {
-      try {
-        const { data: userData, error: userError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('email', 'agencia.hubimobi@gmail.com')
-          .single();
-
-        if (userError) {
-          console.error('Error fetching user:', userError);
-          return;
-        }
-
-        if (userData && userData.role !== 'admin') {
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ role: 'admin' })
-            .eq('email', 'agencia.hubimobi@gmail.com');
-
-          if (updateError) {
-            console.error('Error updating user role:', updateError);
-          } else {
-            console.log('User role updated to admin successfully');
-            toast.success('Usuário agencia.hubimobi@gmail.com atualizado para Administrador');
-          }
-        }
-      } catch (error) {
-        console.error('Error in updateUserRole:', error);
-      }
-    };
-
-    updateUserRole();
+    fetchUsers();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleEdit = (user: User) => {
-    setEditingUser(user);
-    setFormData({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      password: '',
-      confirmPassword: ''
-    });
-    setIsOpen(true);
-  };
-
-  const handleDelete = (userId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
-      setUsers(users.filter(user => user.id !== userId));
-      toast.success('Usuário excluído com sucesso!');
-    }
-  };
-
-  const handleToggleActive = (userId: string) => {
-    setUsers(users.map(user => {
-      if (user.id !== userId) return user;
-      return { ...user, active: !user.active };
-    }));
-    
-    const user = users.find(u => u.id === userId);
-    if (user) {
-      toast.success(`Usuário ${user.active ? 'desativado' : 'ativado'} com sucesso!`);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('As senhas não coincidem');
-      return;
-    }
-
-    if (editingUser) {
-      setUsers(users.map(user => {
-        if (user.id !== editingUser.id) return user;
-        return { 
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('name');
+        
+      if (error) throw error;
+      
+      if (data) {
+        setUsers(data.map(user => ({
           ...user,
-          name: formData.name,
-          email: formData.email,
-          role: formData.role
-        };
-      }));
-      toast.success('Usuário atualizado com sucesso!');
-    } else {
-      const newUser: User = {
-        id: Date.now().toString(),
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
+          createdAt: new Date(user.createdAt)
+        })));
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast({
+        title: "Erro ao carregar usuários",
+        description: "Não foi possível carregar a lista de usuários.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addUser = async () => {
+    try {
+      // In a real app, you would call your API to create a user
+      const newUserId = `user-${Date.now()}`;
+      const createdUser: User = {
+        id: newUserId,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
         active: true,
         createdAt: new Date()
       };
-      setUsers([...users, newUser]);
-      toast.success('Usuário criado com sucesso!');
+      
+      setUsers([...users, createdUser]);
+      setIsAddUserDialogOpen(false);
+      setNewUser({
+        name: '',
+        email: '',
+        role: 'associado',
+        password: ''
+      });
+      
+      toast({
+        title: "Usuário criado",
+        description: `O usuário ${createdUser.name} foi criado com sucesso.`
+      });
+    } catch (error) {
+      console.error("Error adding user:", error);
+      toast({
+        title: "Erro ao criar usuário",
+        description: "Não foi possível criar o usuário.",
+        variant: "destructive"
+      });
     }
-    
-    setIsOpen(false);
-    setEditingUser(null);
-    setFormData({
-      name: '',
-      email: '',
-      role: 'associado',
-      password: '',
-      confirmPassword: ''
-    });
   };
 
-  const openNewUserDialog = () => {
-    setEditingUser(null);
-    setFormData({
-      name: '',
-      email: '',
-      role: 'associado',
-      password: '',
-      confirmPassword: ''
-    });
-    setIsOpen(true);
+  const updateUser = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      // In a real app, you would call your API to update the user
+      const updatedUsers = users.map(user => 
+        user.id === selectedUser.id ? selectedUser : user
+      );
+      
+      setUsers(updatedUsers);
+      setIsEditUserDialogOpen(false);
+      setSelectedUser(null);
+      
+      toast({
+        title: "Usuário atualizado",
+        description: `O usuário ${selectedUser.name} foi atualizado com sucesso.`
+      });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      toast({
+        title: "Erro ao atualizar usuário",
+        description: "Não foi possível atualizar o usuário.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleUserActive = async (userId: string, active: boolean) => {
+    try {
+      // In a real app, you would call your API to update the user's active status
+      const updatedUsers = users.map(user => 
+        user.id === userId ? { ...user, active } : user
+      );
+      
+      setUsers(updatedUsers);
+      
+      toast({
+        title: active ? "Usuário ativado" : "Usuário desativado",
+        description: `O usuário foi ${active ? "ativado" : "desativado"} com sucesso.`
+      });
+    } catch (error) {
+      console.error("Error toggling user active status:", error);
+      toast({
+        title: "Erro ao atualizar status do usuário",
+        description: "Não foi possível atualizar o status do usuário.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getRoleBadgeColor = (role: UserRole) => {
+    switch (role) {
+      case 'admin':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'diretoria':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'conveniado':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'associado':
+        return 'bg-green-100 text-green-800 border-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getRoleLabel = (role: UserRole) => {
+    switch (role) {
+      case 'admin':
+        return 'Administrador';
+      case 'diretoria':
+        return 'Diretoria';
+      case 'conveniado':
+        return 'Conveniado';
+      case 'associado':
+        return 'Associado';
+      default:
+        return role;
+    }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <h1 className="wp-header">Gerenciamento de Usuários</h1>
-        <button 
-          className="wp-button flex items-center gap-2" 
-          onClick={openNewUserDialog}
-        >
-          <Plus size={16} />
-          Novo Usuário
-        </button>
+        <div className="flex gap-2">
+          <Button onClick={() => fetchUsers()} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+          <Button onClick={() => setIsAddUserDialogOpen(true)}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Novo Usuário
+          </Button>
+        </div>
       </div>
       
-      <div className="wp-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Data Criação</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map(user => (
-              <TableRow key={user.id}>
-                <TableCell>{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    user.role === 'admin' 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : user.role === 'conveniado' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {user.role === 'admin' 
-                      ? 'Administrador' 
-                      : user.role === 'associado' 
-                        ? 'Associado' 
-                        : 'Conveniado'}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    user.active 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {user.active ? 'Ativo' : 'Inativo'}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {user.createdAt.toLocaleDateString('pt-BR')}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <button 
-                      className="p-1 hover:bg-gray-100 rounded"
-                      onClick={() => handleEdit(user)}
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button 
-                      className="p-1 hover:bg-gray-100 rounded"
-                      onClick={() => handleDelete(user.id)}
-                    >
-                      <Trash size={16} />
-                    </button>
-                    <button 
-                      className="p-1 hover:bg-gray-100 rounded"
-                      onClick={() => handleToggleActive(user.id)}
-                    >
-                      {user.active ? <X size={16} /> : <Check size={16} />}
-                    </button>
-                  </div>
-                </TableCell>
+      <div className="wp-card space-y-4">
+        <div className="flex items-center space-x-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar por nome ou email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+        
+        <div className="border rounded-md">
+          <Table>
+            <TableCaption>Lista de usuários do sistema</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    <div className="flex justify-center items-center">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      <span>Carregando usuários...</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    Nenhum usuário encontrado
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Badge className={`font-normal ${getRoleBadgeColor(user.role)}`}>
+                        {getRoleLabel(user.role)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Switch
+                          checked={user.active}
+                          onCheckedChange={(checked) => toggleUserActive(user.id, checked)}
+                        />
+                        <span className="ml-2">{user.active ? 'Ativo' : 'Inativo'}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setIsEditUserDialogOpen(true);
+                        }}
+                      >
+                        Editar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+      {/* Add User Dialog */}
+      <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingUser ? 'Editar Usuário' : 'Novo Usuário'}
-            </DialogTitle>
+            <DialogTitle>Adicionar Novo Usuário</DialogTitle>
+            <DialogDescription>
+              Preencha os dados abaixo para criar um novo usuário.
+            </DialogDescription>
           </DialogHeader>
-          
-          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Nome</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="wp-input w-full"
-                  required
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome</Label>
+              <Input
+                id="name"
+                value={newUser.name}
+                onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Tipo de Usuário</Label>
+              <Select
+                value={newUser.role}
+                onValueChange={(value) => setNewUser({...newUser, role: value as UserRole})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="diretoria">Diretoria</SelectItem>
+                  <SelectItem value="conveniado">Conveniado</SelectItem>
+                  <SelectItem value="associado">Associado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddUserDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={addUser}>Adicionar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>
+              Modifique os dados do usuário abaixo.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Nome</Label>
+                <Input
+                  id="edit-name"
+                  value={selectedUser.name}
+                  onChange={(e) => setSelectedUser({...selectedUser, name: e.target.value})}
                 />
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
                   type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="wp-input w-full"
-                  required
+                  value={selectedUser.email}
+                  onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
                 />
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Tipo de Usuário</label>
-                <select 
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  className="wp-input w-full"
-                  required
+              <div className="space-y-2">
+                <Label htmlFor="edit-role">Tipo de Usuário</Label>
+                <Select
+                  value={selectedUser.role}
+                  onValueChange={(value) => setSelectedUser({...selectedUser, role: value as UserRole})}
                 >
-                  <option value="admin">Administrador</option>
-                  <option value="diretoria">Diretoria</option>
-                  <option value="associado">Associado</option>
-                  <option value="conveniado">Conveniado</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="diretoria">Diretoria</SelectItem>
+                    <SelectItem value="conveniado">Conveniado</SelectItem>
+                    <SelectItem value="associado">Associado</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Senha</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="wp-input w-full"
-                  required={!editingUser}
-                  placeholder={editingUser ? "(Deixe em branco para manter a mesma senha)" : ""}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="edit-active"
+                  checked={selectedUser.active}
+                  onCheckedChange={(checked) => setSelectedUser({...selectedUser, active: checked})}
                 />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">Confirmar Senha</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="wp-input w-full"
-                  required={!editingUser}
-                  placeholder={editingUser ? "(Deixe em branco para manter a mesma senha)" : ""}
-                />
+                <Label htmlFor="edit-active">Usuário ativo</Label>
               </div>
             </div>
-            
-            <DialogFooter>
-              <button 
-                type="button" 
-                className="wp-button-secondary"
-                onClick={() => setIsOpen(false)}
-              >
-                Cancelar
-              </button>
-              <button type="submit" className="wp-button">
-                {editingUser ? 'Salvar Alterações' : 'Criar Usuário'}
-              </button>
-            </DialogFooter>
-          </form>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditUserDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={updateUser}>Salvar Alterações</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

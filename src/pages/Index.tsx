@@ -1,7 +1,17 @@
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import PluginLayout from '@/components/PluginLayout';
+import { Routes, Route } from 'react-router-dom';
+import { ProtectedRoute, AdminRoute } from './AuthRoutes';
+import { 
+  LayoutWrapper,
+  CobrancasPage,
+  MensagensPage,
+  PagamentosAssociadoPage,
+  SolicitarCarteirinhaPage,
+  EmpresasConveniadasPage
+} from './RouteComponents';
+
+// Component imports
 import Dashboard from '@/components/Dashboard';
 import CadastroConveniado from '@/components/CadastroConveniado';
 import CadastroEmpresa from '@/components/CadastroEmpresa';
@@ -13,314 +23,204 @@ import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
 import UserManagement from '@/components/usuarios/UserManagement';
 import PermissionPanel from '@/components/usuarios/PermissionPanel';
 import ProfilePage from '@/components/auth/ProfilePage';
-import { useAuth } from '@/components/auth/AuthProvider';
 import ListaConveniados from '@/components/conveniado/ListaConveniados';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 
-// Placeholder component for Cobranças page
-const CobrancasPage = () => (
-  <div className="space-y-6">
-    <h1 className="wp-header">Lista de Cobranças</h1>
-    <div className="wp-card">
-      <p className="text-muted-foreground">
-        Esta página está em construção.
-      </p>
-    </div>
-  </div>
-);
-
-// Placeholder for messages page
-const MensagensPage = () => (
-  <div className="space-y-6">
-    <h1 className="wp-header">Mensagens</h1>
-    <div className="wp-card">
-      <p className="text-muted-foreground">
-        Esta página de mensagens está em construção.
-      </p>
-    </div>
-  </div>
-);
-
-// Placeholder for member payment page
-const PagamentosAssociadoPage = () => (
-  <div className="space-y-6">
-    <h1 className="wp-header">Meus Pagamentos</h1>
-    <div className="wp-card">
-      <p className="text-muted-foreground">
-        Esta página de pagamentos está em construção.
-      </p>
-    </div>
-  </div>
-);
-
-// Placeholder for member ID card request page
-const SolicitarCarteirinhaPage = () => (
-  <div className="space-y-6">
-    <h1 className="wp-header">Solicitar Carteirinha</h1>
-    <div className="wp-card">
-      <p className="text-muted-foreground">
-        Esta página para solicitar carteirinha está em construção.
-      </p>
-    </div>
-  </div>
-);
-
-// Placeholder for listing partner companies page
-const EmpresasConveniadasPage = () => (
-  <div className="space-y-6">
-    <h1 className="wp-header">Empresas Conveniadas</h1>
-    <div className="wp-card">
-      <p className="text-muted-foreground">
-        Esta página de empresas conveniadas está em construção.
-      </p>
-    </div>
-  </div>
-);
-
-const ProtectedRoute = ({ children, allowedRoles = [] }: { children: React.ReactNode, allowedRoles?: string[] }) => {
-  const { user, loading, userRole, isAdmin } = useAuth();
-  
-  if (loading) {
-    return (
-      <PluginLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      </PluginLayout>
-    );
-  }
-  
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-  
-  // Admin can access everything
-  if (isAdmin) {
-    return <>{children}</>;
-  }
-  
-  // Check if current user role is allowed
-  if (allowedRoles.length > 0 && userRole && !allowedRoles.includes(userRole)) {
-    return <Navigate to="/" />;
-  }
-  
-  return <>{children}</>;
-};
-
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAdmin, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <PluginLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      </PluginLayout>
-    );
-  }
-  
-  if (!isAdmin) {
-    return <Navigate to="/" />;
-  }
-  
-  return <>{children}</>;
-};
-
 const Index: React.FC = () => {
-  const { userRole, isAdmin } = useAuth();
-  
   return (
     <Routes>
+      {/* Dashboard route - accessible to all authenticated users */}
       <Route path="/" element={
         <ProtectedRoute>
-          <PluginLayout>
+          <LayoutWrapper>
             <Dashboard />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
+      {/* Profile route - accessible to all authenticated users */}
       <Route path="/perfil" element={
         <ProtectedRoute>
-          <PluginLayout>
+          <LayoutWrapper>
             <ProfilePage />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       {/* Admin only routes */}
       <Route path="/usuarios/gerenciar" element={
         <AdminRoute>
-          <PluginLayout>
+          <LayoutWrapper>
             <UserManagement />
-          </PluginLayout>
+          </LayoutWrapper>
         </AdminRoute>
       } />
       
       <Route path="/usuarios/permissoes" element={
         <AdminRoute>
-          <PluginLayout>
+          <LayoutWrapper>
             <PermissionPanel />
-          </PluginLayout>
+          </LayoutWrapper>
         </AdminRoute>
       } />
       
       {/* Admin, Diretoria routes */}
       <Route path="/conveniados/cadastrar" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <CadastroConveniado />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/conveniados/listar" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <ListaConveniados />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/conveniados/pendentes" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <AprovacoesPendentes />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/conveniados/carteirinha" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <GeradorCarteirinha />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       {/* Admin, Diretoria, Empresa routes */}
       <Route path="/conveniados/pesquisar" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria', 'conveniado']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <PesquisaConveniado />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       {/* Admin, Diretoria routes */}
       <Route path="/empresas/cadastrar" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <CadastroEmpresa />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/empresas/pendentes" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <AprovacoesPendentes />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/empresas/pesquisar" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <PesquisaEmpresa />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       {/* Admin, Diretoria routes */}
       <Route path="/financeiro/resumo" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <FinanceiroResumoPage />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/financeiro/cobrancas" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <CobrancasPage />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/financeiro/associados" element={
         <AdminRoute>
-          <PluginLayout>
+          <LayoutWrapper>
             <AssociadosPage />
-          </PluginLayout>
+          </LayoutWrapper>
         </AdminRoute>
       } />
       
       <Route path="/financeiro/integracoes" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <IntegracaoFinanceira />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/financeiro/relatorios" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <Dashboard />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/configuracoes" element={
         <AdminRoute>
-          <PluginLayout>
+          <LayoutWrapper>
             <Dashboard />
-          </PluginLayout>
+          </LayoutWrapper>
         </AdminRoute>
       } />
       
       {/* Associado specific routes */}
       <Route path="/meus-pagamentos" element={
         <ProtectedRoute allowedRoles={['associado']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <PagamentosAssociadoPage />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/solicitar-carteirinha" element={
         <ProtectedRoute allowedRoles={['associado']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <SolicitarCarteirinhaPage />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       <Route path="/empresas-conveniadas" element={
         <ProtectedRoute allowedRoles={['associado']}>
-          <PluginLayout>
+          <LayoutWrapper>
             <EmpresasConveniadasPage />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
       {/* Mensagens route - accessible to all users */}
       <Route path="/mensagens" element={
         <ProtectedRoute>
-          <PluginLayout>
+          <LayoutWrapper>
             <MensagensPage />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
       
+      {/* Default route */}
       <Route path="*" element={
         <ProtectedRoute>
-          <PluginLayout>
+          <LayoutWrapper>
             <Dashboard />
-          </PluginLayout>
+          </LayoutWrapper>
         </ProtectedRoute>
       } />
     </Routes>
