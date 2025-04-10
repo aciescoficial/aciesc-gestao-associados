@@ -55,7 +55,7 @@ export const ImportExportAssociado: React.FC = () => {
               tipoPagamento: row['Tipo Pagamento'] || '',
               tipoAssociado: row['Tipo Associado'] || '',
               validade: formatDate(row['Validade']),
-              status: 'pendente'
+              status: 'pendente' as const
             }));
 
             // Generate validation metadata for each field
@@ -165,6 +165,28 @@ export const ImportExportAssociado: React.FC = () => {
         return;
       }
       
+      // Define as propriedades que esperamos do objeto associados
+      type AssociadoExport = {
+        nome: string;
+        sobrenome?: string;
+        email: string;
+        telefone: string;
+        creci?: string;
+        cpf: string;
+        cidade: string;
+        estado?: string;
+        rua?: string;
+        numero?: string;
+        complemento?: string;
+        bairro?: string;
+        cep?: string;
+        valor_pago?: string;
+        valor_devido?: string;
+        tipo_pagamento?: string;
+        tipo_associado?: string;
+        validade?: string;
+      };
+      
       const csvContent = Papa.unparse({
         fields: [
           'Nome', 'Email', 'Celular', 'CRECI-SC', 'CPF', 
@@ -172,7 +194,7 @@ export const ImportExportAssociado: React.FC = () => {
           'Estado', 'CEP', 'Valor Pago', 'Valor Devido',
           'Tipo Pagamento', 'Tipo Associado', 'Validade'
         ],
-        data: associados.map(a => ([
+        data: associados.map((a: AssociadoExport) => ([
           `${a.nome} ${a.sobrenome || ''}`.trim(),
           a.email,
           a.telefone,
@@ -236,10 +258,32 @@ export const ImportExportAssociado: React.FC = () => {
         return;
       }
       
+      // Define as propriedades que esperamos do objeto associados
+      type AssociadoExport = {
+        nome: string;
+        sobrenome?: string;
+        email: string;
+        telefone: string;
+        creci?: string;
+        cpf: string;
+        cidade: string;
+        estado?: string;
+        rua?: string;
+        numero?: string;
+        complemento?: string;
+        bairro?: string;
+        cep?: string;
+        valor_pago?: string;
+        valor_devido?: string;
+        tipo_pagamento?: string;
+        tipo_associado?: string;
+        validade?: string;
+      };
+      
       let xml = '<?xml version="1.0" encoding="UTF-8" ?>\n';
       xml += '<associados>\n';
       
-      associados.forEach(a => {
+      associados.forEach((a: AssociadoExport) => {
         xml += '  <associado>\n';
         xml += `    <nome>${a.nome} ${a.sobrenome || ''}</nome>\n`;
         xml += `    <email>${a.email}</email>\n`;
