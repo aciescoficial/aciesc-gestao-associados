@@ -231,10 +231,13 @@ const UserManagement: React.FC = () => {
       case 'diretoria':
         return 'Diretoria';
       case 'empresa':
+        return 'Empresa';
       case 'conveniado':
-        return 'Empresa/Conveniado';
+        return 'Conveniado';
       case 'associado':
         return 'Associado';
+      case 'user':
+        return 'Usuário';
       default:
         return role;
     }
@@ -383,6 +386,7 @@ const UserManagement: React.FC = () => {
                   <SelectItem value="diretoria">Diretoria</SelectItem>
                   <SelectItem value="empresa">Empresa</SelectItem>
                   <SelectItem value="associado">Associado</SelectItem>
+                  <SelectItem value="user">Usuário</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -438,6 +442,7 @@ const UserManagement: React.FC = () => {
                     <SelectItem value="diretoria">Diretoria</SelectItem>
                     <SelectItem value="empresa">Empresa</SelectItem>
                     <SelectItem value="associado">Associado</SelectItem>
+                    <SelectItem value="user">Usuário</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
