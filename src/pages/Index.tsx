@@ -27,6 +27,7 @@ import ProfilePage from '@/components/auth/ProfilePage';
 import ListaAssociados from '@/components/associado/ListaAssociados';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
+import ConfiguracoesPage from '@/components/configuracoes/ConfiguracoesPage';
 
 const Index: React.FC = () => {
   return (
@@ -133,7 +134,6 @@ const Index: React.FC = () => {
         </ProtectedRoute>
       } />
 
-      {/* NEW ROUTE: Duplicate of PesquisaEmpresa for empresa role */}
       <Route path="/empresas/buscar" element={
         <ProtectedRoute allowedRoles={['admin', 'diretoria', 'empresa']}>
           <LayoutWrapper>
@@ -186,7 +186,7 @@ const Index: React.FC = () => {
       <Route path="/configuracoes" element={
         <AdminRoute>
           <LayoutWrapper>
-            <Dashboard />
+            <ConfiguracoesPage />
           </LayoutWrapper>
         </AdminRoute>
       } />

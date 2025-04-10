@@ -22,8 +22,9 @@ const AppRoutes: React.FC = () => {
           <Route path="/associados/cadastro" element={<RouteComponents.CadastroAssociado />} />
           <Route path="/associados/pesquisa" element={<RouteComponents.PesquisaAssociado />} />
 
-          <Route path="/conveniados/cadastro" element={<RouteComponents.CadastroConveniado />} />
-          <Route path="/conveniados/pesquisa" element={<RouteComponents.PesquisaConveniado />} />
+          {/* Removed missing conveniado routes */}
+          {/* <Route path="/conveniados/cadastro" element={<RouteComponents.CadastroConveniado />} /> */}
+          {/* <Route path="/conveniados/pesquisa" element={<RouteComponents.PesquisaConveniado />} /> */}
 
           <Route path="/empresas/cadastro" element={<RouteComponents.CadastroEmpresa />} />
           <Route path="/empresas/pesquisa" element={<RouteComponents.PesquisaEmpresa />} />
@@ -33,7 +34,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/carteirinhas" element={<RouteComponents.GeradorCarteirinha />} />
 
           <Route path="/financeiro" element={<RouteComponents.FinanceiroResumoPage />} />
-          <Route path="/financeiro/associados" element={<RouteComponents.AssociadoMembership />} />
+          <Route path="/financeiro/associados" element={<RouteComponents.AssociadosPage />} />
           <Route path="/financeiro/integracao" element={<RouteComponents.IntegracaoFinanceira />} />
 
           <Route path="/mensagens" element={<RouteComponents.MensagensPage />} />

@@ -3,30 +3,38 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from '@/hooks/use-toast';
 
+interface SystemConfig {
+  id: string;
+  key: string;
+  value: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const GoogleMapsConfig: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Tentar carregar a chave do localStorage primeiro (compatibilidade)
+    // Try to load the key from localStorage first (compatibility)
     const storedKey = localStorage.getItem('google_maps_api_key');
     if (storedKey) {
       setApiKey(storedKey);
     }
 
-    // Verificar se existe uma chave no banco de dados
+    // Check if there's a key in the database
     const fetchApiKey = async () => {
       try {
         const { data, error } = await supabase
           .from('system_config')
           .select('*')
           .eq('key', 'google_maps_api_key')
-          .maybeSingle();
+          .maybeSingle() as { data: SystemConfig | null, error: any };
         
-        if (!error && data && 'value' in data) {
+        if (!error && data && data.value) {
           setApiKey(data.value);
-          // Atualizar também o localStorage para compatibilidade
+          // Also update localStorage for compatibility
           localStorage.setItem('google_maps_api_key', data.value);
         }
       } catch (err) {
@@ -41,17 +49,17 @@ const GoogleMapsConfig: React.FC = () => {
     setIsSaving(true);
     
     try {
-      // Salvar no localStorage para compatibilidade com código existente
+      // Save to localStorage for compatibility with existing code
       localStorage.setItem('google_maps_api_key', apiKey);
       
-      // Salvar no banco de dados para persistência
+      // Save to database for persistence
       const { error } = await supabase
         .from('system_config')
         .upsert({ 
           key: 'google_maps_api_key', 
           value: apiKey,
           updated_at: new Date().toISOString()
-        });
+        }) as { error: any };
 
       if (error) throw error;
 

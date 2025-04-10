@@ -2,29 +2,36 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
+interface SystemConfig {
+  id: string;
+  key: string;
+  value: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const useGoogleMapsApi = () => {
-  const [apiKey, setApiKey] = useState<string | null>(localStorage.getItem('google_maps_api_key'));
+  const [apiKey, setApiKey] = useState<string | null>(localStorage.getItem('google_maps_api_key') || '');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchApiKey = async () => {
       setIsLoading(true);
       
-      // Primeiro tentamos buscar do localStorage (compatibilidade)
+      // First try to get from localStorage (for compatibility)
       const localKey = localStorage.getItem('google_maps_api_key');
       
       if (!localKey) {
         try {
-          // Se não encontrar no localStorage, buscamos do banco
-          // Para fins de desenvolvimento, usamos uma consulta segura que não vai quebrar
-          // mesmo se a tabela não existir
+          // If not found in localStorage, try to fetch from database
+          // Using custom type assertion for system_config table
           const { data, error } = await supabase
             .from('system_config')
             .select('*')
             .eq('key', 'google_maps_api_key')
-            .maybeSingle();
+            .maybeSingle() as { data: SystemConfig | null, error: any };
 
-          if (!error && data && 'value' in data) {
+          if (!error && data && data.value) {
             localStorage.setItem('google_maps_api_key', data.value);
             setApiKey(data.value);
           }

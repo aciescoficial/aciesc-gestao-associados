@@ -18,6 +18,7 @@ import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import MensagensPage from '@/components/mensagens/MensagensPage';
 import EmpresasConveniadas from '@/components/associado/EmpresasConveniadas';
 import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
+import ConfiguracoesPage from '@/components/configuracoes/ConfiguracoesPage';
 import Index from './Index';
 
 // Placeholder component for Cobranças page
@@ -105,6 +106,7 @@ const RouteComponents = {
   SolicitarCarteirinhaPage,
   EmpresasConveniadasPage,
   EmpresasPesquisaPage,
+  ConfiguracoesPage, // Added missing component to export
   NotFound: () => <div>Página não encontrada</div>
 };
 
