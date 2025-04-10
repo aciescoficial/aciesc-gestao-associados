@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import PluginLayout from '@/components/PluginLayout';
@@ -16,6 +15,7 @@ import ProfilePage from '@/components/auth/ProfilePage';
 import { useAuth } from '@/components/auth/AuthProvider';
 import ListaConveniados from '@/components/conveniado/ListaConveniados';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
+import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -152,6 +152,14 @@ const Index: React.FC = () => {
         <ProtectedRoute>
           <PluginLayout>
             <PesquisaEmpresa />
+          </PluginLayout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/financeiro/resumo" element={
+        <ProtectedRoute>
+          <PluginLayout>
+            <FinanceiroResumoPage />
           </PluginLayout>
         </ProtectedRoute>
       } />

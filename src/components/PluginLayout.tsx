@@ -15,7 +15,8 @@ import {
   UserCog,
   ChevronLeft,
   ChevronRight,
-  UserCheck
+  UserCheck,
+  BarChart
 } from 'lucide-react';
 import UserProfileMenu from './auth/UserProfileMenu';
 
@@ -43,6 +44,7 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
     { icon: CheckSquare, label: "Aprovação Pendente", path: "/empresas/pendentes" },
     { icon: Search, label: "Pesquisar", path: "/empresas/pesquisar" },
     { header: "Financeiro" },
+    { icon: BarChart, label: "Resumo", path: "/financeiro/resumo" },
     { icon: UserCheck, label: "Associados", path: "/financeiro/associados" },
     { icon: DollarSign, label: "Integrações", path: "/financeiro/integracoes" },
     { icon: FileText, label: "Relatórios", path: "/financeiro/relatorios" },

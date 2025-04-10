@@ -40,3 +40,26 @@ export type InterestPaymentByOption = {
   value: InterestPaymentBy;
   label: string;
 };
+
+export type FinancialSummary = {
+  clients: {
+    total: number;
+    defaulters: number;
+  };
+  bills: {
+    expected: number;
+    overdue: number;
+    received: number;
+  };
+  revenue: {
+    expected: number;
+    confirmed: number;
+    received: number;
+  };
+};
+
+export type ChartData = {
+  date: string;
+  expected: number;
+  received: number;
+};
