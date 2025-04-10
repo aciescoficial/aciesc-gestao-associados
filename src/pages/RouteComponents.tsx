@@ -17,6 +17,7 @@ import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import MensagensPage from '@/components/mensagens/MensagensPage';
 import EmpresasConveniadas from '@/components/associado/EmpresasConveniadas';
+import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
 
 // Placeholder component for Cobranças page
 export const CobrancasPage = () => (
@@ -60,6 +61,11 @@ export const SolicitarCarteirinhaPage = () => (
 // Component for listing partner companies page - using our new component
 export const EmpresasConveniadasPage = () => (
   <EmpresasConveniadas />
+);
+
+// Component for empresa area's search feature
+export const EmpresasPesquisaPage = () => (
+  <EmpresasPesquisa />
 );
 
 // Layout wrapper component

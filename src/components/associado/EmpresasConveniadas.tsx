@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, MapPin, Building, CircleSlash, Star, Clock, 
   Map as MapIcon, Compass, Filter, SlidersHorizontal, 
-  Heart, Share2, ChevronDown, Grid, List, City
+  Heart, Share2, ChevronDown, Grid, List
 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from '@/integrations/supabase/types';
@@ -58,6 +58,11 @@ interface EmpresaData {
   desconto?: string;
   rating?: number;
   distancia?: number;
+  // Adding optional fields that might exist on empresas table
+  site?: string;
+  instagram?: string;
+  whatsapp?: string;
+  produtos?: string;
 }
 
 // Temporary Mapbox token input component
@@ -162,7 +167,7 @@ const EmpresasConveniadas: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<EmpresaData[]>([]);
-  const [nichos, setNichos] = useState<string[]>([]);
+  const [nichos, setNichos] = useState<NichoType[]>([]);
   const [cidades, setCidades] = useState<string[]>([]);
   const [nichoFilter, setNichoFilter] = useState<string>('');
   const [cidadeFilter, setCidadeFilter] = useState<string>('');
@@ -187,7 +192,7 @@ const EmpresasConveniadas: React.FC = () => {
           
         if (nichoData) {
           const uniqueNichos = Array.from(new Set(nichoData.map(item => item.nicho)));
-          setNichos(uniqueNichos as string[]);
+          setNichos(uniqueNichos as NichoType[]);
         }
         
         // Fetch unique cidade values
@@ -358,7 +363,7 @@ const EmpresasConveniadas: React.FC = () => {
         .eq('status', 'ativo');
       
       if (nichoFilter) {
-        query = query.eq('nicho', nichoFilter);
+        query = query.eq('nicho', nichoFilter as NichoType);
       }
       
       if (cidadeFilter) {
@@ -377,8 +382,8 @@ const EmpresasConveniadas: React.FC = () => {
         // Add simulated data for distance and rating
         const companiesWithMetadata = data.map(company => {
           // Simulate latitude/longitude if not present
-          const companyLat = company.latitude || (latitude + (Math.random() - 0.5) * 0.1);
-          const companyLng = company.longitude || (longitude + (Math.random() - 0.5) * 0.1);
+          const companyLat = (company as any).latitude || (latitude + (Math.random() - 0.5) * 0.1);
+          const companyLng = (company as any).longitude || (longitude + (Math.random() - 0.5) * 0.1);
           
           // Calculate distance (simplified)
           const latDiff = companyLat - latitude;
@@ -404,7 +409,7 @@ const EmpresasConveniadas: React.FC = () => {
             longitude: companyLng,
             distancia: distance,
             rating,
-            desconto: hasDiscount ? discountOptions[Math.floor(Math.random() * discountOptions.length)] : undefined
+            desconto: company.desconto || (hasDiscount ? discountOptions[Math.floor(Math.random() * discountOptions.length)] : undefined)
           };
         });
         
@@ -458,7 +463,7 @@ const EmpresasConveniadas: React.FC = () => {
         .eq('status', 'ativo');
       
       if (nichoFilter) {
-        query = query.eq('nicho', nichoFilter);
+        query = query.eq('nicho', nichoFilter as NichoType);
       }
       
       if (cidadeFilter) {
@@ -480,8 +485,8 @@ const EmpresasConveniadas: React.FC = () => {
           const baseLat = currentLocation?.lat || -15.7801;
           const baseLng = currentLocation?.lng || -47.9292;
           
-          const companyLat = company.latitude || (baseLat + (Math.random() - 0.5) * 0.1);
-          const companyLng = company.longitude || (baseLng + (Math.random() - 0.5) * 0.1);
+          const companyLat = (company as any).latitude || (baseLat + (Math.random() - 0.5) * 0.1);
+          const companyLng = (company as any).longitude || (baseLng + (Math.random() - 0.5) * 0.1);
           
           // Calculate distance (if we have user location)
           let distance;
@@ -510,7 +515,7 @@ const EmpresasConveniadas: React.FC = () => {
             longitude: companyLng,
             distancia: distance,
             rating,
-            desconto: hasDiscount ? discountOptions[Math.floor(Math.random() * discountOptions.length)] : undefined
+            desconto: company.desconto || (hasDiscount ? discountOptions[Math.floor(Math.random() * discountOptions.length)] : undefined)
           };
         });
         
@@ -601,7 +606,7 @@ const EmpresasConveniadas: React.FC = () => {
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os setores</SelectItem>
+                    <SelectItem value="todos">Todos os setores</SelectItem>
                     {nichos.map((nicho) => (
                       <SelectItem key={nicho} value={nicho}>{nicho}</SelectItem>
                     ))}
@@ -611,12 +616,12 @@ const EmpresasConveniadas: React.FC = () => {
                 <Select value={cidadeFilter} onValueChange={setCidadeFilter}>
                   <SelectTrigger className="w-[140px]">
                     <div className="flex items-center gap-2">
-                      <City className="h-4 w-4" />
+                      <MapPin className="h-4 w-4" />
                       <SelectValue placeholder="Cidade" />
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as cidades</SelectItem>
+                    <SelectItem value="todas">Todas as cidades</SelectItem>
                     {cidades.map((cidade) => (
                       <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
                     ))}

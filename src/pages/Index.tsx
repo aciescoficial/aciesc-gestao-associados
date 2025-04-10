@@ -8,7 +8,8 @@ import {
   MensagensPage,
   PagamentosAssociadoPage,
   SolicitarCarteirinhaPage,
-  EmpresasConveniadasPage
+  EmpresasConveniadasPage,
+  EmpresasPesquisaPage
 } from './RouteComponents';
 
 // Component imports
@@ -128,6 +129,15 @@ const Index: React.FC = () => {
         <ProtectedRoute allowedRoles={['admin', 'diretoria']}>
           <LayoutWrapper>
             <PesquisaEmpresa />
+          </LayoutWrapper>
+        </ProtectedRoute>
+      } />
+
+      {/* NEW ROUTE: Duplicate of PesquisaEmpresa for empresa role */}
+      <Route path="/empresas/buscar" element={
+        <ProtectedRoute allowedRoles={['admin', 'diretoria', 'empresa']}>
+          <LayoutWrapper>
+            <EmpresasPesquisaPage />
           </LayoutWrapper>
         </ProtectedRoute>
       } />
