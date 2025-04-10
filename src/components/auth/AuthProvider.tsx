@@ -11,6 +11,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{error: any}>;
   signUp: (email: string, password: string, name: string) => Promise<{error: any}>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{error: any}>;
   isAdmin: boolean;
 };
 
@@ -123,6 +124,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      return { error };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   const signOut = async () => {
     // Log signout event before actually signing out
     if (user) {
@@ -150,6 +162,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signIn,
     signUp,
     signOut,
+    resetPassword,
     isAdmin,
   };
 
