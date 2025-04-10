@@ -24,9 +24,9 @@ export const useGoogleMapsApi = () => {
       if (!localKey) {
         try {
           // If not found in localStorage, try to fetch from database
-          // Using custom type assertion for system_config table
+          // Using any to bypass Supabase type checking as system_config might not be in generated types yet
           const { data, error } = await supabase
-            .from('system_config')
+            .from('system_config' as any)
             .select('*')
             .eq('key', 'google_maps_api_key')
             .maybeSingle() as { data: SystemConfig | null, error: any };

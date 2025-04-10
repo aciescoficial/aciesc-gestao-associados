@@ -26,8 +26,9 @@ const GoogleMapsConfig: React.FC = () => {
     // Check if there's a key in the database
     const fetchApiKey = async () => {
       try {
+        // Using any to bypass Supabase type checking as system_config might not be in generated types yet
         const { data, error } = await supabase
-          .from('system_config')
+          .from('system_config' as any)
           .select('*')
           .eq('key', 'google_maps_api_key')
           .maybeSingle() as { data: SystemConfig | null, error: any };
@@ -53,9 +54,10 @@ const GoogleMapsConfig: React.FC = () => {
       localStorage.setItem('google_maps_api_key', apiKey);
       
       // Save to database for persistence
+      // Using any to bypass Supabase type checking as system_config might not be in generated types yet
       const { error } = await supabase
-        .from('system_config')
-        .upsert({ 
+        .from('system_config' as any)
+        .upsert({
           key: 'google_maps_api_key', 
           value: apiKey,
           updated_at: new Date().toISOString()

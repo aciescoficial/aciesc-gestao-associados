@@ -22,7 +22,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/associados/cadastro" element={<RouteComponents.CadastroAssociado />} />
           <Route path="/associados/pesquisa" element={<RouteComponents.PesquisaAssociado />} />
 
-          {/* Removed missing conveniado routes */}
+          {/* Commented out conveniado routes as they don't exist in RouteComponents */}
           {/* <Route path="/conveniados/cadastro" element={<RouteComponents.CadastroConveniado />} /> */}
           {/* <Route path="/conveniados/pesquisa" element={<RouteComponents.PesquisaConveniado />} /> */}
 
