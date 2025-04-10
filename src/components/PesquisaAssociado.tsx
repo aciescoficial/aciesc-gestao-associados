@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -47,13 +46,12 @@ const PesquisaAssociado: React.FC = () => {
   const fetchCidades = async () => {
     try {
       const { data, error } = await supabase
-        .from('associados')
+        .from('associados' as any)
         .select('cidade')
         .order('cidade');
       
       if (error) throw error;
       
-      // Extract unique cities
       const uniqueCidades = Array.from(new Set(data?.map(item => item.cidade) || []));
       setCidades(uniqueCidades);
     } catch (error) {
@@ -76,9 +74,8 @@ const PesquisaAssociado: React.FC = () => {
     setIsSearching(true);
     
     try {
-      let query = supabase.from('associados').select('*');
+      let query = supabase.from('associados' as any).select('*');
       
-      // Apply search filters
       if (searchType === 'nome') {
         query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
       } else if (searchType === 'cpf') {
@@ -87,12 +84,10 @@ const PesquisaAssociado: React.FC = () => {
         query = query.ilike('creci', `%${searchTerm}%`);
       }
       
-      // Apply status filter if not 'todos'
       if (statusFilter !== 'todos') {
         query = query.eq('status', statusFilter);
       }
       
-      // Apply city filter if not 'todas'
       if (cidadeFilter !== 'todas') {
         query = query.eq('cidade', cidadeFilter);
       }
@@ -101,7 +96,7 @@ const PesquisaAssociado: React.FC = () => {
       
       if (error) throw error;
       
-      setResults(data || []);
+      setResults(data as Associado[] || []);
       
       if (!data || data.length === 0) {
         toast({

@@ -11,49 +11,88 @@ export type Database = {
     Tables: {
       associados: {
         Row: {
+          bairro: string | null
+          cep: string | null
           cidade: string
+          complemento: string | null
           cpf: string
           created_at: string
           creci: string | null
+          data_nascimento: string | null
+          data_ultimo_pagamento: string | null
           email: string
+          estado: string | null
           id: string
           nome: string
+          numero: string | null
           placa_principal: string | null
           placa_secundaria: string | null
+          rua: string | null
           sobrenome: string
           status: Database["public"]["Enums"]["status_type"]
           telefone: string
+          tipo_associado: string | null
+          tipo_pagamento: string | null
           updated_at: string
+          validade: string | null
+          valor_devido: string | null
+          valor_pago: string | null
         }
         Insert: {
+          bairro?: string | null
+          cep?: string | null
           cidade: string
+          complemento?: string | null
           cpf: string
           created_at?: string
           creci?: string | null
+          data_nascimento?: string | null
+          data_ultimo_pagamento?: string | null
           email: string
+          estado?: string | null
           id?: string
           nome: string
+          numero?: string | null
           placa_principal?: string | null
           placa_secundaria?: string | null
+          rua?: string | null
           sobrenome: string
           status?: Database["public"]["Enums"]["status_type"]
           telefone: string
+          tipo_associado?: string | null
+          tipo_pagamento?: string | null
           updated_at?: string
+          validade?: string | null
+          valor_devido?: string | null
+          valor_pago?: string | null
         }
         Update: {
+          bairro?: string | null
+          cep?: string | null
           cidade?: string
+          complemento?: string | null
           cpf?: string
           created_at?: string
           creci?: string | null
+          data_nascimento?: string | null
+          data_ultimo_pagamento?: string | null
           email?: string
+          estado?: string | null
           id?: string
           nome?: string
+          numero?: string | null
           placa_principal?: string | null
           placa_secundaria?: string | null
+          rua?: string | null
           sobrenome?: string
           status?: Database["public"]["Enums"]["status_type"]
           telefone?: string
+          tipo_associado?: string | null
+          tipo_pagamento?: string | null
           updated_at?: string
+          validade?: string | null
+          valor_devido?: string | null
+          valor_pago?: string | null
         }
         Relationships: []
       }

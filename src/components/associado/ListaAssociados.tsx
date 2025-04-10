@@ -55,8 +55,9 @@ const ListaAssociados: React.FC = () => {
   // Fetch available cities for filter dropdown
   const fetchCidades = async () => {
     try {
+      // Use type assertion to tell TypeScript this is a valid table
       const { data, error } = await supabase
-        .from('associados')
+        .from('associados' as any)
         .select('cidade')
         .order('cidade');
       
@@ -78,8 +79,9 @@ const ListaAssociados: React.FC = () => {
     setLoading(true);
     try {
       // Build the query with filters
+      // Use type assertion to tell TypeScript this is a valid table
       let query = supabase
-        .from('associados')
+        .from('associados' as any)
         .select('*', { count: 'exact' });
 
       // Apply status filter if not 'todos'
@@ -114,7 +116,7 @@ const ListaAssociados: React.FC = () => {
       
       if (error) throw error;
       
-      setAssociados(data || []);
+      setAssociados(data as Associado[] || []);
       setTotalCount(count || 0);
     } catch (error) {
       console.error('Error fetching associados:', error);

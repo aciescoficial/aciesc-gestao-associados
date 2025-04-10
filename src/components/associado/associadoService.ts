@@ -29,8 +29,9 @@ export const saveAssociado = async (data: AssociadoFormData) => {
     status: 'pendente' as StatusType
   };
   
+  // Use type assertion to tell TypeScript this is a valid table
   const { data: associadoResult, error } = await supabase
-    .from('associados')
+    .from('associados' as any)
     .insert(associadoData)
     .select('id')
     .single();
@@ -85,8 +86,9 @@ export const importAssociados = async (data: ImportAssociadoData[]) => {
     status: 'pendente' as StatusType
   }));
   
+  // Use type assertion to tell TypeScript this is a valid table
   const { error } = await supabase
-    .from('associados')
+    .from('associados' as any)
     .insert(associados);
     
   if (error) {
@@ -97,8 +99,9 @@ export const importAssociados = async (data: ImportAssociadoData[]) => {
 };
 
 export const exportAssociados = async () => {
+  // Use type assertion to tell TypeScript this is a valid table
   const { data: associados, error } = await supabase
-    .from('associados')
+    .from('associados' as any)
     .select('*');
     
   if (error) throw error;
