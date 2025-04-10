@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -46,13 +47,15 @@ const PesquisaAssociado: React.FC = () => {
   const fetchCidades = async () => {
     try {
       const { data, error } = await supabase
-        .from('associados' as any)
+        .from('associados')
         .select('cidade')
         .order('cidade');
       
       if (error) throw error;
       
-      const uniqueCidades = Array.from(new Set(data?.map(item => item.cidade) || []));
+      // Type assertion to handle the data
+      const associadosData = data as { cidade: string }[];
+      const uniqueCidades = Array.from(new Set(associadosData.map(item => item.cidade) || []));
       setCidades(uniqueCidades);
     } catch (error) {
       console.error('Error fetching cities:', error);
@@ -74,7 +77,7 @@ const PesquisaAssociado: React.FC = () => {
     setIsSearching(true);
     
     try {
-      let query = supabase.from('associados' as any).select('*');
+      let query = supabase.from('associados').select('*');
       
       if (searchType === 'nome') {
         query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
@@ -96,7 +99,8 @@ const PesquisaAssociado: React.FC = () => {
       
       if (error) throw error;
       
-      setResults(data as Associado[] || []);
+      // Type assertion to handle the data
+      setResults(data as Associado[]);
       
       if (!data || data.length === 0) {
         toast({

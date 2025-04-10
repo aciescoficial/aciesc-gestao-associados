@@ -36,35 +36,58 @@ export const ImportExportAssociado: React.FC = () => {
           header: true,
           skipEmptyLines: true,
           complete: (results) => {
+            console.log("CSV parse results:", results);
+            
             // Map CSV headers to our data model
-            const mappedData = results.data.map((row: any, index) => ({
-              id: `import-${index}`,
-              nome: row['Nome'] || '',
-              sobrenome: (row['Nome'] || '').split(' ').slice(1).join(' ') || '',
-              email: row['Email'] || '',
-              celular: row['Celular'] || '',
-              creci: row['CRECI-SC'] || '',
-              cpf: row['CPF'] || '',
-              rua: row['Rua'] || '',
-              numero: row['Número'] || '',
-              complemento: row['Complemento'] || '',
-              bairro: row['Bairro'] || '',
-              cidade: row['Cidade'] || '',
-              estado: row['Estado'] || '',
-              cep: row['CEP'] || '',
-              valorPago: row['Valor Pago'] || '',
-              valorDevido: row['Valor Devido'] || '',
-              tipoPagamento: row['Tipo Pagamento'] || '',
-              tipoAssociado: row['Tipo Associado'] || '',
-              validade: formatDate(row['Validade']),
-              status: 'pendente' as const
-            }));
+            const mappedData = results.data.map((row: any, index) => {
+              // Split full name into first name and last name
+              let nome = row['Nome'] || '';
+              let sobrenome = '';
+              
+              if (nome.includes(' ')) {
+                const nameParts = nome.split(' ');
+                nome = nameParts[0];
+                sobrenome = nameParts.slice(1).join(' ');
+              }
+              
+              // Parse date from DD/MM/YYYY to YYYY-MM-DD
+              let validade = '';
+              if (row['Validade']) {
+                const parts = row['Validade'].split('/');
+                if (parts.length === 3) {
+                  validade = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+              }
+              
+              return {
+                id: `import-${index}`,
+                nome: nome,
+                sobrenome: sobrenome,
+                email: row['Email'] || '',
+                celular: row['Celular'] || '',
+                creci: row['CRECI-SC'] || '',
+                cpf: row['CPF'] || '',
+                rua: row['Rua'] || '',
+                numero: row['Número'] || '',
+                complemento: row['Complemento'] || '',
+                bairro: row['Bairro'] || '',
+                cidade: row['Cidade'] || '',
+                estado: row['Estado'] || '',
+                cep: row['CEP'] || '',
+                valorPago: row['Valor Pago'] || '',
+                valorDevido: row['Valor Devido'] || '',
+                tipoPagamento: row['Tipo Pagamento'] || '',
+                tipoAssociado: row['Tipo Associado'] || '',
+                validade: validade,
+                status: 'pendente' as const
+              };
+            });
 
             // Generate validation metadata for each field
             const validationFields = Object.keys(results.data[0] || {}).map(field => ({
               fieldName: field,
               targetField: mapFieldToTarget(field),
-              isValid: true
+              isValid: validateField(field, results.data)
             }));
 
             setImportData(mappedData);
@@ -93,16 +116,16 @@ export const ImportExportAssociado: React.FC = () => {
     reader.readAsText(file);
   };
 
-  // Helper to format date from DD/MM/YYYY to YYYY-MM-DD
-  const formatDate = (dateStr: string): string => {
-    if (!dateStr) return '';
+  // Validate field data across all rows
+  const validateField = (field: string, data: any[]): boolean => {
+    // Required fields validation
+    const requiredFields = ['Nome', 'Email', 'CPF', 'Cidade'];
     
-    const parts = dateStr.split('/');
-    if (parts.length === 3) {
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    if (requiredFields.includes(field)) {
+      return data.every(row => !!row[field]);
     }
     
-    return dateStr;
+    return true;
   };
 
   // Map CSV headers to our data model fields
@@ -172,13 +195,14 @@ export const ImportExportAssociado: React.FC = () => {
       
       const csvContent = Papa.unparse({
         fields: [
-          'Nome', 'Email', 'Celular', 'CRECI-SC', 'CPF', 
+          'Nome', 'Sobrenome', 'Email', 'Celular', 'CRECI-SC', 'CPF', 
           'Rua', 'Número', 'Complemento', 'Bairro', 'Cidade', 
           'Estado', 'CEP', 'Valor Pago', 'Valor Devido',
           'Tipo Pagamento', 'Tipo Associado', 'Validade'
         ],
         data: associados.map((a: any) => ([
-          `${a.nome} ${a.sobrenome || ''}`.trim(),
+          a.nome,
+          a.sobrenome || '',
           a.email,
           a.telefone,
           a.creci || '',
@@ -239,7 +263,8 @@ export const ImportExportAssociado: React.FC = () => {
       
       associados.forEach((a: any) => {
         xml += '  <associado>\n';
-        xml += `    <nome>${a.nome} ${a.sobrenome || ''}</nome>\n`;
+        xml += `    <nome>${a.nome}</nome>\n`;
+        xml += `    <sobrenome>${a.sobrenome || ''}</sobrenome>\n`;
         xml += `    <email>${a.email}</email>\n`;
         xml += `    <celular>${a.telefone}</celular>\n`;
         xml += `    <creci>${a.creci || ''}</creci>\n`;

@@ -30,7 +30,7 @@ export const saveConveniado = async (data: ConveniadoFormData) => {
   };
   
   const { data: conveniadoResult, error } = await supabase
-    .from('conveniados')
+    .from('associados')
     .insert(conveniadoData)
     .select('id')
     .single();
@@ -49,7 +49,7 @@ export const uploadFoto = async (id: string, file: File) => {
   
   const { error } = await supabase
     .storage
-    .from('conveniados')
+    .from('associados')
     .upload(fileName, file);
     
   if (error) {
@@ -86,7 +86,7 @@ export const importConveniados = async (data: ImportConveniadoData[]) => {
   }));
   
   const { error } = await supabase
-    .from('conveniados')
+    .from('associados')
     .insert(conveniados);
     
   if (error) {
@@ -98,7 +98,7 @@ export const importConveniados = async (data: ImportConveniadoData[]) => {
 
 export const exportConveniados = async () => {
   const { data: conveniados, error } = await supabase
-    .from('conveniados')
+    .from('associados')
     .select('*');
     
   if (error) throw error;
