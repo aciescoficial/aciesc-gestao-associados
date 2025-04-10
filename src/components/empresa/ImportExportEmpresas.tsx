@@ -1,15 +1,35 @@
-
-import React, { useState } from 'react';
-import { Upload, Download, AlertTriangle, Check, X } from 'lucide-react';
-import Papa from 'papaparse';
+import React, { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { supabase } from '@/integrations/supabase/client';
+import { Download, Upload, FileSpreadsheet, Check, X, RefreshCw } from 'lucide-react';
+import Papa from 'papaparse';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { exportEmpresas, importEmpresas } from './empresaService';
 import { Database } from '@/integrations/supabase/types';
 
 type NichoType = Database['public']['Enums']['nicho_type'];
 type StatusType = Database['public']['Enums']['status_type'];
+
+interface ImportField {
+  fieldName: string;
+  targetField: string;
+  isRequired: boolean;
+}
+
+interface ImportValidationData {
+  fieldName: string;
+  targetField: string;
+  isValid: boolean;
+}
 
 interface ImportEmpresaData {
   razaoSocial: string;
@@ -27,287 +47,412 @@ interface ImportEmpresaData {
   nicho: NichoType;
   desconto: string;
   produtos: string;
+  logo_url?: string;
+  capa_url?: string;
+  video_url?: string;
+  status: StatusType;
 }
 
-const ImportDialog: React.FC<{
-  isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
-  onImportSuccess: () => void;
-}> = ({ isOpen, setIsOpen, onImportSuccess }) => {
-  const { toast } = useToast();
-  const [file, setFile] = useState<File | null>(null);
-  const [previewData, setPreviewData] = useState<ImportEmpresaData[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+const importFields: ImportField[] = [
+  { fieldName: 'Razão Social', targetField: 'razaoSocial', isRequired: true },
+  { fieldName: 'Nome Fantasia', targetField: 'nomeFantasia', isRequired: true },
+  { fieldName: 'CNPJ', targetField: 'cnpj', isRequired: true },
+  { fieldName: 'Responsável', targetField: 'responsavel', isRequired: true },
+  { fieldName: 'Telefone', targetField: 'telefone', isRequired: true },
+  { fieldName: 'E-mail', targetField: 'email', isRequired: true },
+  { fieldName: 'Endereço', targetField: 'endereco', isRequired: true },
+  { fieldName: 'Cidade', targetField: 'cidade', isRequired: true },
+  { fieldName: 'CEP', targetField: 'cep', isRequired: true },
+  { fieldName: 'Site', targetField: 'site', isRequired: false },
+  { fieldName: 'Instagram', targetField: 'instagram', isRequired: false },
+  { fieldName: 'WhatsApp', targetField: 'whatsapp', isRequired: false },
+  { fieldName: 'Nicho', targetField: 'nicho', isRequired: true },
+  { fieldName: 'Desconto', targetField: 'desconto', isRequired: true },
+  { fieldName: 'Produtos', targetField: 'produtos', isRequired: true },
+  { fieldName: 'Logo URL', targetField: 'logo_url', isRequired: false },
+  { fieldName: 'Capa URL', targetField: 'capa_url', isRequired: false },
+  { fieldName: 'Vídeo URL', targetField: 'video_url', isRequired: false },
+];
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    
-    if (selectedFile) {
-      setFile(selectedFile);
+const isValidNichoType = (value: any): value is NichoType => {
+  return [
+    'Alimentação',
+    'Saúde',
+    'Educação',
+    'Serviços',
+    'Comércio',
+    'Lazer',
+    'Tecnologia',
+    'Outro',
+  ].includes(value);
+};
+
+const isValidStatusType = (value: any): value is StatusType => {
+  return ['ativo', 'pendente', 'inativo'].includes(value);
+};
+
+const ImportMappingStep: React.FC<{
+  headers: string[];
+  importFields: ImportField[];
+  fieldMapping: Record<string, string>;
+  setFieldMapping: (mapping: Record<string, string>) => void;
+  onNext: () => void;
+}> = ({ headers, importFields, fieldMapping, setFieldMapping, onNext }) => {
+  const handleFieldMappingChange = (header: string, targetField: string) => {
+    setFieldMapping({ ...fieldMapping, [header]: targetField });
+  };
+
+  return (
+    <div className="space-y-4">
+      <p>Mapeie as colunas do arquivo CSV para os campos correspondentes:</p>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Coluna no Arquivo</TableHead>
+            <TableHead>Campo Correspondente</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {headers.map((header) => (
+            <TableRow key={header}>
+              <TableCell>{header}</TableCell>
+              <TableCell>
+                <select
+                  className="border rounded px-2 py-1"
+                  value={fieldMapping[header] || ''}
+                  onChange={(e) => handleFieldMappingChange(header, e.target.value)}
+                >
+                  <option value="">Selecione...</option>
+                  {importFields.map((field) => (
+                    <option key={field.targetField} value={field.targetField}>
+                      {field.fieldName}
+                    </option>
+                  ))}
+                </select>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <div className="flex justify-end">
+        <Button onClick={onNext}>Próximo</Button>
+      </div>
+    </div>
+  );
+};
+
+const ImportValidationStep: React.FC<{
+  importData: any[];
+  importFields: ImportField[];
+  fieldMapping: Record<string, string>;
+  setValidationData: (data: ImportValidationData[]) => void;
+  onNext: () => void;
+}> = ({ importData, importFields, fieldMapping, setValidationData, onNext }) => {
+  const [isChecking, setIsChecking] = useState(false);
+
+  const validateData = () => {
+    setIsChecking(true);
+    const validationResults: ImportValidationData[] = [];
+
+    importData.forEach((item) => {
+      importFields.forEach((field) => {
+        const header = Object.keys(fieldMapping).find(
+          (key) => fieldMapping[key] === field.targetField
+        );
+        const value = header ? item[header] : undefined;
+        const isValid = value !== undefined && value !== null && value !== '';
+
+        validationResults.push({
+          fieldName: header || field.fieldName,
+          targetField: field.targetField,
+          isValid: field.isRequired ? isValid : true,
+        });
+      });
+    });
+
+    setValidationData(validationResults);
+    setIsChecking(false);
+    onNext();
+  };
+
+  return (
+    <div className="space-y-4">
+      <p>Validando os dados importados. Verifique se todos os campos obrigatórios estão preenchidos.</p>
+      <div className="flex justify-end">
+        <Button onClick={validateData} disabled={isChecking}>
+          {isChecking ? (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              Validando...
+            </>
+          ) : (
+            'Validar Dados'
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const ImportConfirmationStep: React.FC<{
+  importData: any[];
+  fieldMapping: Record<string, string>;
+  validationData: ImportValidationData[];
+  onImport: (data: ImportEmpresaData[]) => Promise<void>;
+  onCancel: () => void;
+}> = ({ importData, fieldMapping, validationData, onImport, onCancel }) => {
+  const [isImporting, setIsImporting] = useState(false);
+
+  const getValidationStatus = (targetField: string) => {
+    const results = validationData.filter((item) => item.targetField === targetField);
+    return results.every((result) => result.isValid);
+  };
+
+  const transformData = (): ImportEmpresaData[] => {
+    return importData.map((item) => {
+      const razaoSocial = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'razaoSocial') || ''] || '';
+      const nomeFantasia = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'nomeFantasia') || ''] || '';
+      const cnpj = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'cnpj') || ''] || '';
+      const responsavel = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'responsavel') || ''] || '';
+      const telefone = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'telefone') || ''] || '';
+      const email = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'email') || ''] || '';
+      const endereco = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'endereco') || ''] || '';
+      const cidade = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'cidade') || ''] || '';
+      const cep = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'cep') || ''] || '';
+      const site = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'site') || ''] || undefined;
+      const instagram = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'instagram') || ''] || undefined;
+      const whatsapp = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'whatsapp') || ''] || undefined;
       
-      Papa.parse(selectedFile, {
-        header: true,
+      let nichoValue = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'nicho') || ''] || '';
+      const nicho = isValidNichoType(nichoValue) ? nichoValue : 'Outro';
+      
+      const desconto = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'desconto') || ''] || '';
+      const produtos = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'produtos') || ''] || '';
+      const logo_url = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'logo_url') || ''] || undefined;
+      const capa_url = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'capa_url') || ''] || undefined;
+      const video_url = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'video_url') || ''] || undefined;
+
+      let statusValue = item[Object.keys(fieldMapping).find((key) => fieldMapping[key] === 'status') || ''] || 'pendente';
+      const status = isValidStatusType(statusValue) ? statusValue : 'pendente';
+
+      return {
+        razaoSocial,
+        nomeFantasia,
+        cnpj,
+        responsavel,
+        telefone,
+        email,
+        endereco,
+        cidade,
+        cep,
+        site,
+        instagram,
+        whatsapp,
+        nicho,
+        desconto,
+        produtos,
+        logo_url,
+        capa_url,
+        video_url,
+        status
+      };
+    });
+  };
+
+  const handleImport = async () => {
+    setIsImporting(true);
+    try {
+      const transformedData = transformData();
+      await onImport(transformedData);
+    } catch (error) {
+      console.error('Error during import:', error);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const allValid = importFields.every((field) => getValidationStatus(field.targetField));
+
+  return (
+    <div className="space-y-4">
+      <p>
+        Confirme os dados abaixo antes de importar. Certifique-se de que todos os campos obrigatórios estão
+        validados.
+      </p>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Campo</TableHead>
+            <TableHead>Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {importFields.map((field) => (
+            <TableRow key={field.targetField}>
+              <TableCell>{field.fieldName}</TableCell>
+              <TableCell>
+                {getValidationStatus(field.targetField) ? (
+                  <Badge variant="outline">
+                    <Check className="h-4 w-4 mr-2" />
+                    Validado
+                  </Badge>
+                ) : (
+                  <Badge variant="destructive">
+                    <X className="h-4 w-4 mr-2" />
+                    Inválido
+                  </Badge>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button onClick={handleImport} disabled={!allValid || isImporting}>
+          {isImporting ? (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              Importando...
+            </>
+          ) : (
+            'Importar'
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const ImportExportEmpresas: React.FC = () => {
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [importData, setImportData] = useState<any[]>([]);
+  const [validationData, setValidationData] = useState<ImportValidationData[]>([]);
+  const [hasHeaders, setHasHeaders] = useState(true);
+  const [step, setStep] = useState<'upload' | 'mapping' | 'validation' | 'confirmation'>('upload');
+  const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      Papa.parse(file, {
+        header: hasHeaders,
         skipEmptyLines: true,
         complete: (results) => {
-          const parsedData = results.data as any[];
-          const errors: string[] = [];
-          
-          // Validate and transform the data
-          const transformedData = parsedData.map((row, index) => {
-            // Validate required fields
-            const requiredFields = ['razaoSocial', 'nomeFantasia', 'cnpj', 'responsavel', 'telefone', 'email', 'endereco', 'cidade', 'cep', 'nicho', 'desconto', 'produtos'];
-            
-            for (const field of requiredFields) {
-              if (!row[field]?.trim()) {
-                errors.push(`Linha ${index + 2}: Campo obrigatório '${field}' não preenchido.`);
-              }
-            }
-            
-            // Validate nicho is a valid enum value
-            const validNichos = ["Alimentação", "Saúde", "Educação", "Serviços", "Comércio", "Lazer", "Tecnologia", "Outro"];
-            
-            if (row.nicho && !validNichos.includes(row.nicho)) {
-              errors.push(`Linha ${index + 2}: Valor inválido para 'nicho'. Valores permitidos: ${validNichos.join(', ')}`);
-            }
-            
-            return {
-              razaoSocial: row.razaoSocial?.trim() || '',
-              nomeFantasia: row.nomeFantasia?.trim() || '',
-              cnpj: row.cnpj?.trim() || '',
-              responsavel: row.responsavel?.trim() || '',
-              telefone: row.telefone?.trim() || '',
-              email: row.email?.trim() || '',
-              endereco: row.endereco?.trim() || '',
-              cidade: row.cidade?.trim() || '',
-              cep: row.cep?.trim() || '',
-              site: row.site?.trim() || undefined,
-              instagram: row.instagram?.trim() || undefined,
-              whatsapp: row.whatsapp?.trim() || undefined,
-              nicho: row.nicho as NichoType,
-              desconto: row.desconto?.trim() || '',
-              produtos: row.produtos?.trim() || ''
-            };
-          });
-          
-          setValidationErrors(errors);
-          setPreviewData(transformedData);
+          setImportData(results.data);
+          setStep('mapping');
         },
         error: (error) => {
           console.error('Error parsing CSV:', error);
           toast({
-            title: "Erro ao processar arquivo",
-            description: "O arquivo CSV não pôde ser processado. Verifique o formato.",
-            variant: "destructive",
+            title: "Erro ao ler o arquivo",
+            description: "Ocorreu um erro ao processar o arquivo CSV. Verifique o formato e tente novamente.",
+            variant: "destructive"
           });
-        }
+        },
       });
     }
   };
 
-  const importEmpresas = async () => {
-    if (validationErrors.length > 0 || !file) {
-      return;
+  const handleToggleHeaders = () => {
+    setHasHeaders(!hasHeaders);
+  };
+
+  const handleNextStep = () => {
+    switch (step) {
+      case 'upload':
+        if (importData.length > 0) setStep('mapping');
+        break;
+      case 'mapping':
+        setStep('validation');
+        break;
+      case 'validation':
+        setStep('confirmation');
+        break;
+      default:
+        break;
     }
-    
-    setIsProcessing(true);
-    
+  };
+
+  const handleBackToMapping = () => {
+    setStep('mapping');
+  };
+
+  const handleStartImport = async (data: ImportEmpresaData[]) => {
     try {
-      const empresasData = previewData.map(item => ({
-        razao_social: item.razaoSocial,
-        nome_fantasia: item.nomeFantasia,
-        cnpj: item.cnpj,
-        responsavel: item.responsavel,
-        telefone: item.telefone,
-        email: item.email,
-        endereco: item.endereco,
-        cidade: item.cidade,
-        cep: item.cep,
-        site: item.site || null,
-        instagram: item.instagram || null,
-        whatsapp: item.whatsapp || null,
-        nicho: item.nicho,
-        desconto: item.desconto,
-        produtos: item.produtos,
-        status: 'pendente' as StatusType
-      }));
-      
-      const { error } = await supabase
-        .from('empresas')
-        .insert(empresasData);
-        
-      if (error) {
-        throw error;
-      }
-      
+      setIsProcessing(true);
+      await importEmpresas(data);
       toast({
         title: "Importação concluída",
-        description: `${empresasData.length} empresas foram importadas com sucesso.`,
+        description: `${data.length} empresas foram importadas com sucesso.`,
       });
-      
-      setFile(null);
-      setPreviewData([]);
-      setValidationErrors([]);
-      setIsOpen(false);
-      onImportSuccess();
-    } catch (error: any) {
-      console.error('Error importing companies:', error);
+      setIsImportOpen(false);
+      setStep('upload');
+      setImportData([]);
+      setValidationData([]);
+      setFieldMapping({});
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('Error importing empresas:', error);
       toast({
         title: "Erro na importação",
-        description: error.message || "Ocorreu um erro ao importar as empresas.",
-        variant: "destructive",
+        description: "Ocorreu um erro ao importar os dados. Tente novamente.",
+        variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Importar Empresas</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          <div className="border-2 border-dashed rounded-md p-6 text-center">
-            <input
-              type="file"
-              id="csv-upload"
-              className="sr-only"
-              accept=".csv"
-              onChange={handleFileChange}
-              disabled={isProcessing}
-            />
-            <label
-              htmlFor="csv-upload"
-              className={`cursor-pointer flex flex-col items-center ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}
-            >
-              <Upload className="h-8 w-8 text-gray-400 mb-2" />
-              <span className="text-sm font-medium">
-                {file ? file.name : 'Clique para selecionar um arquivo CSV'}
-              </span>
-              <span className="text-xs text-gray-500 mt-1">
-                O arquivo deve conter cabeçalhos e estar no formato UTF-8
-              </span>
-            </label>
-          </div>
-          
-          {validationErrors.length > 0 && (
-            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
-              <div className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-amber-400" />
-                <div className="ml-3 space-y-1">
-                  <h3 className="text-sm font-medium text-amber-800">
-                    Encontramos {validationErrors.length} problemas no arquivo
-                  </h3>
-                  <div className="text-xs text-amber-700 max-h-32 overflow-y-auto">
-                    {validationErrors.map((error, index) => (
-                      <p key={index}>{error}</p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {previewData.length > 0 && validationErrors.length === 0 && (
-            <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
-              <div className="flex">
-                <Check className="h-5 w-5 text-green-400" />
-                <div className="ml-3">
-                  <p className="text-sm text-green-700">
-                    {previewData.length} empresas encontradas no arquivo e prontas para importar
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {previewData.length > 0 && (
-            <div className="overflow-x-auto max-h-60">
-              <table className="wp-table text-xs">
-                <thead>
-                  <tr>
-                    <th>Razão Social</th>
-                    <th>Nome Fantasia</th>
-                    <th>CNPJ</th>
-                    <th>Email</th>
-                    <th>Cidade</th>
-                    <th>Nicho</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {previewData.slice(0, 5).map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.razaoSocial}</td>
-                      <td>{item.nomeFantasia}</td>
-                      <td>{item.cnpj}</td>
-                      <td>{item.email}</td>
-                      <td>{item.cidade}</td>
-                      <td>{item.nicho}</td>
-                    </tr>
-                  ))}
-                  {previewData.length > 5 && (
-                    <tr>
-                      <td colSpan={6} className="text-center text-gray-500">
-                        ... e mais {previewData.length - 5} registros
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-          
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              disabled={isProcessing}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={importEmpresas}
-              disabled={!file || validationErrors.length > 0 || isProcessing}
-              className="flex items-center gap-2"
-            >
-              {isProcessing ? 'Importando...' : 'Importar Empresas'}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+  const handleCancelImport = () => {
+    setIsImportOpen(false);
+    setStep('upload');
+    setImportData([]);
+    setValidationData([]);
+    setFieldMapping({});
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
-const ImportExportEmpresas: React.FC<{
-  onImportSuccess: () => void;
-}> = ({ onImportSuccess }) => {
-  const { toast } = useToast();
-  const [isImportOpen, setIsImportOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const handleDownloadTemplate = () => {
+    const headers = importFields.map(field => field.fieldName);
+    const csv = Papa.unparse([headers]);
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'empresas_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleExport = async () => {
-    setIsExporting(true);
-    
     try {
-      const { data, error } = await supabase
-        .from('empresas')
-        .select('*');
-        
-      if (error) throw error;
+      setIsProcessing(true);
+      const data = await exportEmpresas();
       
       if (!data || data.length === 0) {
         toast({
-          title: "Sem dados",
-          description: "Não há empresas para exportar.",
+          title: "Nenhum dado para exportar",
+          description: "Não existem empresas cadastradas para exportar.",
+          variant: "destructive"
         });
+        setIsProcessing(false);
         return;
       }
       
-      // Fix: Define the empresa type to match the database structure
       interface EmpresaExport {
         razao_social: string;
         nome_fantasia: string;
@@ -346,19 +491,20 @@ const ImportExportEmpresas: React.FC<{
         nicho: empresa.nicho,
         desconto: empresa.desconto,
         produtos: empresa.produtos,
-        logoUrl: empresa.logo_url || '',
-        capaUrl: empresa.capa_url || '',
-        videoUrl: empresa.video_url || '',
+        logo_url: empresa.logo_url || '',
+        capa_url: empresa.capa_url || '',
+        video_url: empresa.video_url || '',
         status: empresa.status
       }));
       
       const csv = Papa.unparse(exportData);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
-      
       const url = URL.createObjectURL(blob);
+      
       link.setAttribute('href', url);
       link.setAttribute('download', `empresas_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -367,46 +513,129 @@ const ImportExportEmpresas: React.FC<{
         title: "Exportação concluída",
         description: `${exportData.length} empresas foram exportadas com sucesso.`,
       });
-    } catch (error: any) {
-      console.error('Error exporting companies:', error);
+    } catch (error) {
+      console.error('Error exporting empresas:', error);
       toast({
         title: "Erro na exportação",
-        description: error.message || "Ocorreu um erro ao exportar as empresas.",
-        variant: "destructive",
+        description: "Ocorreu um erro ao exportar os dados. Tente novamente.",
+        variant: "destructive"
       });
     } finally {
-      setIsExporting(false);
+      setIsProcessing(false);
     }
   };
 
   return (
     <div>
-      <div className="flex space-x-2">
-        <Button
-          variant="outline"
-          className="flex items-center gap-2"
-          onClick={() => setIsImportOpen(true)}
-        >
-          <Upload className="h-4 w-4" />
-          Importar
+      <div className="flex justify-end space-x-2">
+        <Button variant="outline" onClick={handleDownloadTemplate}>
+          <FileSpreadsheet className="h-4 w-4 mr-2" />
+          Baixar Template
         </Button>
-        
-        <Button
-          variant="outline"
-          className="flex items-center gap-2"
-          onClick={handleExport}
-          disabled={isExporting}
-        >
-          <Download className="h-4 w-4" />
-          {isExporting ? 'Exportando...' : 'Exportar'}
+        <Button onClick={() => setIsImportOpen(true)} disabled={isProcessing}>
+          <Upload className="h-4 w-4 mr-2" />
+          Importar Empresas
+        </Button>
+        <Button onClick={handleExport} disabled={isProcessing}>
+          {isProcessing ? (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              Exportando...
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4 mr-2" />
+              Exportar Empresas
+            </>
+          )}
         </Button>
       </div>
-      
-      <ImportDialog
-        isOpen={isImportOpen}
-        setIsOpen={setIsImportOpen}
-        onImportSuccess={onImportSuccess}
-      />
+
+      <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Importar Empresas</DialogTitle>
+            <DialogDescription>
+              Selecione um arquivo CSV para importar os dados das empresas.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {step === 'upload' && (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="hasHeaders"
+                    checked={hasHeaders}
+                    onChange={handleToggleHeaders}
+                  />
+                  <label htmlFor="hasHeaders" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Primeira linha como cabeçalho
+                  </label>
+                </div>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  ref={fileInputRef}
+                  id="fileInput"
+                />
+                <label htmlFor="fileInput">
+                  <Button variant="secondary" asChild>
+                    <span className="flex items-center">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Selecionar Arquivo CSV
+                    </span>
+                  </Button>
+                </label>
+              </div>
+            )}
+
+            {step === 'mapping' && importData.length > 0 && (
+              <ImportMappingStep
+                headers={Object.keys(importData[0])}
+                importFields={importFields}
+                fieldMapping={fieldMapping}
+                setFieldMapping={setFieldMapping}
+                onNext={handleNextStep}
+              />
+            )}
+
+            {step === 'validation' && importData.length > 0 && (
+              <ImportValidationStep
+                importData={importData}
+                importFields={importFields}
+                fieldMapping={fieldMapping}
+                setValidationData={setValidationData}
+                onNext={handleNextStep}
+              />
+            )}
+
+            {step === 'confirmation' && importData.length > 0 && (
+              <ImportConfirmationStep
+                importData={importData}
+                fieldMapping={fieldMapping}
+                validationData={validationData}
+                onImport={handleStartImport}
+                onCancel={handleCancelImport}
+              />
+            )}
+          </div>
+          <DialogFooter>
+            {step !== 'upload' && step !== 'confirmation' && (
+              <Button type="button" variant="outline" onClick={handleBackToMapping}>
+                Voltar
+              </Button>
+            )}
+            {step === 'upload' && (
+              <Button type="button" variant="outline" onClick={() => setIsImportOpen(false)}>
+                Cancelar
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

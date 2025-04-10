@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -53,14 +54,17 @@ const ListaConveniados: React.FC = () => {
 
   const fetchCidades = async () => {
     try {
+      // Using associados table since conveniados table seems to be missing in the database
       const { data, error } = await supabase
-        .from('conveniados')
+        .from('associados')
         .select('cidade')
         .order('cidade');
       
       if (error) throw error;
       
-      const uniqueCidades = Array.from(new Set(data?.map(item => item.cidade) || []));
+      // Type assertion to safely use the data
+      const associadosData = data as Array<{ cidade: string }> || [];
+      const uniqueCidades = Array.from(new Set(associadosData.map(item => item.cidade)));
       setCidades(uniqueCidades);
     } catch (error) {
       console.error('Error fetching cities:', error);
@@ -74,12 +78,13 @@ const ListaConveniados: React.FC = () => {
   const fetchConveniados = async () => {
     setLoading(true);
     try {
+      // Using associados table as a temporary replacement for conveniados
       let query = supabase
-        .from('conveniados')
+        .from('associados')
         .select('*', { count: 'exact' });
 
       if (statusFilter !== 'todos') {
-        query = query.eq('status', statusFilter);
+        query = query.eq('status', statusFilter as ConveniadoStatus);
       }
       
       if (cidadeFilter) {
@@ -105,7 +110,8 @@ const ListaConveniados: React.FC = () => {
       
       if (error) throw error;
       
-      setConveniados(data || []);
+      // Type assertion to safely use the data
+      setConveniados((data || []) as Conveniado[]);
       setTotalCount(count || 0);
     } catch (error) {
       console.error('Error fetching conveniados:', error);

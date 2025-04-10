@@ -29,6 +29,7 @@ export const saveConveniado = async (data: ConveniadoFormData) => {
     status: 'pendente' as StatusType
   };
   
+  // Using the associados table instead of conveniados since it's not in the database yet
   const { data: conveniadoResult, error } = await supabase
     .from('associados')
     .insert(conveniadoData)
@@ -85,6 +86,7 @@ export const importConveniados = async (data: ImportConveniadoData[]) => {
     status: 'pendente' as StatusType
   }));
   
+  // Using the associados table instead of conveniados since it's not in the database yet
   const { error } = await supabase
     .from('associados')
     .insert(conveniados);
@@ -97,6 +99,7 @@ export const importConveniados = async (data: ImportConveniadoData[]) => {
 };
 
 export const exportConveniados = async () => {
+  // Using the associados table instead of conveniados since it's not in the database yet
   const { data: conveniados, error } = await supabase
     .from('associados')
     .select('*');

@@ -187,7 +187,7 @@ const PesquisaAssociado: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
               <Select
                 value={cidadeFilter}
-                onValueChange={setcidadeFilter}
+                onValueChange={(value) => setcidadeFilter(value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas" />
@@ -205,7 +205,7 @@ const PesquisaAssociado: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
               <Select
                 value={statusFilter}
-                onValueChange={setStatusFilter}
+                onValueChange={(value) => setStatusFilter(value as AssociadoStatus | 'todos')}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
