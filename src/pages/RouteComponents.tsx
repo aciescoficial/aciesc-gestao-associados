@@ -15,6 +15,7 @@ import ProfilePage from '@/components/auth/ProfilePage';
 import ListaConveniados from '@/components/conveniado/ListaConveniados';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
+import MensagensPage from '@/components/mensagens/MensagensPage';
 
 // Placeholder component for Cobranças page
 export const CobrancasPage = () => (
@@ -28,17 +29,8 @@ export const CobrancasPage = () => (
   </div>
 );
 
-// Placeholder for messages page
-export const MensagensPage = () => (
-  <div className="space-y-6">
-    <h1 className="wp-header">Mensagens</h1>
-    <div className="wp-card">
-      <p className="text-muted-foreground">
-        Esta página de mensagens está em construção.
-      </p>
-    </div>
-  </div>
-);
+// Page for messages was replaced with the actual implementation
+export const MensagensPageRoute = () => <MensagensPage />;
 
 // Placeholder for member payment page
 export const PagamentosAssociadoPage = () => (
