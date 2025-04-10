@@ -9,24 +9,27 @@ import Index from "./pages/Index";
 import LoginPage from "./components/auth/LoginPage";
 import NotFound from "./pages/NotFound";
 
+// Create a client
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/*" element={<Index />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/*" element={<Index />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
+  );
+}
 
 export default App;

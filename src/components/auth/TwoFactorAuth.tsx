@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -257,6 +256,7 @@ export const TwoFactorAuth = ({ userId }: TwoFactorAuthProps) => {
     </div>;
   }
 
+  
   if (isEnabled && !showBackupCodes) {
     return (
       <div className="space-y-4">

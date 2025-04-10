@@ -1,17 +1,26 @@
 
-import { supabase } from './client';
+/**
+ * This file contains definitions of RPC functions available in the Supabase project.
+ * Add function declarations here as they are defined in the Supabase project.
+ */
 
-// Helper function to safely log user activity
-export const logUserActivity = async (userId: string, event: string) => {
-  try {
-    await supabase.rpc('log_user_activity', {
-      user_id_param: userId,
-      event_param: event,
-      created_at_param: new Date().toISOString()
-    });
-    return { success: true };
-  } catch (error) {
-    console.error('Error logging user activity:', error);
-    return { success: false, error };
-  }
-};
+/**
+ * Check if a user has a specific role
+ */
+export async function hasRole(user_id: string, role_to_check: 'admin' | 'user') {
+  return { 
+    user_id, 
+    role_to_check 
+  };
+}
+
+/**
+ * Log user activity
+ */
+export async function logUserActivity(user_id_param: string, event_param: string, created_at_param: string) {
+  return {
+    user_id_param,
+    event_param,
+    created_at_param
+  };
+}

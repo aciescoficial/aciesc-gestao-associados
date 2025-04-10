@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -55,19 +54,20 @@ const ProfilePage = () => {
       
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        // Query profiles table
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('name, role, phone, avatar_url')
+          .select('name, phone, role, avatar_url')
           .eq('id', user.id)
           .single();
           
-        if (error) throw error;
+        if (profileError) throw profileError;
         
-        if (data) {
-          setName(data.name || '');
-          setPhone(data.phone || '');
-          setRole(data.role || '');
-          setAvatarUrl(data.avatar_url);
+        if (profileData) {
+          setName(profileData.name || '');
+          setPhone(profileData.phone || '');
+          setRole(profileData.role || '');
+          setAvatarUrl(profileData.avatar_url);
         }
 
         // Fetch access logs
@@ -211,8 +211,7 @@ const ProfilePage = () => {
   const getRoleLabel = (role: string) => {
     switch(role) {
       case 'admin': return 'Administrador';
-      case 'normal': return 'Usuário Normal';
-      case 'conveniado': return 'Conveniado';
+      case 'user': return 'Usuário Normal';
       default: return 'Usuário';
     }
   };
