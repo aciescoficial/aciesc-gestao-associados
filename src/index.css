@@ -34,14 +34,6 @@
     --ring: 222.2 84% 4.9%;
  
     --radius: 0.5rem;
-
-    /* Sidebar specific colors for light mode */
-    --sidebar: 0 0% 100%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-accent: 156 64% 40%;
-    --sidebar-accent-foreground: 355.7 100% 100%;
-    --sidebar-ring: 222.2 84% 4.9%;
   }
  
   .dark {
@@ -72,14 +64,6 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-
-    /* Sidebar specific colors for dark mode */
-    --sidebar: 222.2 84% 4.9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-accent: 156 64% 40%;
-    --sidebar-accent-foreground: 355.7 100% 100%;
-    --sidebar-ring: 212.7 26.8% 83.9%;
   }
 }
  
