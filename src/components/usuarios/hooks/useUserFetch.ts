@@ -1,32 +1,14 @@
 
 import { useState, useEffect } from 'react';
-import { User, UserRole } from '../types';
+import { User } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { mapFromDbRole } from '../utils/roleUtils';
 
-export interface UserFilters {
-  searchTerm: string;
-  role: UserRole | 'all';
-  activeStatus: 'all' | 'active' | 'inactive';
-  dateRange: {
-    from: Date | null;
-    to: Date | null;
-  };
-}
-
 export const useUserFetch = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<UserFilters>({
-    searchTerm: '',
-    role: 'all',
-    activeStatus: 'all',
-    dateRange: {
-      from: null,
-      to: null
-    }
-  });
+  const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -83,42 +65,17 @@ export const useUserFetch = () => {
     }
   };
 
-  const updateFilters = (newFilters: Partial<UserFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-  };
-
-  const filteredUsers = users.filter(user => {
-    // Filter by search term
-    const matchesSearchTerm = 
-      filters.searchTerm === '' || 
-      (user.name && user.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) ||
-      (user.email && user.email.toLowerCase().includes(filters.searchTerm.toLowerCase()));
-    
-    // Filter by role
-    const matchesRole = 
-      filters.role === 'all' || 
-      user.role === filters.role;
-    
-    // Filter by active status
-    const matchesActiveStatus = 
-      filters.activeStatus === 'all' || 
-      (filters.activeStatus === 'active' && user.active) ||
-      (filters.activeStatus === 'inactive' && !user.active);
-    
-    // Filter by date range
-    const matchesDateRange = 
-      (!filters.dateRange.from || user.createdAt >= filters.dateRange.from) && 
-      (!filters.dateRange.to || user.createdAt <= filters.dateRange.to);
-
-    return matchesSearchTerm && matchesRole && matchesActiveStatus && matchesDateRange;
-  });
+  const filteredUsers = users.filter(user => 
+    (user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   return {
     users,
     filteredUsers,
     loading,
-    filters,
-    updateFilters,
+    searchTerm, 
+    setSearchTerm,
     fetchUsers
   };
 };

@@ -14,17 +14,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Updated ACIESC green colors based on their website */
-    --primary: 142 76% 33%; /* Main green color */
+    /* ACIESC green color */
+    --primary: 142 100% 33%; /* #00A650 converted to HSL */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 142 100% 25%; /* Darker green for hover/active states */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 142 100% 90%;
+    --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -32,17 +32,9 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 142 76% 33%; /* ACIESC green for focus rings */
+    --ring: 142 100% 33%; /* ACIESC green for focus rings */
 
     --radius: 0.5rem;
-
-    /* Sidebar colors */
-    --sidebar: 0 0% 100%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 142 76% 33%;
-    --sidebar-accent: 142 85% 95%;
-    --sidebar-accent-foreground: 142 76% 33%;
   }
 }
 
@@ -70,7 +62,7 @@
     @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-wp-secondary text-wp-text border border-gray-300 hover:bg-gray-100 transition-colors;
   }
 
-  /* CSS components */
+  /* ... keep existing code (CSS components) */
   .wp-notice {
     @apply p-4 mb-4 border-l-4 rounded-sm;
   }
@@ -124,15 +116,15 @@
   }
 
   .wp-sidebar {
-    @apply w-64 bg-aciesc-primary text-white min-h-screen p-0;
+    @apply w-64 bg-aciesc-dark text-white min-h-screen p-0;
   }
 
   .wp-sidebar-link {
-    @apply block px-4 py-2 hover:bg-aciesc-dark transition-colors;
+    @apply block px-4 py-2 hover:bg-aciesc-primary transition-colors;
   }
 
   .wp-sidebar-link.active {
-    @apply bg-aciesc-dark;
+    @apply bg-aciesc-primary;
   }
   
   .wp-sidebar-separator {
@@ -161,15 +153,10 @@
   
   /* ACIESC specific classes */
   .aciesc-gradient-primary {
-    @apply bg-gradient-to-b from-aciesc-light to-aciesc-primary;
+    @apply bg-gradient-to-r from-aciesc-primary to-aciesc-light;
   }
   
   .aciesc-button {
     @apply bg-aciesc-primary hover:bg-aciesc-dark text-white font-medium py-2 px-4 rounded transition-colors;
-  }
-
-  /* Call-to-action button similar to "Associe-se Agora" on the website */
-  .aciesc-cta-button {
-    @apply bg-aciesc-dark hover:bg-aciesc-darker text-white font-medium py-3 px-6 rounded-full transition-colors;
   }
 }

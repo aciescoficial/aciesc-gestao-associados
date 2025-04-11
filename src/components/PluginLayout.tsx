@@ -20,25 +20,11 @@ import {
   BarChart,
   MessageSquare,
   CreditCard as Payment,
-  ClipboardList,
-  PanelLeft,
-  PanelRight
+  ClipboardList
 } from 'lucide-react';
 import UserProfileMenu from './auth/UserProfileMenu';
 import { useAuth } from './auth/AuthProvider';
 import { LucideIcon } from 'lucide-react';
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger
-} from '@/components/ui/sidebar';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -54,6 +40,7 @@ interface MenuItem {
 
 const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { isAdmin, isAssociado, isEmpresa, userRole } = useAuth();
   
   const allMenuItems: MenuItem[] = [
@@ -106,69 +93,62 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   
   const isActive = (path: string) => location.pathname === path;
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-screen w-full">
-        <Sidebar variant="sidebar" collapsible="icon" className="border-r border-gray-200">
-          <SidebarHeader className="flex items-center justify-center py-4 border-b border-gray-200">
-            <div className="text-center">
-              <h1 className="text-xl font-bold text-aciesc-primary">ACIESC</h1>
-              <p className="text-xs text-gray-500">Gestão de Associados</p>
-            </div>
-          </SidebarHeader>
-
-          <SidebarContent className="bg-white">
-            <SidebarMenu>
-              {menuItems.map((item, index) => (
-                item.header ? (
-                  <div key={index} className="px-3 pt-4 pb-2 text-xs font-medium text-gray-500 uppercase">
-                    {item.header}
-                  </div>
-                ) : (
-                  <SidebarMenuItem key={index}>
-                    <SidebarMenuButton 
-                      tooltip={item.label}
-                      asChild 
-                      isActive={isActive(item.path!)}
-                      variant={isActive(item.path!) ? "default" : "outline"}
-                    >
-                      <Link to={item.path!} className="flex items-center gap-2">
-                        {item.icon && <item.icon size={18} className={isActive(item.path!) ? "text-white" : "text-aciesc-primary"} />}
-                        <span>{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              ))}
-            </SidebarMenu>
-          </SidebarContent>
-          
-          <SidebarFooter className="border-t border-gray-200 hidden sm:block">
-            <div className="flex items-center justify-center p-4 text-xs text-center text-gray-500">
-              <span>ACIESC © {new Date().getFullYear()}</span>
-            </div>
-          </SidebarFooter>
-        </Sidebar>
-
-        <div className="flex-1 flex flex-col">
-          <div className="flex items-center justify-between px-6 py-3 bg-aciesc-gradient-primary text-white border-b">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="text-white hover:bg-aciesc-dark/20 rounded-md" />
-              <span className="font-medium">Gestão ACIESC</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <UserProfileMenu />
-            </div>
-          </div>
-
-          <main className="flex-1 p-6 bg-wp-body overflow-auto">
-            <div className="wp-container">
-              {children}
-            </div>
-          </main>
+    <div className="flex min-h-screen">
+      <div className={`wp-sidebar transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
+        <div className={`px-4 py-6 flex items-center ${sidebarCollapsed ? 'justify-center' : ''}`}>
+          {!sidebarCollapsed && <h1 className="text-xl font-bold">ACIESC</h1>}
+          {sidebarCollapsed && <span className="text-xl font-bold">A</span>}
         </div>
+        <nav>
+          {menuItems.map((item, index) => (
+            item.header ? (
+              sidebarCollapsed ? null : (
+                <div key={index} className="wp-sidebar-header">{item.header}</div>
+              )
+            ) : (
+              <Link 
+                key={index} 
+                to={item.path!}
+                className={`wp-sidebar-link flex items-center gap-2 ${isActive(item.path!) ? 'active' : ''} ${sidebarCollapsed ? 'justify-center px-0' : ''}`}
+                title={sidebarCollapsed ? item.label : undefined}
+              >
+                {item.icon && <item.icon size={18} />}
+                {!sidebarCollapsed && <span>{item.label}</span>}
+              </Link>
+            )
+          ))}
+        </nav>
+        <button 
+          className="absolute top-1/2 -right-3 bg-aciesc-primary text-white rounded-full p-1 shadow-md hover:bg-aciesc-dark transition-colors"
+          onClick={toggleSidebar}
+          aria-label={sidebarCollapsed ? "Expandir menu" : "Retrair menu"}
+        >
+          {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       </div>
-    </SidebarProvider>
+
+      <div className="flex-1 flex flex-col">
+        <div className="wp-admin-bar">
+          <div className="flex items-center">
+            <span>Gestão ACIESC</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <UserProfileMenu />
+          </div>
+        </div>
+
+        <main className="flex-1 p-6 bg-wp-body overflow-auto">
+          <div className="wp-container">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
   );
 };
 

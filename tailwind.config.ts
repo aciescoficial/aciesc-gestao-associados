@@ -65,15 +65,13 @@ export default {
 					warning: '#dba617',
 					error: '#d63638',
 				},
-				// Updated ACIESC colors based on their website
+				// ACIESC colors
 				aciesc: {
-					primary: '#00A84D', // Main green color
-					dark: '#007035', // Darker green for hover states
-					darker: '#005825', // Even darker green for active states
-					light: '#2FBE70', // Lighter green for gradients
+					primary: '#00A650',
+					dark: '#007A3D',
+					light: '#8CC63F',
 					background: '#FFFFFF',
 					text: '#222222',
-					secondary: '#EAEAEA', // Light gray for secondary elements
 				},
 			},
 			borderRadius: {
