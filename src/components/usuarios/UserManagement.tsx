@@ -83,9 +83,11 @@ const UserManagement: React.FC = () => {
             role = 'user';
           } else if (dbRole === 'conveniado') {
             role = 'empresa';
-          } else {
-            // Use the role as is if it's already one of our valid types
+          } else if (dbRole === 'admin' || dbRole === 'user' || dbRole === 'empresa') {
             role = dbRole as UserRole;
+          } else {
+            // Default fallback
+            role = 'user';
           }
           
           return {

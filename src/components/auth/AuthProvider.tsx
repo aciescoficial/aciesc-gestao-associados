@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -122,9 +123,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           role = 'user';
         } else if (dbRole === 'conveniado') {
           role = 'empresa';
-        } else {
+        } else if (dbRole === 'admin' || dbRole === 'user' || dbRole === 'empresa') {
           // Use the role as is if it's already one of our valid types
           role = dbRole as UserRole;
+        } else {
+          // Default fallback
+          role = 'user';
         }
         
         setUserRole(role);
