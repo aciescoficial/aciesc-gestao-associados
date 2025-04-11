@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { UserCheck, UserX, Clock, MapPin } from 'lucide-react';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 export type AssociadoStatus = 'pendente' | 'ativo' | 'inativo';
 
@@ -22,9 +23,21 @@ export interface Associado {
 
 interface AssociadoSearchResultProps {
   results: Associado[];
+  currentPage: number;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  totalCount: number;
+  itemsPerPage: number;
+  isSearching: boolean;
 }
 
-const AssociadoSearchResult: React.FC<AssociadoSearchResultProps> = ({ results }) => {
+const AssociadoSearchResult: React.FC<AssociadoSearchResultProps> = ({ 
+  results, 
+  currentPage, 
+  setCurrentPage, 
+  totalCount, 
+  itemsPerPage,
+  isSearching 
+}) => {
   const getStatusBadge = (status: AssociadoStatus) => {
     switch (status) {
       case 'ativo':
@@ -38,6 +51,15 @@ const AssociadoSearchResult: React.FC<AssociadoSearchResultProps> = ({ results }
     }
   };
 
+  if (isSearching) {
+    return (
+      <div className="mt-8 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Buscando associados...</p>
+      </div>
+    );
+  }
+
   if (results.length === 0) {
     return (
       <div className="mt-8">
@@ -48,9 +70,18 @@ const AssociadoSearchResult: React.FC<AssociadoSearchResultProps> = ({ results }
     );
   }
 
+  // Calculate total pages
+  const totalPages = itemsPerPage === -1 ? 1 : Math.ceil(totalCount / itemsPerPage);
+
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-medium mb-4">Resultados da Busca</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-medium">Resultados da Busca</h2>
+        <span className="text-sm text-gray-500">
+          Mostrando {results.length} de {totalCount} associados
+        </span>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {results.map((associado) => (
           <Card key={associado.id} className="overflow-hidden transition-all hover:shadow-md">
@@ -108,6 +139,64 @@ const AssociadoSearchResult: React.FC<AssociadoSearchResultProps> = ({ results }
           </Card>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-6">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                // Logic for showing pages around current page
+                let pageNum = i + 1;
+                if (totalPages > 5 && currentPage > 3) {
+                  pageNum = currentPage - 3 + i;
+                  if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+                }
+                
+                if (pageNum <= 0) return null;
+                if (pageNum > totalPages) return null;
+                
+                return (
+                  <PaginationItem key={i}>
+                    <PaginationLink 
+                      onClick={() => setCurrentPage(pageNum)}
+                      isActive={currentPage === pageNum}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+              
+              {totalPages > 5 && currentPage < totalPages - 2 && (
+                <>
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink onClick={() => setCurrentPage(totalPages)}>
+                      {totalPages}
+                    </PaginationLink>
+                  </PaginationItem>
+                </>
+              )}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 };

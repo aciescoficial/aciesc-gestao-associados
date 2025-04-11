@@ -3,7 +3,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw, Filter } from 'lucide-react';
 import { AssociadoStatus } from './AssociadoSearchResult';
 
 interface AssociadoSearchFormProps {
@@ -18,6 +18,9 @@ interface AssociadoSearchFormProps {
   cidades: string[];
   isSearching: boolean;
   handleSearch: (e: React.FormEvent) => Promise<void>;
+  itemsPerPage: number;
+  setItemsPerPage: React.Dispatch<React.SetStateAction<number>>;
+  fetchAssociados: () => Promise<void>;
 }
 
 const AssociadoSearchForm: React.FC<AssociadoSearchFormProps> = ({
@@ -31,11 +34,14 @@ const AssociadoSearchForm: React.FC<AssociadoSearchFormProps> = ({
   setCidadeFilter,
   cidades,
   isSearching,
-  handleSearch
+  handleSearch,
+  itemsPerPage,
+  setItemsPerPage,
+  fetchAssociados
 }) => {
   return (
-    <form onSubmit={handleSearch} className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-4">
+    <div className="space-y-6">
+      <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 space-y-2">
           <label htmlFor="search" className="block text-sm font-medium text-gray-700">
             Buscar por {
@@ -77,42 +83,6 @@ const AssociadoSearchForm: React.FC<AssociadoSearchFormProps> = ({
           </Select>
         </div>
         
-        <div className="w-full md:w-40">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
-          <Select
-            value={cidadeFilter}
-            onValueChange={(value) => setCidadeFilter(value)}
-          >
-            <SelectTrigger className="shadow-sm">
-              <SelectValue placeholder="Todas" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todas">Todas</SelectItem>
-              {cidades.map((cidade) => (
-                <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="w-full md:w-40">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-          <Select
-            value={statusFilter}
-            onValueChange={(value) => setStatusFilter(value as AssociadoStatus | 'todos')}
-          >
-            <SelectTrigger className="shadow-sm">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="ativo">Ativo</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="inativo">Inativo</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
         <div className="mt-auto">
           <Button 
             type="submit" 
@@ -127,8 +97,76 @@ const AssociadoSearchForm: React.FC<AssociadoSearchFormProps> = ({
             ) : 'Buscar'}
           </Button>
         </div>
+      </form>
+
+      <div className="flex flex-col md:flex-row justify-between gap-4">
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-gray-500" />
+            <span className="text-sm text-gray-500">Cidade:</span>
+            <Select
+              value={cidadeFilter}
+              onValueChange={setCidadeFilter}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Todas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas</SelectItem>
+                {cidades.map((cidade) => (
+                  <SelectItem key={cidade} value={cidade}>{cidade}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => {
+              setStatusFilter(value as AssociadoStatus | 'todos');
+            }}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="ativo">Ativos</SelectItem>
+              <SelectItem value="pendente">Pendentes</SelectItem>
+              <SelectItem value="inativo">Inativos</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={(value) => {
+              setItemsPerPage(value === 'all' ? -1 : Number(value));
+            }}
+          >
+            <SelectTrigger className="w-[110px]">
+              <SelectValue placeholder="Por página" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 por página</SelectItem>
+              <SelectItem value="50">50 por página</SelectItem>
+              <SelectItem value="100">100 por página</SelectItem>
+              <SelectItem value="200">200 por página</SelectItem>
+              <SelectItem value="500">500 por página</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => fetchAssociados()}
+            disabled={isSearching}
+          >
+            <RefreshCw className={`h-4 w-4 ${isSearching ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </div>
-    </form>
+    </div>
   );
 };
 
