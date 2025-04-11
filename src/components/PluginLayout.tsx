@@ -127,7 +127,7 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
                       tooltip={item.label}
                       asChild 
                       isActive={isActive(item.path!)}
-                      variant={isActive(item.path!) ? "default" : "ghost"}
+                      variant={isActive(item.path!) ? "default" : "outline"}
                     >
                       <Link to={item.path!} className="flex items-center gap-2">
                         {item.icon && <item.icon size={18} />}
