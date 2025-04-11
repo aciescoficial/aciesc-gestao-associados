@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MessageSquare, HelpCircle, Bell } from 'lucide-react';
+import { MessageSquare, HelpCircle } from 'lucide-react';
 import UserProfileMenu from '../auth/UserProfileMenu';
 import {
   Popover,
@@ -15,11 +15,11 @@ import {
 } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
+import NotificationsDropdown from '../notifications/NotificationsDropdown';
 
 const HeaderActions: React.FC = () => {
   const isMobile = useIsMobile();
   const [unreadMessages, setUnreadMessages] = useState(3);
-  const [unreadNotifications, setUnreadNotifications] = useState(2);
 
   // Mock messages data
   const recentMessages = [
@@ -31,6 +31,9 @@ const HeaderActions: React.FC = () => {
 
   return (
     <div className="flex items-center gap-2">
+      {/* Notifications Dropdown */}
+      <NotificationsDropdown />
+      
       {/* Messages */}
       <TooltipProvider>
         <Tooltip>
