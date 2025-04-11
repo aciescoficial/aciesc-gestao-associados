@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,32 +79,36 @@ const UserManagement: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          name,
-          role,
-          avatar_url,
-          phone,
-          created_at,
-          updated_at
-        `)
-        .order('name');
-        
-      if (error) throw error;
+      // Use a simpler query to avoid potential RLS issues
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
-      if (data) {
-        const formattedUsers: User[] = data.map(profile => {
-          const role = mapFromDbRole(profile.role);
+      if (authError) throw authError;
+      
+      if (authUsers && authUsers.users) {
+        // Get profiles to supplement auth user data
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('*');
+
+        // Create a map of profile data by user ID for easy lookup
+        const profileMap = new Map();
+        if (profiles) {
+          profiles.forEach(profile => {
+            profileMap.set(profile.id, profile);
+          });
+        }
+        
+        const formattedUsers: User[] = authUsers.users.map(authUser => {
+          const profile = profileMap.get(authUser.id);
+          const role = profile ? mapFromDbRole(profile.role) : 'user';
           
           return {
-            id: profile.id,
-            name: profile.name || '',
-            email: `${profile.name?.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+            id: authUser.id,
+            name: profile?.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || '',
+            email: authUser.email || '',
             role: role,
-            active: true,
-            createdAt: new Date(profile.created_at)
+            active: !authUser.banned_until,
+            createdAt: new Date(authUser.created_at)
           };
         });
         
@@ -231,8 +236,8 @@ const UserManagement: React.FC = () => {
   };
 
   const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getRoleBadgeColor = (role: UserRole) => {
