@@ -26,14 +26,28 @@ export const useUserFetch = () => {
       if (profilesError) throw profilesError;
       
       if (profiles) {
+        // Get auth users to get email information
+        const { data: authData } = await supabase.auth.admin.listUsers();
+        
+        // Create a map of auth users by ID for easy lookup
+        const authUsers = new Map();
+        if (authData?.users) {
+          authData.users.forEach(user => {
+            authUsers.set(user.id, user);
+          });
+        }
+        
         // Format the profiles into our User type
         const formattedUsers: User[] = profiles.map(profile => {
+          // Get corresponding auth user data if available
+          const authUser = authUsers.get(profile.id);
+          
           return {
             id: profile.id,
-            name: profile.name || profile.email?.split('@')[0] || '',
-            email: profile.email || '',
+            name: profile.name || (authUser?.email?.split('@')[0]) || '',
+            email: authUser?.email || '',
             role: mapFromDbRole(profile.role),
-            active: profile.active !== false, // Default to active if not specified
+            active: true, // Default to active since there's no active field in profiles
             createdAt: profile.created_at ? new Date(profile.created_at) : new Date()
           };
         });
