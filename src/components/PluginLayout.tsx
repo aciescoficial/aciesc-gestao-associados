@@ -109,16 +109,19 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
-        <Sidebar variant="sidebar" collapsible="icon">
-          <SidebarHeader className="flex items-center justify-center">
-            <h1 className="text-xl font-bold text-aciesc-primary">ACIESC</h1>
+        <Sidebar variant="sidebar" collapsible="icon" className="border-r border-gray-200">
+          <SidebarHeader className="flex items-center justify-center py-4 border-b border-gray-200">
+            <div className="text-center">
+              <h1 className="text-xl font-bold text-aciesc-primary">ACIESC</h1>
+              <p className="text-xs text-gray-500">Gestão de Associados</p>
+            </div>
           </SidebarHeader>
 
-          <SidebarContent>
+          <SidebarContent className="bg-white">
             <SidebarMenu>
               {menuItems.map((item, index) => (
                 item.header ? (
-                  <div key={index} className="px-3 pt-4 pb-2 text-xs font-medium text-muted-foreground">
+                  <div key={index} className="px-3 pt-4 pb-2 text-xs font-medium text-gray-500 uppercase">
                     {item.header}
                   </div>
                 ) : (
@@ -130,7 +133,7 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
                       variant={isActive(item.path!) ? "default" : "outline"}
                     >
                       <Link to={item.path!} className="flex items-center gap-2">
-                        {item.icon && <item.icon size={18} />}
+                        {item.icon && <item.icon size={18} className={isActive(item.path!) ? "text-white" : "text-aciesc-primary"} />}
                         <span>{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -140,18 +143,18 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
             </SidebarMenu>
           </SidebarContent>
           
-          <SidebarFooter className="border-t border-border/40 hidden sm:block">
-            <div className="flex items-center justify-center p-2 text-xs text-center text-muted-foreground">
+          <SidebarFooter className="border-t border-gray-200 hidden sm:block">
+            <div className="flex items-center justify-center p-4 text-xs text-center text-gray-500">
               <span>ACIESC © {new Date().getFullYear()}</span>
             </div>
           </SidebarFooter>
         </Sidebar>
 
         <div className="flex-1 flex flex-col">
-          <div className="wp-admin-bar flex items-center justify-between px-6 py-3 bg-aciesc-primary text-white border-b">
+          <div className="flex items-center justify-between px-6 py-3 bg-aciesc-gradient-primary text-white border-b">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="text-white hover:bg-aciesc-dark rounded-md" />
-              <span>Gestão ACIESC</span>
+              <SidebarTrigger className="text-white hover:bg-aciesc-dark/20 rounded-md" />
+              <span className="font-medium">Gestão ACIESC</span>
             </div>
             <div className="flex items-center gap-4">
               <UserProfileMenu />
