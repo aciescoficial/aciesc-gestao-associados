@@ -63,3 +63,14 @@ export type ChartData = {
   expected: number;
   received: number;
 };
+
+// Adicionar o tipo para o relatório financeiro
+export type FinancialReport = {
+  id: string;
+  nome: string;
+  valor: number;
+  descricao: string;
+  formaPagamento: string;
+  dataVencimento: Date;
+  status: 'pago' | 'pendente' | 'atrasado' | 'cancelado';
+};

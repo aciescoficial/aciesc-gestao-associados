@@ -9,6 +9,8 @@ import NotFound from "./pages/NotFound";
 
 // Página de configurações
 const ConfiguracoesPage = lazy(() => import("./components/configuracoes/ConfiguracoesPage"));
+// Página de relatórios financeiros
+const FinanceiroRelatoriosPage = lazy(() => import("./components/financeiro/FinanceiroRelatoriosPage"));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -85,7 +87,7 @@ const AppRoutes: React.FC = () => {
           } />
           <Route path="/financeiro/relatorios" element={
             <ProtectedRoute allowedRoles={["admin"]}>
-              <RouteComponents.Dashboard />
+              <FinanceiroRelatoriosPage />
             </ProtectedRoute>
           } />
 
