@@ -1,119 +1,121 @@
 
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { CarteirinhaSolicitacao } from '../types';
+import { useToast } from '@/hooks/use-toast';
+import type { CarteirinhaSolicitacao, CarteirinhaStatus } from '../types';
 
-interface UseSolicitacoesProps {
-  initialPage?: number;
-  itemsPerPage?: number;
-}
+const PAGE_SIZE = 10;
 
-export function useSolicitacoes({ initialPage = 1, itemsPerPage = 10 }: UseSolicitacoesProps = {}) {
+export function useSolicitacoes() {
   const [solicitacoes, setSolicitacoes] = useState<CarteirinhaSolicitacao[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [currentPage, setCurrentPage] = useState<number>(initialPage);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const { toast } = useToast();
-  
-  const fetchSolicitacoes = async () => {
+
+  const fetchSolicitacoes = useCallback(async () => {
     try {
       setIsLoading(true);
       
-      // Calculate pagination
-      const from = (currentPage - 1) * itemsPerPage;
-      const to = from + itemsPerPage - 1;
+      // Calcula os índices para paginação
+      const from = (currentPage - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
       
-      // Build the query
+      // Constrói a query com filtros
       let query = supabase
         .from('carteirinha_solicitacoes')
-        .select(`
-          *,
-          associados (email)
-        `, { count: 'exact' }) as any;
+        .select('*', { count: 'exact' });
       
-      // Apply filters if provided
+      // Aplica filtro de status se selecionado
       if (statusFilter) {
         query = query.eq('status', statusFilter);
       }
       
+      // Aplica filtro de busca se preenchido
       if (searchTerm) {
         query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
       }
       
-      // Apply pagination and order
-      query = query
+      // Aplica range para paginação
+      const { data, count, error } = await query
         .order('created_at', { ascending: false })
         .range(from, to);
       
-      const { data, count, error } = await query;
-      
       if (error) throw error;
       
-      // Transform data to match our format
-      const formattedData = data?.map((item: any) => ({
-        ...item,
-        email: item.associados?.email
-      }));
+      // Atualiza os estados
+      setSolicitacoes(data as CarteirinhaSolicitacao[]);
       
-      setSolicitacoes(formattedData as CarteirinhaSolicitacao[] || []);
-      setTotalPages(Math.ceil((count || 0) / itemsPerPage));
-    } catch (error) {
-      console.error('Erro ao buscar solicitações:', error);
+      if (count !== null) {
+        setTotalCount(count);
+        setTotalPages(Math.ceil(count / PAGE_SIZE));
+      }
+    } catch (error: any) {
+      console.error('Erro ao carregar solicitações:', error);
       toast({
-        title: "Erro ao carregar dados",
-        description: "Não foi possível carregar as solicitações de carteirinha.",
-        variant: "destructive"
+        title: 'Erro',
+        description: 'Não foi possível carregar as solicitações de carteirinha.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
-  };
-
+  }, [currentPage, searchTerm, statusFilter, toast]);
+  
+  // Carrega as solicitações quando os filtros ou página mudam
   useEffect(() => {
     fetchSolicitacoes();
-  }, [currentPage, statusFilter]);
+  }, [fetchSolicitacoes]);
 
-  const handleSearch = (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    setCurrentPage(1); // Reset to first page on new search
-    fetchSolicitacoes();
-  };
-
+  // Handler para mudança de página
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  const updateSolicitacao = async (id: string, data: Partial<CarteirinhaSolicitacao>) => {
+  // Handler para busca
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1); // Volta para a primeira página ao realizar uma busca
+    fetchSolicitacoes();
+  };
+
+  // Handler para atualização de status
+  const updateSolicitacao = async (id: string, status: CarteirinhaStatus, codigoRastreio?: string, observacoes?: string) => {
     try {
+      const updateData: { status: string; codigo_rastreio?: string; observacoes?: string } = { status };
+      
+      if (codigoRastreio) {
+        updateData.codigo_rastreio = codigoRastreio;
+      }
+      
+      if (observacoes) {
+        updateData.observacoes = observacoes;
+      }
+      
       const { error } = await supabase
         .from('carteirinha_solicitacoes')
-        .update({
-          ...data,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id) as any;
+        .update(updateData)
+        .eq('id', id);
       
       if (error) throw error;
       
-      toast({
-        title: "Solicitação atualizada",
-        description: "Os dados da solicitação foram atualizados com sucesso."
-      });
+      // Atualiza a lista de solicitações
+      fetchSolicitacoes();
       
-      return true;
-    } catch (error) {
+      toast({
+        title: 'Sucesso',
+        description: 'Solicitação atualizada com sucesso.',
+      });
+    } catch (error: any) {
       console.error('Erro ao atualizar solicitação:', error);
       toast({
-        title: "Erro ao atualizar",
-        description: "Não foi possível atualizar a solicitação.",
-        variant: "destructive"
+        title: 'Erro',
+        description: 'Não foi possível atualizar a solicitação.',
+        variant: 'destructive',
       });
-      return false;
     }
   };
 

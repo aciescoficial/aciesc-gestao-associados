@@ -1,71 +1,45 @@
 
--- This SQL file is for reference only, it should be executed in the Supabase SQL Editor
-
--- Create the enum for carteirinha solicitation status
-CREATE TYPE carteirinha_status AS ENUM (
-  'pendente_pagamento',
-  'pagamento_aprovado',
-  'em_producao',
-  'enviado',
-  'entregue',
-  'cancelado'
-);
-
--- Create table for ID card requests
+-- Create carteirinha_solicitacoes table
 CREATE TABLE IF NOT EXISTS carteirinha_solicitacoes (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  associado_id UUID NOT NULL REFERENCES associados(id),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  associado_id UUID NOT NULL,
   nome TEXT NOT NULL,
   sobrenome TEXT NOT NULL,
   endereco_entrega TEXT NOT NULL,
   complemento TEXT,
   valor NUMERIC NOT NULL DEFAULT 15.00,
-  status carteirinha_status NOT NULL DEFAULT 'pendente_pagamento',
+  status TEXT NOT NULL DEFAULT 'pendente_pagamento',
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   pagamento_id TEXT,
   codigo_rastreio TEXT,
   observacoes TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  email TEXT
 );
 
--- Create table for system configurations
-CREATE TABLE IF NOT EXISTS system_config (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  key TEXT NOT NULL UNIQUE,
-  value TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Insert default configuration values
-INSERT INTO system_config (key, value) VALUES
-  ('PAYMENT_GATEWAY', 'asaas'),
-  ('ID_CARD_FEE', '15.00');
-
--- Create RLS policies for the tables
+-- Add RLS policies
 ALTER TABLE carteirinha_solicitacoes ENABLE ROW LEVEL SECURITY;
 
--- Allow admins to do anything
-CREATE POLICY admin_all_carteirinha_solicitacoes
-  ON carteirinha_solicitacoes
-  USING (EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'));
+-- Admin can do anything
+CREATE POLICY "Admins have full control" 
+  ON carteirinha_solicitacoes 
+  USING (EXISTS (
+    SELECT 1 FROM profiles p
+    WHERE p.id = auth.uid() AND p.role = 'admin'
+  ));
 
--- Allow users to view their own requests
-CREATE POLICY user_select_own_solicitacoes
-  ON carteirinha_solicitacoes
-  FOR SELECT
+-- Users can only read their own solicitations
+CREATE POLICY "Users can view their own solicitations" 
+  ON carteirinha_solicitacoes 
+  FOR SELECT 
   USING (associado_id IN (
-    SELECT id FROM associados WHERE email = (
-      SELECT email FROM auth.users WHERE auth.users.id = auth.uid()
+    SELECT a.id FROM associados a WHERE a.email = (
+      SELECT email FROM auth.users WHERE id = auth.uid()
     )
   ));
 
--- Allow users to insert their own requests
-CREATE POLICY user_insert_own_solicitacoes
-  ON carteirinha_solicitacoes
-  FOR INSERT
-  WITH CHECK (associado_id IN (
-    SELECT id FROM associados WHERE email = (
-      SELECT email FROM auth.users WHERE auth.users.id = auth.uid()
-    )
-  ));
+-- Users can create solicitations
+CREATE POLICY "Users can create solicitations" 
+  ON carteirinha_solicitacoes 
+  FOR INSERT 
+  WITH CHECK (true);
