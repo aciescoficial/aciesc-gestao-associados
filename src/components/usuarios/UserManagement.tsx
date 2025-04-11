@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,7 +44,7 @@ const UserManagement: React.FC = () => {
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
-    role: 'associado' as UserRole,
+    role: 'user' as UserRole,
     password: ''
   });
   const { toast } = useToast();
@@ -71,14 +72,23 @@ const UserManagement: React.FC = () => {
       if (error) throw error;
       
       if (data) {
-        const formattedUsers: User[] = data.map(profile => ({
-          id: profile.id,
-          name: profile.name || '',
-          email: `${profile.name?.toLowerCase().replace(/\s+/g, '.')}@example.com`,
-          role: profile.role as UserRole,
-          active: true,
-          createdAt: new Date(profile.created_at)
-        }));
+        // Convert legacy roles to new simplified structure if needed
+        const formattedUsers: User[] = data.map(profile => {
+          // Map legacy roles to new simplified structure
+          let role = profile.role as UserRole;
+          if (role === 'associado' || role === 'diretoria' || role === 'conveniado') {
+            role = role === 'associado' ? 'user' : (role === 'conveniado' ? 'empresa' : role);
+          }
+          
+          return {
+            id: profile.id,
+            name: profile.name || '',
+            email: `${profile.name?.toLowerCase().replace(/\s+/g, '.')}@example.com`,
+            role: role,
+            active: true,
+            createdAt: new Date(profile.created_at)
+          };
+        });
         
         setUsers(formattedUsers);
       }
@@ -124,7 +134,7 @@ const UserManagement: React.FC = () => {
         setNewUser({
           name: '',
           email: '',
-          role: 'associado',
+          role: 'user',
           password: ''
         });
         
@@ -212,13 +222,10 @@ const UserManagement: React.FC = () => {
     switch (role) {
       case 'admin':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'diretoria':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'empresa':
-      case 'conveniado':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'associado':
+      case 'user':
         return 'bg-green-100 text-green-800 border-green-200';
+      case 'empresa':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -228,16 +235,10 @@ const UserManagement: React.FC = () => {
     switch (role) {
       case 'admin':
         return 'Administrador';
-      case 'diretoria':
-        return 'Diretoria';
+      case 'user':
+        return 'Associado';
       case 'empresa':
         return 'Empresa';
-      case 'conveniado':
-        return 'Conveniado';
-      case 'associado':
-        return 'Associado';
-      case 'user':
-        return 'Usuário';
       default:
         return role;
     }
@@ -383,10 +384,8 @@ const UserManagement: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="diretoria">Diretoria</SelectItem>
+                  <SelectItem value="user">Associado</SelectItem>
                   <SelectItem value="empresa">Empresa</SelectItem>
-                  <SelectItem value="associado">Associado</SelectItem>
-                  <SelectItem value="user">Usuário</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -439,10 +438,8 @@ const UserManagement: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="admin">Administrador</SelectItem>
-                    <SelectItem value="diretoria">Diretoria</SelectItem>
+                    <SelectItem value="user">Associado</SelectItem>
                     <SelectItem value="empresa">Empresa</SelectItem>
-                    <SelectItem value="associado">Associado</SelectItem>
-                    <SelectItem value="user">Usuário</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

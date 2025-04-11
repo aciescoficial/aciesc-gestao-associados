@@ -14,7 +14,6 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{error: any}>;
   isAdmin: boolean;
-  isDirector: boolean;
   isAssociado: boolean;
   isEmpresa: boolean;
   userRole: UserRole | null;
@@ -27,7 +26,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isDirector, setIsDirector] = useState(false);
   const [isAssociado, setIsAssociado] = useState(false);
   const [isEmpresa, setIsEmpresa] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
@@ -87,7 +85,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const resetRoles = () => {
     setIsAdmin(false);
-    setIsDirector(false);
     setIsAssociado(false);
     setIsEmpresa(false);
     setUserRole(null);
@@ -117,13 +114,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (profileError) throw profileError;
       
       if (profileData) {
-        const role = profileData.role as UserRole;
+        // Map legacy roles to new simplified roles if needed
+        let role = profileData.role as UserRole;
+        
+        // Convert legacy roles to new simplified structure
+        if (role === 'associado' || role === 'diretoria' || role === 'conveniado') {
+          role = role === 'associado' ? 'user' : (role === 'conveniado' ? 'empresa' : role);
+        }
+        
         setUserRole(role);
         setIsAdmin(role === 'admin');
-        setIsDirector(role === 'diretoria');
-        setIsAssociado(role === 'associado');
-        // Handle both 'empresa' and 'conveniado' roles for isEmpresa flag
-        setIsEmpresa(role === 'empresa' || role === 'conveniado');
+        setIsAssociado(role === 'user');
+        setIsEmpresa(role === 'empresa');
       }
     } catch (error) {
       console.error("Error checking user role:", error);
@@ -146,7 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string, role: UserRole = 'associado') => {
+  const signUp = async (email: string, password: string, name: string, role: UserRole = 'user') => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -207,7 +209,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
     resetPassword,
     isAdmin,
-    isDirector,
     isAssociado,
     isEmpresa,
     userRole,

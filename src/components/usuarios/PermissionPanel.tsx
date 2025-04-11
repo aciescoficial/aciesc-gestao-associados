@@ -33,28 +33,28 @@ const PermissionPanel: React.FC = () => {
       // if (error) throw error;
       // setPermissions(data || []);
       
-      // For now, using the mock data:
+      // For now, using the mock data with simplified roles:
       setPermissions([
         {
           id: '1',
           name: 'view_associados',
           description: 'Visualizar associados',
           module: 'associados',
-          roles: ['admin', 'diretoria', 'associado']
+          roles: ['admin', 'user']
         },
         {
           id: '2',
           name: 'edit_associados',
           description: 'Editar associados',
           module: 'associados',
-          roles: ['admin', 'diretoria']
+          roles: ['admin']
         },
         {
           id: '3',
           name: 'view_empresas',
           description: 'Visualizar empresas',
           module: 'empresas',
-          roles: ['admin', 'diretoria']
+          roles: ['admin']
         },
         {
           id: '4',
@@ -241,11 +241,10 @@ const PermissionPanel: React.FC = () => {
           </div>
         ) : (
           <Tabs defaultValue="admin" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="admin">Administrador</TabsTrigger>
-              <TabsTrigger value="diretoria">Diretoria</TabsTrigger>
+              <TabsTrigger value="user">Associado</TabsTrigger>
               <TabsTrigger value="empresa">Empresa</TabsTrigger>
-              <TabsTrigger value="associado">Associado</TabsTrigger>
             </TabsList>
             
             <TabsContent value="admin">
@@ -255,16 +254,12 @@ const PermissionPanel: React.FC = () => {
               {renderPermissionsTable('admin')}
             </TabsContent>
             
-            <TabsContent value="diretoria">
-              {renderPermissionsTable('diretoria')}
+            <TabsContent value="user">
+              {renderPermissionsTable('user')}
             </TabsContent>
             
             <TabsContent value="empresa">
               {renderPermissionsTable('empresa')}
-            </TabsContent>
-
-            <TabsContent value="associado">
-              {renderPermissionsTable('associado')}
             </TabsContent>
           </Tabs>
         )}

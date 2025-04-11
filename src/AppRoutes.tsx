@@ -27,23 +27,73 @@ const AppRoutes: React.FC = () => {
         <Route path="/" element={<PluginLayout><Outlet /></PluginLayout>}>
           <Route path="/dashboard" element={<RouteComponents.Dashboard />} />
 
-          <Route path="/associados/cadastro" element={<RouteComponents.CadastroAssociado />} />
-          <Route path="/associados/pesquisa" element={<RouteComponents.PesquisaAssociado />} />
-          <Route path="/associados/listar" element={<RouteComponents.ListaAssociados />} />
+          {/* Admin-only routes */}
+          <Route path="/associados/cadastro" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <RouteComponents.CadastroAssociado />
+            </ProtectedRoute>
+          } />
+          <Route path="/associados/pesquisa" element={
+            <ProtectedRoute allowedRoles={["admin", "user"]}>
+              <RouteComponents.PesquisaAssociado />
+            </ProtectedRoute>
+          } />
+          <Route path="/associados/listar" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <RouteComponents.ListaAssociados />
+            </ProtectedRoute>
+          } />
 
-          <Route path="/empresas/cadastro" element={<RouteComponents.CadastroEmpresa />} />
-          <Route path="/empresas/pesquisa" element={<RouteComponents.PesquisaEmpresa />} />
-          <Route path="/empresas/pendentes" element={<RouteComponents.AprovacoesPendentes />} />
+          <Route path="/empresas/cadastro" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <RouteComponents.CadastroEmpresa />
+            </ProtectedRoute>
+          } />
+          <Route path="/empresas/pesquisa" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <RouteComponents.PesquisaEmpresa />
+            </ProtectedRoute>
+          } />
+          <Route path="/empresas/pendentes" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <RouteComponents.AprovacoesPendentes />
+            </ProtectedRoute>
+          } />
 
-          <Route path="/aprovacoes" element={<RouteComponents.AprovacoesPendentes />} />
+          <Route path="/aprovacoes" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <RouteComponents.AprovacoesPendentes />
+            </ProtectedRoute>
+          } />
 
-          <Route path="/carteirinhas" element={<RouteComponents.GeradorCarteirinha />} />
+          <Route path="/carteirinhas" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <RouteComponents.GeradorCarteirinha />
+            </ProtectedRoute>
+          } />
 
-          <Route path="/financeiro" element={<RouteComponents.FinanceiroResumoPage />} />
-          <Route path="/financeiro/associados" element={<RouteComponents.AssociadosPage />} />
-          <Route path="/financeiro/integracao" element={<RouteComponents.IntegracaoFinanceira />} />
-          <Route path="/financeiro/relatorios" element={<RouteComponents.Dashboard />} />
+          <Route path="/financeiro" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <RouteComponents.FinanceiroResumoPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/financeiro/associados" element={
+            <AdminRoute>
+              <RouteComponents.AssociadosPage />
+            </AdminRoute>
+          } />
+          <Route path="/financeiro/integracao" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <RouteComponents.IntegracaoFinanceira />
+            </ProtectedRoute>
+          } />
+          <Route path="/financeiro/relatorios" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <RouteComponents.Dashboard />
+            </ProtectedRoute>
+          } />
 
+          {/* Mensagens for all users */}
           <Route path="/mensagens" element={<RouteComponents.MensagensPage />} />
           
           {/* Usuários routes */}
@@ -53,13 +103,29 @@ const AppRoutes: React.FC = () => {
           
           <Route path="/perfil" element={<RouteComponents.ProfilePage />} />
           
-          {/* Associado specific routes */}
-          <Route path="/meus-pagamentos" element={<RouteComponents.PagamentosAssociadoPage />} />
-          <Route path="/solicitar-carteirinha" element={<RouteComponents.SolicitarCarteirinhaPage />} />
-          <Route path="/empresas-conveniadas" element={<RouteComponents.EmpresasConveniadasPage />} />
+          {/* User (Associado) specific routes */}
+          <Route path="/meus-pagamentos" element={
+            <ProtectedRoute allowedRoles={["user"]}>
+              <RouteComponents.PagamentosAssociadoPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/solicitar-carteirinha" element={
+            <ProtectedRoute allowedRoles={["user"]}>
+              <RouteComponents.SolicitarCarteirinhaPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/empresas-conveniadas" element={
+            <ProtectedRoute allowedRoles={["user"]}>
+              <RouteComponents.EmpresasConveniadasPage />
+            </ProtectedRoute>
+          } />
           
           {/* Nova rota para configurações */}
-          <Route path="/configuracoes" element={<ConfiguracoesPage />} />
+          <Route path="/configuracoes" element={
+            <AdminRoute>
+              <ConfiguracoesPage />
+            </AdminRoute>
+          } />
         </Route>
       </Routes>
     </Suspense>

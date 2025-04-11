@@ -96,7 +96,7 @@ const UserProfileMenu = () => {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/usuarios/gerenciar" className="flex items-center">
+              <Link to="/usuarios" className="flex items-center">
                 <UserCog className="mr-2 h-4 w-4" />
                 <span>Gerenciar Usuários</span>
               </Link>

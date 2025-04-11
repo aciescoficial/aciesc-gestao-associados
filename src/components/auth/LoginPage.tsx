@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/components/ui/use-toast";
 import { Navigate, Link } from 'react-router-dom';
@@ -20,7 +19,7 @@ const LoginPage = () => {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [organizationType, setOrganizationType] = useState<UserRole>('associado');
+  const [organizationType, setOrganizationType] = useState<UserRole>('user');
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { toast } = useToast();
@@ -102,13 +101,6 @@ const LoginPage = () => {
     setIsLoading(false);
   };
 
-  // reCAPTCHA verification handler
-  const handleRecaptchaVerify = () => {
-    // This would be handled by the reCAPTCHA component 
-    // Implementation will be added when actual integration happens
-    console.log("reCAPTCHA verified");
-  };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-wp-body p-4">
       <div className="w-full max-w-md">
@@ -181,9 +173,8 @@ const LoginPage = () => {
                         <SelectValue placeholder="Selecione o tipo de acesso" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="associado">Associado</SelectItem>
-                        <SelectItem value="conveniado">Empresa Conveniada</SelectItem>
-                        <SelectItem value="diretoria">Diretoria</SelectItem>
+                        <SelectItem value="user">Associado</SelectItem>
+                        <SelectItem value="empresa">Empresa</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
                       </SelectContent>
                     </Select>
@@ -301,18 +292,17 @@ const LoginPage = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Tipo de Acesso</Label>
+                      <Label>Tipo de Conta</Label>
                       <Select 
                         value={organizationType} 
                         onValueChange={(value) => setOrganizationType(value as UserRole)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo de acesso" />
+                          <SelectValue placeholder="Selecione o tipo de conta" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="associado">Associado</SelectItem>
-                          <SelectItem value="conveniado">Empresa Conveniada</SelectItem>
-                          <SelectItem value="diretoria">Diretoria</SelectItem>
+                          <SelectItem value="user">Associado</SelectItem>
+                          <SelectItem value="empresa">Empresa</SelectItem>
                           <SelectItem value="admin">Administrador</SelectItem>
                         </SelectContent>
                       </Select>

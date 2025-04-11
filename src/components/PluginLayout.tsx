@@ -41,42 +41,42 @@ interface MenuItem {
 const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { isAdmin, isDirector, isAssociado, isEmpresa, userRole } = useAuth();
+  const { isAdmin, isAssociado, isEmpresa, userRole } = useAuth();
   
   const allMenuItems: MenuItem[] = [
-    { icon: Home, label: "Dashboard", path: "/dashboard", roles: ['admin', 'diretoria', 'associado', 'empresa'] },
+    { icon: Home, label: "Dashboard", path: "/dashboard", roles: ['admin', 'user', 'empresa'] },
     { header: "Admin", roles: ['admin'] },
     { icon: UserCog, label: "Usuários", path: "/usuarios", roles: ['admin'] },
     { icon: Shield, label: "Permissões", path: "/usuarios/permissoes", roles: ['admin'] },
-    { header: "Associados", roles: ['admin', 'diretoria'] },
-    { icon: UserPlus, label: "Cadastrar", path: "/associados/cadastro", roles: ['admin', 'diretoria'] },
-    { icon: CheckSquare, label: "Aprovação Pendente", path: "/aprovacoes", roles: ['admin', 'diretoria'] },
-    { icon: CreditCard, label: "Gerar Carteirinha", path: "/carteirinhas", roles: ['admin', 'diretoria'] },
-    { icon: Search, label: "Pesquisar", path: "/associados/pesquisa", roles: ['admin', 'diretoria', 'associado'] },
-    { icon: Users, label: "Listar Todos", path: "/associados/listar", roles: ['admin', 'diretoria'] },
-    { header: "Empresas", roles: ['admin', 'diretoria'] },
-    { icon: Building, label: "Cadastrar", path: "/empresas/cadastro", roles: ['admin', 'diretoria'] },
-    { icon: CheckSquare, label: "Aprovação Pendente", path: "/empresas/pendentes", roles: ['admin', 'diretoria'] },
-    { icon: Search, label: "Pesquisar", path: "/empresas/pesquisa", roles: ['admin', 'diretoria'] },
-    { header: "Financeiro", roles: ['admin', 'diretoria'] },
-    { icon: BarChart, label: "Resumo", path: "/financeiro", roles: ['admin', 'diretoria'] },
+    { header: "Associados", roles: ['admin'] },
+    { icon: UserPlus, label: "Cadastrar", path: "/associados/cadastro", roles: ['admin'] },
+    { icon: CheckSquare, label: "Aprovação Pendente", path: "/aprovacoes", roles: ['admin'] },
+    { icon: CreditCard, label: "Gerar Carteirinha", path: "/carteirinhas", roles: ['admin'] },
+    { icon: Search, label: "Pesquisar", path: "/associados/pesquisa", roles: ['admin', 'user'] },
+    { icon: Users, label: "Listar Todos", path: "/associados/listar", roles: ['admin'] },
+    { header: "Empresas", roles: ['admin'] },
+    { icon: Building, label: "Cadastrar", path: "/empresas/cadastro", roles: ['admin'] },
+    { icon: CheckSquare, label: "Aprovação Pendente", path: "/empresas/pendentes", roles: ['admin'] },
+    { icon: Search, label: "Pesquisar", path: "/empresas/pesquisa", roles: ['admin'] },
+    { header: "Financeiro", roles: ['admin'] },
+    { icon: BarChart, label: "Resumo", path: "/financeiro", roles: ['admin'] },
     { icon: UserCheck, label: "Associados", path: "/financeiro/associados", roles: ['admin'] },
-    { icon: DollarSign, label: "Integrações", path: "/financeiro/integracao", roles: ['admin', 'diretoria'] },
-    { icon: FileText, label: "Relatórios", path: "/financeiro/relatorios", roles: ['admin', 'diretoria'] },
+    { icon: DollarSign, label: "Integrações", path: "/financeiro/integracao", roles: ['admin'] },
+    { icon: FileText, label: "Relatórios", path: "/financeiro/relatorios", roles: ['admin'] },
     { header: "Configurações", roles: ['admin'] },
     { icon: Settings, label: "Configurações", path: "/configuracoes", roles: ['admin'] },
     // Associado specific menu items
-    { header: "Área do Associado", roles: ['associado'] },
-    { icon: Payment, label: "Meus Pagamentos", path: "/meus-pagamentos", roles: ['associado'] },
-    { icon: CreditCard, label: "Solicitar Carteirinha", path: "/solicitar-carteirinha", roles: ['associado'] },
-    { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['associado'] },
-    { icon: Building, label: "Empresas Conveniadas", path: "/empresas-conveniadas", roles: ['associado'] },
+    { header: "Área do Associado", roles: ['user'] },
+    { icon: Payment, label: "Meus Pagamentos", path: "/meus-pagamentos", roles: ['user'] },
+    { icon: CreditCard, label: "Solicitar Carteirinha", path: "/solicitar-carteirinha", roles: ['user'] },
+    { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['user'] },
+    { icon: Building, label: "Empresas Conveniadas", path: "/empresas-conveniadas", roles: ['user'] },
     // Empresa specific menu items
     { header: "Área da Empresa", roles: ['empresa'] },
     { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['empresa'] },
     // Mensagens for all users
-    { header: "Comunicação", roles: ['admin', 'diretoria', 'associado', 'empresa'] },
-    { icon: MessageSquare, label: "Mensagens", path: "/mensagens", roles: ['admin', 'diretoria', 'associado', 'empresa'] },
+    { header: "Comunicação", roles: ['admin', 'user', 'empresa'] },
+    { icon: MessageSquare, label: "Mensagens", path: "/mensagens", roles: ['admin', 'user', 'empresa'] },
   ];
   
   // Filter menu items based on user role
