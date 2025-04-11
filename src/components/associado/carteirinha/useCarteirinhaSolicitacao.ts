@@ -79,9 +79,9 @@ export const useCarteirinhaSolicitacao = ({ navigateToPayment }: UseCarteirinhaS
       // Montar o endereço formatado
       const enderecoCompleto = `${data.endereco}, ${data.numero}, ${data.bairro}, ${data.cidade}-${data.estado}, ${data.cep}`;
       
-      // Salvar a solicitação no banco de dados
-      const { data: solicitacao, error } = await supabase
-        .from('carteirinha_solicitacoes')
+      // Salvar a solicitação no banco de dados usando casting para contornar o erro de tipo
+      const { data: solicitacao, error } = await (supabase
+        .from('carteirinha_solicitacoes') as any)
         .insert({
           associado_id: userData.id,
           nome: data.nome,

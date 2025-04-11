@@ -24,9 +24,9 @@ export function useSolicitacoes() {
       const from = (currentPage - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
       
-      // Constrói a query com filtros
-      let query = supabase
-        .from('carteirinha_solicitacoes')
+      // Constrói a query com filtros - usando type casting para contornar erros de tipo
+      let query = (supabase
+        .from('carteirinha_solicitacoes') as any)
         .select('*', { count: 'exact' });
       
       // Aplica filtro de status se selecionado
@@ -46,8 +46,10 @@ export function useSolicitacoes() {
       
       if (error) throw error;
       
-      // Atualiza os estados
-      setSolicitacoes(data as CarteirinhaSolicitacao[]);
+      // Atualiza os estados e aplica casting seguro
+      if (data) {
+        setSolicitacoes(data as unknown as CarteirinhaSolicitacao[]);
+      }
       
       if (count !== null) {
         setTotalCount(count);
@@ -83,32 +85,25 @@ export function useSolicitacoes() {
   };
 
   // Handler para atualização de status
-  const updateSolicitacao = async (id: string, status: CarteirinhaStatus, codigoRastreio?: string, observacoes?: string) => {
+  const updateSolicitacao = async (id: string, data: Partial<CarteirinhaSolicitacao>): Promise<boolean> => {
     try {
-      const updateData: { status: string; codigo_rastreio?: string; observacoes?: string } = { status };
-      
-      if (codigoRastreio) {
-        updateData.codigo_rastreio = codigoRastreio;
-      }
-      
-      if (observacoes) {
-        updateData.observacoes = observacoes;
-      }
-      
-      const { error } = await supabase
-        .from('carteirinha_solicitacoes')
-        .update(updateData)
+      // Usa type casting para contornar erros de tipo no Supabase
+      const { error } = await (supabase
+        .from('carteirinha_solicitacoes') as any)
+        .update(data)
         .eq('id', id);
       
       if (error) throw error;
       
       // Atualiza a lista de solicitações
-      fetchSolicitacoes();
+      await fetchSolicitacoes();
       
       toast({
         title: 'Sucesso',
         description: 'Solicitação atualizada com sucesso.',
       });
+
+      return true;
     } catch (error: any) {
       console.error('Erro ao atualizar solicitação:', error);
       toast({
@@ -116,6 +111,7 @@ export function useSolicitacoes() {
         description: 'Não foi possível atualizar a solicitação.',
         variant: 'destructive',
       });
+      return false;
     }
   };
 

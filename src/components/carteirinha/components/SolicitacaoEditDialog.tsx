@@ -40,11 +40,13 @@ export const SolicitacaoEditDialog: React.FC<SolicitacaoEditDialogProps> = ({
   const [observacoes, setObservacoes] = useState(solicitacao.observacoes || '');
 
   const handleStatusChange = async () => {
-    const success = await onUpdate(editData.id, {
+    const updateData: Partial<CarteirinhaSolicitacao> = {
       status: editData.status,
-      codigo_rastreio: rastreioCode || null,
-      observacoes: observacoes || null,
-    });
+      codigo_rastreio: rastreioCode || undefined,
+      observacoes: observacoes || undefined
+    };
+    
+    const success = await onUpdate(editData.id, updateData);
     
     if (success) {
       setOpen(false);
