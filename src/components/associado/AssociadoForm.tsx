@@ -11,6 +11,7 @@ import { DadosPessoaisForm } from "./DadosPessoaisForm";
 import { EnderecoForm } from "./EnderecoForm";
 import { ContatoForm } from "./ContatoForm";
 import { FinanceiroForm } from "./FinanceiroForm";
+import { VeiculoForm } from "./VeiculoForm";
 import { AssociadoFormData } from './types';
 import { saveAssociado, uploadFoto } from './associadoService';
 
@@ -38,6 +39,12 @@ const AssociadoForm: React.FC = () => {
     cep: z.string().optional(),
     placaPrincipal: z.string().optional(),
     placaSecundaria: z.string().optional(),
+    tipoVeiculoPrincipal: z.enum(["Moto", "Carro"]).optional(),
+    tipoVeiculoSecundario: z.enum(["Moto", "Carro"]).optional(),
+    modeloVeiculoPrincipal: z.string().optional(),
+    modeloVeiculoSecundario: z.string().optional(),
+    corVeiculoPrincipal: z.string().optional(),
+    corVeiculoSecundario: z.string().optional(),
     valorPago: z.string().optional(),
     dataUltimoPagamento: z.string().optional(),
     valorDevido: z.string().optional(),
@@ -124,10 +131,11 @@ const AssociadoForm: React.FC = () => {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid grid-cols-4 mb-6">
+        <TabsList className="grid grid-cols-5 mb-6">
           <TabsTrigger value="dados-pessoais">Dados Pessoais</TabsTrigger>
           <TabsTrigger value="contato">Contato</TabsTrigger>
           <TabsTrigger value="endereco">Endereço</TabsTrigger>
+          <TabsTrigger value="veiculo">Veículo</TabsTrigger>
           <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
         </TabsList>
         
@@ -182,6 +190,26 @@ const AssociadoForm: React.FC = () => {
             </Button>
             <Button
               type="button"
+              onClick={() => setActiveTab("veiculo")}
+            >
+              Próximo
+            </Button>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="veiculo">
+          <VeiculoForm form={form} />
+          
+          <div className="flex justify-between mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setActiveTab("endereco")}
+            >
+              Anterior
+            </Button>
+            <Button
+              type="button"
               onClick={() => setActiveTab("financeiro")}
             >
               Próximo
@@ -196,7 +224,7 @@ const AssociadoForm: React.FC = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setActiveTab("endereco")}
+              onClick={() => setActiveTab("veiculo")}
             >
               Anterior
             </Button>

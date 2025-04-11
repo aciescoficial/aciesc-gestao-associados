@@ -1,4 +1,3 @@
-
 import { Database } from '@/integrations/supabase/types';
 
 export type StatusType = Database['public']['Enums']['status_type'];
@@ -22,6 +21,12 @@ export interface AssociadoFormData {
   cep?: string;
   placaPrincipal?: string;
   placaSecundaria?: string;
+  tipoVeiculoPrincipal?: 'Moto' | 'Carro';
+  tipoVeiculoSecundario?: 'Moto' | 'Carro';
+  modeloVeiculoPrincipal?: string;
+  modeloVeiculoSecundario?: string;
+  corVeiculoPrincipal?: string;
+  corVeiculoSecundario?: string;
   valorPago?: string;
   dataUltimoPagamento?: string;
   valorDevido?: string;
@@ -83,6 +88,11 @@ export const tiposPagamento = [
   'Pix',
   'Dinheiro',
   'Transferência'
+];
+
+export const tiposVeiculos = [
+  'Moto',
+  'Carro'
 ];
 
 export interface Associado {
