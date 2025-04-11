@@ -30,6 +30,17 @@ interface CustomerRequest {
   phone: string;
 }
 
+interface PaymentLinkRequest {
+  name: string;
+  description: string;
+  value: number;
+  billingType: string;
+  chargeType: string;
+  dueDateLimitDays?: number;
+  subscriptionCycle?: string;
+  maxInstallmentCount?: number;
+}
+
 async function createCustomer(data: CustomerRequest) {
   const response = await fetch(`${ASAAS_API_URL}/customers`, {
     method: "POST",
@@ -71,6 +82,33 @@ async function createPayment(data: PaymentRequest) {
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(`Failed to create payment: ${JSON.stringify(errorData)}`);
+  }
+
+  return response.json();
+}
+
+async function createPaymentLink(data: PaymentLinkRequest) {
+  const response = await fetch(`${ASAAS_API_URL}/paymentLinks`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "access_token": ASAAS_API_KEY!,
+    },
+    body: JSON.stringify({
+      name: data.name,
+      description: data.description,
+      value: data.value,
+      billingType: data.billingType,
+      chargeType: data.chargeType,
+      dueDateLimitDays: data.dueDateLimitDays || 5,
+      subscriptionCycle: data.subscriptionCycle,
+      maxInstallmentCount: data.maxInstallmentCount
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`Failed to create payment link: ${JSON.stringify(errorData)}`);
   }
 
   return response.json();
@@ -130,6 +168,13 @@ serve(async (req) => {
     } else if (path === "create-payment") {
       const data = await req.json();
       const result = await createPayment(data);
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    } else if (path === "create-payment-link") {
+      const data = await req.json();
+      const result = await createPaymentLink(data);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

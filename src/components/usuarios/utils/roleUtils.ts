@@ -14,7 +14,7 @@ export const mapToDbRole = (role: UserRole): DatabaseUserRole => {
     case 'empresa':
       return 'empresa';
     default:
-      return 'user';
+      return 'associado';
   }
 };
 
