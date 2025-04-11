@@ -37,8 +37,18 @@ export async function get_auth_users() {
   return [] as Array<{ id: string; email: string }>;
 }
 
+/**
+ * Get current user's role
+ * Returns user role enum value
+ */
+export async function get_current_user_role() {
+  // This is just a type definition for the RPC function
+  // The actual implementation is in the Supabase database
+  return 'user' as 'user' | 'admin' | 'empresa';
+}
+
 // Make the function names available for TypeScript to recognize in rpc calls
-type RpcFunctionNames = 'has_role' | 'get_user_role' | 'get_auth_users';
+type RpcFunctionNames = 'has_role' | 'get_user_role' | 'get_auth_users' | 'get_current_user_role';
 declare module '@supabase/supabase-js' {
   interface SupabaseClient {
     rpc<T = any>(

@@ -26,7 +26,7 @@ export const useUserFetch = () => {
         // Get user emails from auth.users if possible (requires admin rights)
         let authUsers: {id: string, email: string}[] = [];
         try {
-          // Try to get user emails from auth schema - might fail due to permissions
+          // Try to get user emails from auth schema using the RPC function
           const { data, error } = await supabase
             .rpc('get_auth_users');
           

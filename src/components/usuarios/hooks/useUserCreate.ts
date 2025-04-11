@@ -37,18 +37,37 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
       const dbRole = mapToDbRole(newUser.role);
 
       // Create the user in auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: newUser.email,
         password: newUser.password,
-        options: {
-          data: {
-            name: newUser.name,
-            role: dbRole
-          }
+        email_confirm: true,
+        user_metadata: {
+          name: newUser.name,
+          role: dbRole
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        // Fallback to regular signup if admin API is not available
+        const { data: regularAuthData, error: regularAuthError } = await supabase.auth.signUp({
+          email: newUser.email,
+          password: newUser.password,
+          options: {
+            data: {
+              name: newUser.name,
+              role: dbRole
+            }
+          }
+        });
+        
+        if (regularAuthError) throw regularAuthError;
+        
+        if (regularAuthData && regularAuthData.user) {
+          authData = regularAuthData;
+        } else {
+          throw new Error('Não foi possível criar o usuário usando método padrão.');
+        }
+      }
       
       if (authData && authData.user) {
         // Set the user role in profiles table
@@ -56,7 +75,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           .from('profiles')
           .update({
             name: newUser.name,
-            role: dbRole as any // Use type assertion to bypass TypeScript check
+            role: dbRole
           })
           .eq('id', authData.user.id);
         
@@ -92,6 +111,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
         description: errorMessage,
         variant: "destructive"
       });
+      console.error("Error creating user:", error);
     } finally {
       setIsLoading(false);
     }
