@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,6 +76,7 @@ const UserManagement: React.FC = () => {
           let role: UserRole;
           const dbRole = profile.role as string;
           
+          // Map the database role to our UserRole type
           if (['associado', 'diretoria'].includes(dbRole)) {
             role = 'user';
           } else if (dbRole === 'conveniado' || dbRole === 'empresa') {
