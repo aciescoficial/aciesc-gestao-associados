@@ -7,13 +7,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { UserRole } from '../types';
-import { UserFilters } from '../hooks/useUserFetch';
+import { UserFilters as UserFiltersType } from '../hooks/useUserFetch';
 import { getRoleLabel } from '../utils/roleUtils';
 import { format } from 'date-fns';
 
 interface UserFiltersProps {
-  filters: UserFilters;
-  onUpdateFilters: (filters: Partial<UserFilters>) => void;
+  filters: UserFiltersType;
+  onUpdateFilters: (filters: Partial<UserFiltersType>) => void;
 }
 
 const UserFilters: React.FC<UserFiltersProps> = ({ filters, onUpdateFilters }) => {
