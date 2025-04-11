@@ -35,7 +35,7 @@ const ConveniadoPagination: React.FC<ConveniadoPaginationProps> = ({
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
             />
           </PaginationItem>
@@ -78,7 +78,7 @@ const ConveniadoPagination: React.FC<ConveniadoPaginationProps> = ({
           
           <PaginationItem>
             <PaginationNext
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
             />
           </PaginationItem>
