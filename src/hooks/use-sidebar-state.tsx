@@ -1,37 +1,45 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-const SIDEBAR_STATE_KEY = 'aciesc-sidebar-state';
-const SIDEBAR_MENUS_KEY = 'aciesc-sidebar-menus';
+// Constants for localStorage keys
+const STORAGE_KEYS = {
+  COLLAPSED: 'aciesc-sidebar-state',
+  EXPANDED_MENUS: 'aciesc-sidebar-menus',
+};
 
+// Type definition for the sidebar state
 type SidebarState = {
   collapsed: boolean;
   expandedMenus: Record<string, boolean>;
 };
 
+/**
+ * Hook to manage sidebar state including collapse state and expanded menus
+ * @returns Object with sidebar state and methods to manipulate it
+ */
 export function useSidebarState() {
-  // Inicializa com valores padrão ou carrega do localStorage
-  const [sidebarState, setSidebarState] = useState<SidebarState>(() => {
-    const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
-    const savedMenus = localStorage.getItem(SIDEBAR_MENUS_KEY);
+  // Initialize state from localStorage or use defaults
+  const [state, setState] = useState<SidebarState>(() => {
+    const savedCollapsed = localStorage.getItem(STORAGE_KEYS.COLLAPSED);
+    const savedMenus = localStorage.getItem(STORAGE_KEYS.EXPANDED_MENUS);
     
     return {
-      collapsed: savedState ? JSON.parse(savedState) : false,
+      collapsed: savedCollapsed ? JSON.parse(savedCollapsed) : false,
       expandedMenus: savedMenus ? JSON.parse(savedMenus) : {},
     };
   });
 
-  // Toggle do estado do sidebar (colapsado / expandido)
+  // Toggle sidebar collapsed state
   const toggleSidebar = useCallback(() => {
-    setSidebarState(prev => ({
+    setState(prev => ({
       ...prev,
       collapsed: !prev.collapsed,
     }));
   }, []);
 
-  // Toggle de um menu específico (expandir / retrair)
+  // Toggle menu expanded state
   const toggleMenu = useCallback((menuId: string) => {
-    setSidebarState(prev => ({
+    setState(prev => ({
       ...prev,
       expandedMenus: {
         ...prev.expandedMenus,
@@ -40,20 +48,20 @@ export function useSidebarState() {
     }));
   }, []);
 
-  // Verifica se um menu está expandido
+  // Check if a menu is expanded
   const isMenuExpanded = useCallback((menuId: string) => {
-    // Se não existir na configuração, considera como expandido por padrão
-    return sidebarState.expandedMenus[menuId] !== false;
-  }, [sidebarState.expandedMenus]);
+    // Default to expanded if not explicitly set to false
+    return state.expandedMenus[menuId] !== false;
+  }, [state.expandedMenus]);
 
-  // Salva o estado no localStorage quando mudar
+  // Save state to localStorage when it changes
   useEffect(() => {
-    localStorage.setItem(SIDEBAR_STATE_KEY, JSON.stringify(sidebarState.collapsed));
-    localStorage.setItem(SIDEBAR_MENUS_KEY, JSON.stringify(sidebarState.expandedMenus));
-  }, [sidebarState]);
+    localStorage.setItem(STORAGE_KEYS.COLLAPSED, JSON.stringify(state.collapsed));
+    localStorage.setItem(STORAGE_KEYS.EXPANDED_MENUS, JSON.stringify(state.expandedMenus));
+  }, [state]);
 
   return {
-    collapsed: sidebarState.collapsed,
+    collapsed: state.collapsed,
     toggleSidebar,
     toggleMenu,
     isMenuExpanded
