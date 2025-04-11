@@ -1,4 +1,3 @@
-
 import React from 'react';
 import PluginLayout from '@/components/PluginLayout';
 import Dashboard from '@/components/Dashboard';
@@ -12,7 +11,6 @@ import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
 import UserManagement from '@/components/usuarios/UserManagement';
 import PermissionPanel from '@/components/usuarios/PermissionPanel';
 import ProfilePage from '@/components/auth/ProfilePage';
-import ListaAssociados from '@/components/associado/ListaAssociados';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import MensagensPage from '@/components/mensagens/MensagensPage';
@@ -96,7 +94,6 @@ const RouteComponents = {
   UserManagement,
   PermissionPanel,
   ProfilePage,
-  ListaAssociados,
   AssociadosPage,
   FinanceiroResumoPage,
   MensagensPage,
@@ -108,7 +105,7 @@ const RouteComponents = {
   EmpresasConveniadasPage,
   EmpresasPesquisaPage,
   ConfiguracoesPage,
-  FinanceiroRelatoriosPage, // Nova página de relatórios financeiros adicionada
+  FinanceiroRelatoriosPage,
   NotFound: () => <div>Página não encontrada</div>
 };
 

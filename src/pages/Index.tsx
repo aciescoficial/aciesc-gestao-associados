@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from './AuthRoutes';
@@ -24,7 +23,6 @@ import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
 import UserManagement from '@/components/usuarios/UserManagement';
 import PermissionPanel from '@/components/usuarios/PermissionPanel';
 import ProfilePage from '@/components/auth/ProfilePage';
-import ListaAssociados from '@/components/associado/ListaAssociados';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import ConfiguracoesPage from '@/components/configuracoes/ConfiguracoesPage';
@@ -73,14 +71,6 @@ const Index: React.FC = () => {
         <ProtectedRoute allowedRoles={['admin']}>
           <LayoutWrapper>
             <CadastroAssociado />
-          </LayoutWrapper>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/associados/listar" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <LayoutWrapper>
-            <ListaAssociados />
           </LayoutWrapper>
         </ProtectedRoute>
       } />

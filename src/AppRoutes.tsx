@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense } from "react";
 import { Route, Routes, Outlet, Navigate } from "react-router-dom";
 import RouteComponents from "./pages/RouteComponents";
@@ -40,12 +39,6 @@ const AppRoutes: React.FC = () => {
               <RouteComponents.PesquisaAssociado />
             </ProtectedRoute>
           } />
-          <Route path="/associados/listar" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <RouteComponents.ListaAssociados />
-            </ProtectedRoute>
-          } />
-
           <Route path="/empresas/cadastro" element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <RouteComponents.CadastroEmpresa />
