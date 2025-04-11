@@ -5,6 +5,8 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import MainSidebar from './sidebar/MainSidebar';
 import Header from './layout/Header';
 import MainContent from './layout/MainContent';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { TooltipProvider } from './ui/tooltip';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,20 +14,22 @@ interface LayoutProps {
 
 const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-screen w-full">
-        <MainSidebar location={location} />
-
-        <div className="flex-1 flex flex-col">
+    <TooltipProvider>
+      <SidebarProvider defaultOpen={!isMobile}>
+        <div className="flex min-h-screen w-full flex-col">
           <Header />
-          <MainContent>
-            {children}
-          </MainContent>
+          <div className="flex flex-1">
+            <MainSidebar location={location} />
+            <MainContent>
+              {children}
+            </MainContent>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 };
 

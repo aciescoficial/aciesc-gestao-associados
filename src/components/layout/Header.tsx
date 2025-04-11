@@ -1,17 +1,31 @@
 
 import React from 'react';
-import UserProfileMenu from '../auth/UserProfileMenu';
+import { Menu } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import SystemVersion from './SystemVersion';
+import HeaderActions from './HeaderActions';
+import NotificationBanner from './NotificationBanner';
+import { SidebarTrigger } from '../ui/sidebar';
 
 const Header: React.FC = () => {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="bg-aciesc-primary text-white py-3 px-6 flex justify-between items-center shadow-sm">
-      <div className="flex items-center">
-        <span className="text-lg font-medium">Gestão ACIESC</span>
-      </div>
-      <div className="flex items-center gap-4">
-        <UserProfileMenu />
-      </div>
-    </div>
+    <>
+      <NotificationBanner />
+      <header className="bg-aciesc-primary text-white py-3 px-4 flex justify-between items-center shadow-sm">
+        <div className="flex items-center">
+          {isMobile && <SidebarTrigger className="text-white mr-3 hover:text-gray-200" />}
+          <div className="flex items-center">
+            <span className="text-lg font-medium">ACIESC</span>
+            <SystemVersion />
+          </div>
+        </div>
+        
+        <HeaderActions />
+      </header>
+    </>
   );
 };
 
