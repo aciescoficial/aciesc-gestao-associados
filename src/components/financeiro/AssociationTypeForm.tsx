@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,7 +24,7 @@ const formSchema = z.object({
   title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
   description: z.string().optional(),
   value: z.number().positive('O valor deve ser maior que zero'),
-  payment_methods: z.array(z.string()).min(1, 'Selecione pelo menos um método de pagamento'),
+  payment_methods: z.array(z.enum(['cartao', 'boleto', 'pix'])).min(1, 'Selecione pelo menos um método de pagamento'),
   max_installments: z.number().int().min(1, 'Mínimo de 1 parcela').optional(),
   interest_payment_by: z.enum(['associado', 'associacao']).optional(),
   active: z.boolean().default(true),
@@ -61,7 +62,7 @@ const AssociationTypeForm: React.FC<AssociationTypeFormProps> = ({
 }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>(
+  const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<PaymentMethod[]>(
     initialData?.payment_methods || []
   );
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
@@ -85,9 +86,13 @@ const AssociationTypeForm: React.FC<AssociationTypeFormProps> = ({
     setLoading(true);
     try {
       const payload = {
-        ...data,
+        title: data.title, // Ensure title is defined (not optional)
+        value: data.value, // Ensure value is defined (not optional)
+        description: data.description,
         payment_methods: data.payment_methods as PaymentMethod[],
+        max_installments: data.max_installments || 1,
         interest_payment_by: data.interest_payment_by as InterestPaymentBy,
+        active: data.active,
         updated_at: new Date().toISOString(),
       };
 
@@ -230,7 +235,7 @@ const AssociationTypeForm: React.FC<AssociationTypeFormProps> = ({
                     : selectedPaymentMethods.filter(m => m !== method.value);
                   
                   setSelectedPaymentMethods(newMethods);
-                  form.setValue('payment_methods', newMethods);
+                  form.setValue('payment_methods', newMethods as PaymentMethod[]);
                 }}
               />
               <Label htmlFor={`payment-${method.value}`} className="cursor-pointer">
