@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -43,7 +44,7 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   const { isAdmin, isDirector, isAssociado, isEmpresa, userRole } = useAuth();
   
   const allMenuItems: MenuItem[] = [
-    { icon: Home, label: "Dashboard", path: "/", roles: ['admin', 'diretoria', 'associado', 'associado'] },
+    { icon: Home, label: "Dashboard", path: "/dashboard", roles: ['admin', 'diretoria', 'associado', 'empresa'] },
     { header: "Admin", roles: ['admin'] },
     { icon: UserCog, label: "Usuários", path: "/usuarios", roles: ['admin'] },
     { icon: Shield, label: "Permissões", path: "/usuarios/permissoes", roles: ['admin'] },
@@ -71,11 +72,11 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
     { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['associado'] },
     { icon: Building, label: "Empresas Conveniadas", path: "/empresas-conveniadas", roles: ['associado'] },
     // Empresa specific menu items
-    { header: "Área da Empresa", roles: ['associado'] },
-    { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['associado'] },
+    { header: "Área da Empresa", roles: ['empresa'] },
+    { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['empresa'] },
     // Mensagens for all users
-    { header: "Comunicação", roles: ['admin', 'diretoria', 'associado', 'associado'] },
-    { icon: MessageSquare, label: "Mensagens", path: "/mensagens", roles: ['admin', 'diretoria', 'associado', 'associado'] },
+    { header: "Comunicação", roles: ['admin', 'diretoria', 'associado', 'empresa'] },
+    { icon: MessageSquare, label: "Mensagens", path: "/mensagens", roles: ['admin', 'diretoria', 'associado', 'empresa'] },
   ];
   
   // Filter menu items based on user role
