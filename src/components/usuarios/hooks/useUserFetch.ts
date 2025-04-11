@@ -26,28 +26,18 @@ export const useUserFetch = () => {
       if (profilesError) throw profilesError;
       
       if (profiles) {
-        // Get emails from auth data - this needs to be properly typed
-        const { data, error } = await supabase.auth.admin.listUsers();
-        
-        if (error) {
-          console.warn("Could not get admin user list, using profiles only:", error);
+        try {
+          // Get emails from auth data with proper typing
+          const { data, error } = await supabase.auth.admin.listUsers();
           
-          // If admin API fails, just use profiles data
-          const formattedUsers: User[] = profiles.map(profile => ({
-            id: profile.id,
-            name: profile.name || '',
-            email: '', // No email available without admin access
-            role: mapFromDbRole(profile.role),
-            active: true, // Default to active since there's no active field in profiles
-            createdAt: profile.created_at ? new Date(profile.created_at) : new Date()
-          }));
+          if (error) {
+            throw error;
+          }
           
-          setUsers(formattedUsers);
-        } else {
           // If we have admin data, create a map for lookups
           const authUsers = new Map<string, any>();
           
-          if (data && data.users) {
+          if (data && data.users && Array.isArray(data.users)) {
             data.users.forEach(user => {
               if (user && typeof user === 'object' && 'id' in user) {
                 authUsers.set(user.id, user);
@@ -69,6 +59,20 @@ export const useUserFetch = () => {
               createdAt: profile.created_at ? new Date(profile.created_at) : new Date()
             };
           });
+          
+          setUsers(formattedUsers);
+        } catch (adminError) {
+          console.warn("Could not get admin user list, using profiles only:", adminError);
+          
+          // If admin API fails, just use profiles data
+          const formattedUsers: User[] = profiles.map(profile => ({
+            id: profile.id,
+            name: profile.name || '',
+            email: '', // No email available without admin access
+            role: mapFromDbRole(profile.role),
+            active: true, // Default to active since there's no active field in profiles
+            createdAt: profile.created_at ? new Date(profile.created_at) : new Date()
+          }));
           
           setUsers(formattedUsers);
         }
