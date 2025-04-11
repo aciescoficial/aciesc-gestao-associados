@@ -68,6 +68,7 @@ export const useUserFetch = () => {
         description: errorMessage,
         variant: "destructive"
       });
+      console.error("Error fetching users:", error);
       setUsers([]);
     } finally {
       setLoading(false);
