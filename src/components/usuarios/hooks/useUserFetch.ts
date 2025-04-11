@@ -28,11 +28,11 @@ export const useUserFetch = () => {
         try {
           // Try to get user emails from auth schema - might fail due to permissions
           const { data, error } = await supabase
-            .rpc('get_auth_users');
+            .rpc('get_auth_users', {}, { count: 'exact' });
           
           if (!error && data) {
-            // Ensure the data is cast to the correct type
-            authUsers = data as Array<{id: string, email: string}>;
+            // Explicitly cast to the expected array type
+            authUsers = Array.isArray(data) ? data as Array<{id: string, email: string}> : [];
           }
         } catch (error) {
           console.warn("Could not fetch auth users data. Continuing with profiles only.", error);
