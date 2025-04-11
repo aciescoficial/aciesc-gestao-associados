@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from '../AuthRoutes';
-import { LayoutWrapper } from '../RouteComponents';
+import { LayoutWrapper, CobrancasPage } from '../RouteComponents';
 
 // Admin components
 import CadastroAssociado from '@/components/CadastroAssociado';
@@ -17,6 +16,7 @@ import PermissionPanel from '@/components/usuarios/PermissionPanel';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import ConfiguracoesPage from '@/components/configuracoes/ConfiguracoesPage';
+import Dashboard from '@/components/Dashboard';
 
 export const AdminRoutes = [
   // User Management Routes
