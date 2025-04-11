@@ -43,6 +43,7 @@ const AppRoutes: React.FC = () => {
 
           <Route path="/mensagens" element={<RouteComponents.MensagensPage />} />
           <Route path="/usuarios" element={<RouteComponents.UserManagement />} />
+          <Route path="/usuarios/gerenciar" element={<RouteComponents.UserManagement />} />
           <Route path="/perfil" element={<RouteComponents.ProfilePage />} />
           
           {/* Nova rota para configurações */}

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -46,22 +45,22 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   const allMenuItems: MenuItem[] = [
     { icon: Home, label: "Dashboard", path: "/", roles: ['admin', 'diretoria', 'associado', 'associado'] },
     { header: "Admin", roles: ['admin'] },
-    { icon: UserCog, label: "Usuários", path: "/usuarios/gerenciar", roles: ['admin'] },
+    { icon: UserCog, label: "Usuários", path: "/usuarios", roles: ['admin'] },
     { icon: Shield, label: "Permissões", path: "/usuarios/permissoes", roles: ['admin'] },
     { header: "Associados", roles: ['admin', 'diretoria'] },
-    { icon: UserPlus, label: "Cadastrar", path: "/associados/cadastrar", roles: ['admin', 'diretoria'] },
-    { icon: CheckSquare, label: "Aprovação Pendente", path: "/associados/pendentes", roles: ['admin', 'diretoria'] },
-    { icon: CreditCard, label: "Gerar Carteirinha", path: "/associados/carteirinha", roles: ['admin', 'diretoria'] },
-    { icon: Search, label: "Pesquisar", path: "/associados/pesquisar", roles: ['admin', 'diretoria', 'associado'] },
+    { icon: UserPlus, label: "Cadastrar", path: "/associados/cadastro", roles: ['admin', 'diretoria'] },
+    { icon: CheckSquare, label: "Aprovação Pendente", path: "/aprovacoes", roles: ['admin', 'diretoria'] },
+    { icon: CreditCard, label: "Gerar Carteirinha", path: "/carteirinhas", roles: ['admin', 'diretoria'] },
+    { icon: Search, label: "Pesquisar", path: "/associados/pesquisa", roles: ['admin', 'diretoria', 'associado'] },
     { icon: Users, label: "Listar Todos", path: "/associados/listar", roles: ['admin', 'diretoria'] },
     { header: "Empresas", roles: ['admin', 'diretoria'] },
-    { icon: Building, label: "Cadastrar", path: "/empresas/cadastrar", roles: ['admin', 'diretoria'] },
+    { icon: Building, label: "Cadastrar", path: "/empresas/cadastro", roles: ['admin', 'diretoria'] },
     { icon: CheckSquare, label: "Aprovação Pendente", path: "/empresas/pendentes", roles: ['admin', 'diretoria'] },
-    { icon: Search, label: "Pesquisar", path: "/empresas/pesquisar", roles: ['admin', 'diretoria'] },
+    { icon: Search, label: "Pesquisar", path: "/empresas/pesquisa", roles: ['admin', 'diretoria'] },
     { header: "Financeiro", roles: ['admin', 'diretoria'] },
-    { icon: BarChart, label: "Resumo", path: "/financeiro/resumo", roles: ['admin', 'diretoria'] },
+    { icon: BarChart, label: "Resumo", path: "/financeiro", roles: ['admin', 'diretoria'] },
     { icon: UserCheck, label: "Associados", path: "/financeiro/associados", roles: ['admin'] },
-    { icon: DollarSign, label: "Integrações", path: "/financeiro/integracoes", roles: ['admin', 'diretoria'] },
+    { icon: DollarSign, label: "Integrações", path: "/financeiro/integracao", roles: ['admin', 'diretoria'] },
     { icon: FileText, label: "Relatórios", path: "/financeiro/relatorios", roles: ['admin', 'diretoria'] },
     { header: "Configurações", roles: ['admin'] },
     { icon: Settings, label: "Configurações", path: "/configuracoes", roles: ['admin'] },
