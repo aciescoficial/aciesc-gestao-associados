@@ -1,16 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Permission, UserRole } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Settings, Tool, Play, BookOpen, Calendar, Certificate, Users, Contact, MessageSquare, LayoutDashboard, Funnel, DollarSign, Building, CreditCard, FileText, Shield, Image, Rocket } from 'lucide-react';
+import { Loader2, Settings, Wrench, Play, BookOpen, Calendar, Award, Users, Contact, MessageSquare, LayoutDashboard, Filter, DollarSign, Building, CreditCard, FileText, Shield, Image, Rocket } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 
-// Definir estrutura para os itens de menu e suas permissões
 interface MenuPermission {
   id: string;
   name: string;
@@ -40,10 +38,6 @@ const PermissionPanel: React.FC = () => {
   const fetchPermissions = async () => {
     setLoading(true);
     try {
-      // Em um aplicativo real com Supabase, buscaríamos as permissões de uma tabela de permissões
-      // Mockup de dados baseados nos menus existentes do PluginLayout.tsx
-      
-      // Criando a estrutura de menus e subpermissões
       const defaultMenus: MenuPermission[] = [
         {
           id: 'dashboard',
@@ -138,7 +132,6 @@ const PermissionPanel: React.FC = () => {
         },
       ];
 
-      // Definir permissões para cada tipo de usuário
       const adminPermissions = [...defaultMenus];
       
       const userPermissions = defaultMenus.map(menu => ({
@@ -181,15 +174,12 @@ const PermissionPanel: React.FC = () => {
     setSaveLoading(prev => ({ ...prev, [permKey]: true }));
     
     try {
-      // Em um aplicativo real com Supabase, atualizaríamos a tabela de permissões
       console.log(`${role} ${enabled ? 'agora tem' : 'não tem mais'} acesso ao menu ${menuId}`);
       
-      // Atualiza o estado local
       setMenuPermissions(prev => ({
         ...prev,
         [role]: prev[role].map(menu => {
           if (menu.id === menuId) {
-            // Se desabilitar o menu principal, também desabilite todas as subpermissões
             const updatedSubPermissions = !enabled 
               ? menu.subPermissions.map(subPerm => ({ ...subPerm, enabled: false }))
               : menu.subPermissions;
@@ -225,15 +215,12 @@ const PermissionPanel: React.FC = () => {
     setSaveLoading(prev => ({ ...prev, [permKey]: true }));
     
     try {
-      // Em um aplicativo real com Supabase, atualizaríamos a tabela de permissões
       console.log(`${role} ${enabled ? 'agora tem' : 'não tem mais'} permissão ${subPermId}`);
       
-      // Atualiza o estado local
       setMenuPermissions(prev => ({
         ...prev,
         [role]: prev[role].map(menu => {
           if (menu.id === menuId) {
-            // Se uma subpermissão for habilitada, garantimos que o menu principal também está habilitado
             const menuEnabled = enabled ? true : menu.enabled;
             
             return { 
@@ -278,7 +265,7 @@ const PermissionPanel: React.FC = () => {
             <Switch
               checked={menu.enabled}
               onCheckedChange={(checked) => toggleMenuPermission(role, menu.id, checked)}
-              disabled={role === 'admin'} // Administradores sempre têm todas as permissões
+              disabled={role === 'admin'}
               id={`${role}-${menu.id}-switch`}
             />
             <div className="flex items-center gap-2">
@@ -300,7 +287,7 @@ const PermissionPanel: React.FC = () => {
                   id={subPermKey}
                   checked={menu.enabled && subPerm.enabled}
                   onCheckedChange={(checked) => toggleSubPermission(role, menu.id, subPerm.id, !!checked)}
-                  disabled={role === 'admin' || !menu.enabled} // Desabilitado se o menu principal estiver desabilitado
+                  disabled={role === 'admin' || !menu.enabled}
                 />
                 <label 
                   htmlFor={subPermKey}
