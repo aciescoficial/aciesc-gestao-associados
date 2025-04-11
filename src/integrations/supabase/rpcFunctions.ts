@@ -30,7 +30,7 @@ export async function logUserActivity(user_id_param: string, event_param: string
  * Returns array of user objects with id and email
  */
 export async function get_auth_users() {
-  return [
-    { id: string, email: string }
-  ];
+  // This is just a type definition for the RPC function
+  // The actual implementation is in the Supabase database
+  return [] as Array<{ id: string; email: string }>;
 }
