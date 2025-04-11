@@ -36,19 +36,30 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
       // Map the role properly before sending to Supabase
       const dbRole = mapToDbRole(newUser.role);
 
-      // Create the user in auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: newUser.email,
-        password: newUser.password,
-        email_confirm: true,
-        user_metadata: {
-          name: newUser.name,
-          role: dbRole
-        }
-      });
+      // Variable to store user data - not using const so we can reassign it
+      let userData = null;
+      let userId = '';
 
-      if (authError) {
-        // Fallback to regular signup if admin API is not available
+      // Try admin API first
+      try {
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: newUser.email,
+          password: newUser.password,
+          email_confirm: true,
+          user_metadata: {
+            name: newUser.name,
+            role: dbRole
+          }
+        });
+
+        if (authError) throw authError;
+        
+        userData = authData;
+        userId = authData.user?.id || '';
+      } catch (adminError) {
+        console.log("Admin API failed, falling back to standard signup:", adminError);
+        
+        // Fallback to regular signup
         const { data: regularAuthData, error: regularAuthError } = await supabase.auth.signUp({
           email: newUser.email,
           password: newUser.password,
@@ -63,13 +74,14 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
         if (regularAuthError) throw regularAuthError;
         
         if (regularAuthData && regularAuthData.user) {
-          authData = regularAuthData;
+          userData = regularAuthData;
+          userId = regularAuthData.user.id;
         } else {
           throw new Error('Não foi possível criar o usuário usando método padrão.');
         }
       }
       
-      if (authData && authData.user) {
+      if (userData && userId) {
         // Set the user role in profiles table
         const { error: profileError } = await supabase
           .from('profiles')
@@ -77,7 +89,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
             name: newUser.name,
             role: dbRole
           })
-          .eq('id', authData.user.id);
+          .eq('id', userId);
         
         if (profileError) {
           console.error("Error updating profile role:", profileError);
@@ -85,7 +97,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
         }
         
         const createdUser: User = {
-          id: authData.user.id,
+          id: userId,
           name: newUser.name,
           email: newUser.email,
           role: newUser.role,
