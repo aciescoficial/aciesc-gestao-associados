@@ -3,19 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, UserCheck, UserX, Clock, RefreshCw } from 'lucide-react';
+import { Search, UserCheck, UserX, Clock, RefreshCw, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
 
 type AssociadoStatus = 'pendente' | 'ativo' | 'inativo';
 
@@ -29,13 +21,14 @@ interface Associado {
   cidade: string;
   creci?: string;
   status: AssociadoStatus;
+  avatar_url?: string;
 }
 
 const PesquisaAssociado: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'nome' | 'cpf' | 'creci'>('nome');
   const [statusFilter, setStatusFilter] = useState<AssociadoStatus | 'todos'>('todos');
-  const [cidadeFilter, setcidadeFilter] = useState<string>('todas');
+  const [cidadeFilter, setCidadeFilter] = useState<string>('todas');
   const [cidades, setCidades] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<Associado[]>([]);
@@ -54,7 +47,6 @@ const PesquisaAssociado: React.FC = () => {
       
       if (error) throw error;
       
-      // Type assertion to handle the data
       const associadosData = data as { cidade: string }[];
       const uniqueCidades = Array.from(new Set(associadosData.map(item => item.cidade) || []));
       setCidades(uniqueCidades);
@@ -78,7 +70,7 @@ const PesquisaAssociado: React.FC = () => {
     setIsSearching(true);
     
     try {
-      let query = supabase.from('associados').select('*');
+      let query = supabase.from('associados').select('*, profiles(avatar_url)');
       
       if (searchType === 'nome') {
         query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
@@ -89,7 +81,6 @@ const PesquisaAssociado: React.FC = () => {
       }
       
       if (statusFilter !== 'todos') {
-        // Fix: Explicitly cast statusFilter to AssociadoStatus when it's not 'todos'
         query = query.eq('status', statusFilter as AssociadoStatus);
       }
       
@@ -101,8 +92,15 @@ const PesquisaAssociado: React.FC = () => {
       
       if (error) throw error;
       
-      // Type assertion to handle the data
-      setResults(data as Associado[]);
+      // Map the data to include profile avatar_url
+      const associadosWithAvatars = data?.map(item => {
+        return {
+          ...item,
+          avatar_url: item.profiles?.avatar_url || null
+        };
+      }) as Associado[];
+      
+      setResults(associadosWithAvatars || []);
       
       if (!data || data.length === 0) {
         toast({
@@ -139,7 +137,7 @@ const PesquisaAssociado: React.FC = () => {
     <div className="space-y-6">
       <h1 className="wp-header">Pesquisar Associados</h1>
       
-      <div className="wp-card">
+      <div className="wp-card bg-gradient-to-br from-white to-gray-50">
         <form onSubmit={handleSearch} className="space-y-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 space-y-2">
@@ -156,7 +154,7 @@ const PesquisaAssociado: React.FC = () => {
                     searchType === 'nome' ? 'nome' : 
                     searchType === 'cpf' ? 'CPF' : 'CRECI'
                   } para buscar...`}
-                  className="pl-10"
+                  className="pl-10 shadow-sm"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -172,7 +170,7 @@ const PesquisaAssociado: React.FC = () => {
                 value={searchType}
                 onValueChange={(value) => setSearchType(value as 'nome' | 'cpf' | 'creci')}
               >
-                <SelectTrigger>
+                <SelectTrigger className="shadow-sm">
                   <SelectValue placeholder="Nome" />
                 </SelectTrigger>
                 <SelectContent>
@@ -187,9 +185,9 @@ const PesquisaAssociado: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
               <Select
                 value={cidadeFilter}
-                onValueChange={(value) => setcidadeFilter(value)}
+                onValueChange={(value) => setCidadeFilter(value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="shadow-sm">
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
@@ -207,7 +205,7 @@ const PesquisaAssociado: React.FC = () => {
                 value={statusFilter}
                 onValueChange={(value) => setStatusFilter(value as AssociadoStatus | 'todos')}
               >
-                <SelectTrigger>
+                <SelectTrigger className="shadow-sm">
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
@@ -222,7 +220,7 @@ const PesquisaAssociado: React.FC = () => {
             <div className="mt-auto">
               <Button 
                 type="submit" 
-                className="w-full"
+                className="w-full shadow-sm"
                 disabled={isSearching}
               >
                 {isSearching ? (
@@ -239,43 +237,62 @@ const PesquisaAssociado: React.FC = () => {
         {results.length > 0 ? (
           <div className="mt-8">
             <h2 className="text-lg font-medium mb-4">Resultados da Busca</h2>
-            <div className="rounded-md border overflow-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>CPF</TableHead>
-                    <TableHead>Cidade</TableHead>
-                    <TableHead>CRECI</TableHead>
-                    <TableHead>Contato</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {results.map((associado) => (
-                    <TableRow key={associado.id}>
-                      <TableCell className="font-medium">
-                        {associado.nome} {associado.sobrenome}
-                      </TableCell>
-                      <TableCell>{associado.cpf}</TableCell>
-                      <TableCell>{associado.cidade}</TableCell>
-                      <TableCell>{associado.creci || "-"}</TableCell>
-                      <TableCell className="text-sm">
-                        <div>{associado.email}</div>
-                        <div>{associado.telefone}</div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(associado.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">Ver</Button>
-                          <Button size="sm" variant="default">Editar</Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {results.map((associado) => (
+                <Card key={associado.id} className="overflow-hidden transition-all hover:shadow-md">
+                  <CardHeader className="p-0">
+                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 h-3"></div>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="flex items-start space-x-4">
+                      <div className="flex-shrink-0 w-24 h-24 rounded overflow-hidden border-2 border-gray-200">
+                        {associado.avatar_url ? (
+                          <img 
+                            src={associado.avatar_url} 
+                            alt={`${associado.nome}`} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                            Sem foto
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <h3 className="text-lg font-semibold text-gray-900 truncate">
+                            {associado.nome} {associado.sobrenome}
+                          </h3>
+                          <div className="ml-2">
+                            {getStatusBadge(associado.status)}
+                          </div>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        
+                        <div className="mt-1 space-y-1">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">CPF:</span> {associado.cpf}
+                          </p>
+                          {associado.creci && (
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">CRECI:</span> {associado.creci}
+                            </p>
+                          )}
+                          <div className="flex items-center text-xs text-gray-500">
+                            <MapPin size={14} className="mr-1" />
+                            {associado.cidade}
+                          </div>
+                        </div>
+                        
+                        <div className="mt-3 flex space-x-2">
+                          <Button size="sm" variant="outline" className="text-xs">Ver Detalhes</Button>
+                          <Button size="sm" variant="default" className="text-xs">Gerar Carteirinha</Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         ) : (
