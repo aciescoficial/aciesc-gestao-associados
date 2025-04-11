@@ -18,36 +18,23 @@ export const useUserFetch = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Use a simpler query to avoid potential RLS issues
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      // Get all user profiles from the profiles table
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*');
       
-      if (authError) throw authError;
+      if (profilesError) throw profilesError;
       
-      if (authUsers && authUsers.users) {
-        // Get profiles to supplement auth user data
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('*');
-
-        // Create a map of profile data by user ID for easy lookup
-        const profileMap = new Map();
-        if (profiles) {
-          profiles.forEach(profile => {
-            profileMap.set(profile.id, profile);
-          });
-        }
-        
-        const formattedUsers: User[] = authUsers.users.map(authUser => {
-          const profile = profileMap.get(authUser.id);
-          const role = profile ? mapFromDbRole(profile.role) : 'user';
-          
+      if (profiles) {
+        // Format the profiles into our User type
+        const formattedUsers: User[] = profiles.map(profile => {
           return {
-            id: authUser.id,
-            name: profile?.name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || '',
-            email: authUser.email || '',
-            role: role,
-            active: !authUser.banned_until,
-            createdAt: new Date(authUser.created_at)
+            id: profile.id,
+            name: profile.name || profile.email?.split('@')[0] || '',
+            email: profile.email || '',
+            role: mapFromDbRole(profile.role),
+            active: profile.active !== false, // Default to active if not specified
+            createdAt: profile.created_at ? new Date(profile.created_at) : new Date()
           };
         });
         

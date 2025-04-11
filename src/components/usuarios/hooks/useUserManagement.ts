@@ -4,10 +4,13 @@ import { User } from '../types';
 import { useUserFetch } from './useUserFetch';
 import { useUserCreate } from './useUserCreate';
 import { useUserEdit } from './useUserEdit';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useUserManagement = () => {
   const addUserDialog = useDialogState(false);
   const editUserDialog = useDialogState(false);
+  const { toast } = useToast();
   
   const { 
     users, 
@@ -18,8 +21,13 @@ export const useUserManagement = () => {
     fetchUsers 
   } = useUserFetch();
 
-  const handleUserCreated = (newUser: User) => {
+  const handleUserCreated = async (newUser: User) => {
+    toast({
+      title: "Usuário criado",
+      description: "O usuário foi criado com sucesso."
+    });
     addUserDialog.close();
+    await fetchUsers(); // Refresh the user list
   };
 
   const { 
@@ -28,8 +36,13 @@ export const useUserManagement = () => {
     addUser 
   } = useUserCreate(handleUserCreated);
 
-  const handleUserUpdated = (updatedUser: User) => {
+  const handleUserUpdated = async (updatedUser: User) => {
+    toast({
+      title: "Usuário atualizado",
+      description: "O usuário foi atualizado com sucesso."
+    });
     editUserDialog.close();
+    await fetchUsers(); // Refresh the user list
   };
 
   const {
