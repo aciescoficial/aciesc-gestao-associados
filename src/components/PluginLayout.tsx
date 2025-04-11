@@ -171,7 +171,7 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
                       tooltip={subItem.label}
                     >
                       <a href={subItem.path!} className={cn("flex items-center", 
-                        isActive(subItem.path!) && "bg-sidebar-accent text-sidebar-accent-foreground"
+                        isActive(subItem.path!) && "text-sidebar-accent-foreground"
                       )}>
                         {subItem.icon && <subItem.icon className="mr-2 h-4 w-4" />}
                         <span>{subItem.label}</span>
@@ -194,7 +194,7 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
           tooltip={item.label}
         >
           <a href={item.path!} className={cn("flex items-center",
-            isActive(item.path!) && "bg-sidebar-accent text-sidebar-accent-foreground"
+            isActive(item.path!) && "text-sidebar-accent-foreground"
           )}>
             {item.icon && <item.icon className="mr-2 h-4 w-4" />}
             <span>{item.label}</span>
@@ -205,9 +205,9 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
-        <Sidebar>
+        <Sidebar variant="sidebar" collapsible="icon">
           <SidebarHeader className="py-4">
             <div className="px-2 flex items-center justify-between">
               <h1 className="text-xl font-bold">ACIESC</h1>
