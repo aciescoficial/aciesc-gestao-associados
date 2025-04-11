@@ -1,7 +1,8 @@
-
 import { Database } from '@/integrations/supabase/types';
 
 export type StatusType = Database['public']['Enums']['status_type'];
+
+export type AssociadoStatus = 'pendente' | 'ativo' | 'inativo';
 
 export interface AssociadoFormData {
   nome: string;
@@ -82,3 +83,16 @@ export const tiposPagamento = [
   'Dinheiro',
   'Transferência'
 ];
+
+export interface Associado {
+  id: string;
+  nome: string;
+  sobrenome: string;
+  cpf: string;
+  email: string;
+  telefone: string;
+  cidade: string;
+  creci?: string;
+  status: AssociadoStatus;
+  avatar_url?: string;
+}
