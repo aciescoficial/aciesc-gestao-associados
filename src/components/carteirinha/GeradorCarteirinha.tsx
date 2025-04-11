@@ -66,23 +66,25 @@ const GeradorCarteirinha: React.FC = () => {
         // Map the database record to ConveniadoData type
         const associado = data[0];
         setSelectedConveniado({
+          id: associado.id,
           nome: associado.nome || '',
           sobrenome: associado.sobrenome || '',
           cpf: associado.cpf || '',
           creci: associado.creci || '',
           validade: associado.validade ? new Date(associado.validade).toLocaleDateString() : 'N/A',
-          foto: associado.foto_url || undefined
+          foto: associado.foto || undefined
         });
       } else {
         // If more than one result, select the first one for this demo
         const associado = data[0];
         setSelectedConveniado({
+          id: associado.id,
           nome: associado.nome || '',
           sobrenome: associado.sobrenome || '',
           cpf: associado.cpf || '',
           creci: associado.creci || '',
           validade: associado.validade ? new Date(associado.validade).toLocaleDateString() : 'N/A',
-          foto: associado.foto_url || undefined
+          foto: associado.foto || undefined
         });
         
         toast({

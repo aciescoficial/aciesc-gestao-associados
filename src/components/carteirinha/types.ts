@@ -1,6 +1,6 @@
 
 export interface ConveniadoData {
-  id: string;
+  id?: string;
   nome: string;
   sobrenome: string;
   cpf: string;
