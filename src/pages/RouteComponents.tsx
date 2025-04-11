@@ -1,3 +1,4 @@
+
 import React from 'react';
 import PluginLayout from '@/components/PluginLayout';
 import Dashboard from '@/components/Dashboard';

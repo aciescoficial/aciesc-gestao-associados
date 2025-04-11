@@ -2,8 +2,45 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute } from '../AuthRoutes';
-import { LayoutWrapper, PagamentosAssociadoPage, SolicitarCarteirinhaPage, EmpresasConveniadasPage } from '../RouteComponents';
+import PluginLayout from '@/components/PluginLayout';
 import PesquisaAssociado from '@/components/PesquisaAssociado';
+import EmpresasConveniadas from '@/components/associado/EmpresasConveniadas';
+
+// Layout wrapper component to avoid circular dependencies
+const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <PluginLayout>
+    {children}
+  </PluginLayout>
+);
+
+// Placeholder for member payment page
+const PagamentosAssociadoPage = () => (
+  <div className="space-y-6">
+    <h1 className="wp-header">Meus Pagamentos</h1>
+    <div className="wp-card">
+      <p className="text-muted-foreground">
+        Esta página de pagamentos está em construção.
+      </p>
+    </div>
+  </div>
+);
+
+// Placeholder for member ID card request page
+const SolicitarCarteirinhaPage = () => (
+  <div className="space-y-6">
+    <h1 className="wp-header">Solicitar Carteirinha</h1>
+    <div className="wp-card">
+      <p className="text-muted-foreground">
+        Esta página para solicitar carteirinha está em construção.
+      </p>
+    </div>
+  </div>
+);
+
+// Component for listing partner companies page
+const EmpresasConveniadasPage = () => (
+  <EmpresasConveniadas />
+);
 
 export const UserRoutes = [
   // Shared routes for admin and user

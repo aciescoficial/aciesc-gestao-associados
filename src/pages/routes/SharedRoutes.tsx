@@ -2,9 +2,23 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute } from '../AuthRoutes';
-import { LayoutWrapper, MensagensPage, EmpresasPesquisaPage } from '../RouteComponents';
+import PluginLayout from '@/components/PluginLayout';
 import Dashboard from '@/components/Dashboard';
 import ProfilePage from '@/components/auth/ProfilePage';
+import MensagensPage from '@/components/mensagens/MensagensPage';
+import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
+
+// Layout wrapper component to avoid circular dependencies
+const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <PluginLayout>
+    {children}
+  </PluginLayout>
+);
+
+// Component for empresa area's search feature
+const EmpresasPesquisaPage = () => (
+  <EmpresasPesquisa />
+);
 
 // Routes shared across multiple user types
 export const SharedRoutes = [

@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from '../AuthRoutes';
-import { LayoutWrapper, CobrancasPage } from '../RouteComponents';
+import PluginLayout from '@/components/PluginLayout';
 
 // Admin components
 import CadastroAssociado from '@/components/CadastroAssociado';
@@ -17,6 +18,25 @@ import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import ConfiguracoesPage from '@/components/configuracoes/ConfiguracoesPage';
 import Dashboard from '@/components/Dashboard';
+
+// Layout wrapper component to avoid circular dependencies
+const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <PluginLayout>
+    {children}
+  </PluginLayout>
+);
+
+// Placeholder for CobrancasPage to avoid circular imports
+const CobrancasPage: React.FC = () => (
+  <div className="space-y-6">
+    <h1 className="wp-header">Lista de Cobranças</h1>
+    <div className="wp-card">
+      <p className="text-muted-foreground">
+        Esta página está em construção.
+      </p>
+    </div>
+  </div>
+);
 
 export const AdminRoutes = [
   // User Management Routes
@@ -133,5 +153,14 @@ export const AdminRoutes = [
         <ConfiguracoesPage />
       </LayoutWrapper>
     </AdminRoute>
+  } />,
+
+  // Associados List route
+  <Route key="associados-listar" path="/associados/listar" element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <LayoutWrapper>
+        <PesquisaAssociado />
+      </LayoutWrapper>
+    </ProtectedRoute>
   } />,
 ];
