@@ -44,12 +44,15 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
       if (authError) throw authError;
       
       if (authData && authData.user) {
+        // Map the role properly
+        const dbRole = mapToDbRole(newUser.role);
+        
         // Set the user role in profiles table
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             name: newUser.name,
-            role: mapToDbRole(newUser.role)
+            role: dbRole
           })
           .eq('id', authData.user.id);
         

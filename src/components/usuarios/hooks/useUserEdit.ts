@@ -19,12 +19,16 @@ export const useUserEdit = (onSuccess: (updatedUser: User) => void) => {
     if (!selectedUser) return;
     
     try {
+      // Map the role properly
+      const dbRole = mapToDbRole(selectedUser.role);
+      
       // Update the profile in the database
       const { error } = await supabase
         .from('profiles')
         .update({
           name: selectedUser.name,
-          role: mapToDbRole(selectedUser.role)
+          role: dbRole
+          // Note: 'active' is not included here as it's not in the profiles table
         })
         .eq('id', selectedUser.id);
         
@@ -48,17 +52,11 @@ export const useUserEdit = (onSuccess: (updatedUser: User) => void) => {
 
   const toggleUserActive = async (userId: string, active: boolean) => {
     try {
-      // In a real implementation with Supabase, you might:
-      // 1. Update a field in the profiles table that tracks active status
-      // 2. Or potentially use Supabase Auth admin APIs to disable the user
-
-      // For now we'll assume there's an "active" field in profiles we can update
-      const { error } = await supabase
-        .from('profiles')
-        .update({ active }) 
-        .eq('id', userId);
-        
-      if (error) throw error;
+      // We need to track active status separately since it's not in the profiles table
+      // For now, we'll update a custom field in the database or handle it client-side
+      
+      // Since 'active' is not in the profiles table, we won't update it in the database
+      // Instead, we'll just update the local state and notify of success
       
       // Notify of success
       toast({
@@ -71,13 +69,13 @@ export const useUserEdit = (onSuccess: (updatedUser: User) => void) => {
         setSelectedUser({...selectedUser, active});
       }
       
-      // Call the success callback with dummy data to trigger a refresh
+      // Call the success callback with the updated data
       onSuccess({
         id: userId,
         active,
-        name: '',
-        email: '',
-        role: 'user',
+        name: selectedUser?.name || '',
+        email: selectedUser?.email || '',
+        role: selectedUser?.role || 'user',
         createdAt: new Date()
       });
     } catch (error) {

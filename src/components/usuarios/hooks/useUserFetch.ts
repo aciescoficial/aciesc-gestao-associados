@@ -33,7 +33,7 @@ export const useUserFetch = () => {
             name: profile.name || '',
             email: '', // We'll need to populate this separately or through a join
             role: mapFromDbRole(profile.role),
-            active: true, // Default to active
+            active: true, // Default to active since this isn't in the database
             createdAt: profile.created_at ? new Date(profile.created_at) : new Date()
           };
         });
