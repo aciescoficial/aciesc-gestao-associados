@@ -5,6 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { mapFromDbRole } from '../utils/roleUtils';
 
+// Define interface for auth user data
+interface AuthUser {
+  id: string;
+  email?: string;
+  [key: string]: any;
+}
+
 export const useUserFetch = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,10 +42,10 @@ export const useUserFetch = () => {
           }
           
           // If we have admin data, create a map for lookups
-          const authUsers = new Map<string, any>();
+          const authUsers = new Map<string, AuthUser>();
           
           if (data && data.users && Array.isArray(data.users)) {
-            data.users.forEach(user => {
+            data.users.forEach((user: AuthUser) => {
               if (user && typeof user === 'object' && 'id' in user) {
                 authUsers.set(user.id, user);
               }
