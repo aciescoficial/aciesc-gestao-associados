@@ -13,7 +13,7 @@ const CardActions: React.FC<CardActionsProps> = ({ onPrint, onDownload }) => {
   return (
     <div className="mt-4 flex space-x-3">
       <Button 
-        className="wp-button flex items-center gap-2"
+        className="flex items-center gap-2"
         onClick={onPrint}
         aria-label="Imprimir carteirinha"
       >
@@ -21,9 +21,10 @@ const CardActions: React.FC<CardActionsProps> = ({ onPrint, onDownload }) => {
         Imprimir
       </Button>
       <Button 
-        className="wp-button-secondary flex items-center gap-2"
+        variant="outline"
         onClick={onDownload}
         aria-label="Baixar carteirinha em PDF"
+        className="flex items-center gap-2"
       >
         <Download size={18} />
         Download PDF

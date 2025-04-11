@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Search, RefreshCw, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -55,7 +54,7 @@ const ConveniadoSearchForm: React.FC<ConveniadoSearchFormProps> = ({
             <Search className="h-5 w-5 text-gray-400" />
           </div>
         </div>
-        <Button type="submit" variant="default">Buscar</Button>
+        <Button type="submit">Buscar</Button>
       </form>
       
       <div className="flex flex-wrap gap-2 items-center">

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Check, X, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 interface PendenteData {
   id: string;
@@ -124,20 +125,23 @@ const AprovacoesPendentes: React.FC = () => {
                       <td>{item.telefone}</td>
                       <td>
                         <div className="flex space-x-2">
-                          <button 
-                            className="wp-button flex items-center gap-1 text-xs py-1 px-2"
+                          <Button 
+                            size="sm"
+                            className="flex items-center gap-1"
                             onClick={() => handleApprove(item.id)}
                           >
                             <Check size={14} />
                             Aprovar
-                          </button>
-                          <button 
-                            className="wp-button-secondary border-wp-error text-wp-error hover:bg-red-50 flex items-center gap-1 text-xs py-1 px-2"
+                          </Button>
+                          <Button 
+                            size="sm"
+                            variant="outline"
+                            className="border-red-500 text-red-500 hover:bg-red-50"
                             onClick={() => handleReject(item.id)}
                           >
                             <X size={14} />
                             Rejeitar
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>

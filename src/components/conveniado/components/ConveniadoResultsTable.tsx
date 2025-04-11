@@ -81,7 +81,7 @@ const ConveniadoResultsTable: React.FC<ConveniadoResultsTableProps> = ({
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button size="sm" variant="outline">Ver</Button>
-                    <Button size="sm" variant="default">Editar</Button>
+                    <Button size="sm">Editar</Button>
                   </div>
                 </TableCell>
               </TableRow>

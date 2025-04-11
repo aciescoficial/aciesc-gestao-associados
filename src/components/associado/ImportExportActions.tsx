@@ -30,9 +30,8 @@ export const ImportExportActions: React.FC<ImportExportActionsProps> = ({
           style={{ display: 'none' }}
         />
         <Button 
-          variant="outline"
-          onClick={onImportClick}
           className="flex gap-2 items-center"
+          onClick={onImportClick}
         >
           <FileUp size={16} />
           Importar

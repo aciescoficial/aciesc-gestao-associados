@@ -123,11 +123,19 @@
 
 /* Custom styles for ACIESC */
 .aciesc-primary-btn {
-  @apply bg-aciesc-primary text-white rounded-md px-4 py-2 hover:bg-aciesc-dark transition-colors;
+  @apply bg-aciesc-dark text-white rounded-md px-4 py-2 hover:bg-aciesc-dark/80 transition-colors;
 }
 
 .aciesc-secondary-btn {
-  @apply bg-white border border-aciesc-primary text-aciesc-primary rounded-md px-4 py-2 hover:bg-gray-50 transition-colors;
+  @apply bg-white border border-aciesc-dark text-aciesc-dark rounded-md px-4 py-2 hover:bg-gray-50 transition-colors;
+}
+
+.wp-button {
+  @apply bg-aciesc-dark text-white px-3 py-2 rounded hover:bg-aciesc-dark/90 transition-colors;
+}
+
+.wp-button-secondary {
+  @apply bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded hover:bg-gray-50 transition-colors;
 }
 
 .wp-header {
