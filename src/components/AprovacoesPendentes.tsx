@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface PendenteData {
   id: string;
-  tipo: 'conveniado' | 'empresa';
+  tipo: 'empresa';
   nome: string;
   documento: string;
   dataCadastro: string;
@@ -15,9 +15,7 @@ interface PendenteData {
 
 const AprovacoesPendentes: React.FC = () => {
   const [pendentes, setPendentes] = useState<PendenteData[]>([
-    { id: '1', tipo: 'conveniado', nome: 'Pedro Santos', documento: '456.789.123-00', dataCadastro: '03/04/2025', email: 'pedro@example.com', telefone: '(47) 99999-3333' },
     { id: '2', tipo: 'empresa', nome: 'Academia Fitness', documento: '22.222.222/0001-22', dataCadastro: '02/04/2025', email: 'contato@academiafitness.com.br', telefone: '(47) 3333-3333' },
-    { id: '3', tipo: 'conveniado', nome: 'Lucia Mendes', documento: '111.222.333-44', dataCadastro: '01/04/2025', email: 'lucia@example.com', telefone: '(47) 99999-5555' },
     { id: '4', tipo: 'empresa', nome: 'Café Expresso', documento: '44.444.444/0001-44', dataCadastro: '31/03/2025', email: 'contato@cafeexpresso.com.br', telefone: '(47) 3333-5555' }
   ]);
   
@@ -67,8 +65,6 @@ const AprovacoesPendentes: React.FC = () => {
   
   const getTipoBadge = (tipo: string) => {
     switch (tipo) {
-      case 'conveniado':
-        return <span className="wp-badge bg-blue-100 text-blue-800">Conveniado</span>;
       case 'empresa':
         return <span className="wp-badge bg-purple-100 text-purple-800">Empresa</span>;
       default:
@@ -106,7 +102,7 @@ const AprovacoesPendentes: React.FC = () => {
                 <tr>
                   <th>Tipo</th>
                   <th>Nome</th>
-                  <th>CPF/CNPJ</th>
+                  <th>CNPJ</th>
                   <th>Data do Cadastro</th>
                   <th>Email</th>
                   <th>Telefone</th>
@@ -114,34 +110,42 @@ const AprovacoesPendentes: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {pendentes.map((item) => (
-                  <tr key={item.id}>
-                    <td>{getTipoBadge(item.tipo)}</td>
-                    <td>{item.nome}</td>
-                    <td>{item.documento}</td>
-                    <td>{item.dataCadastro}</td>
-                    <td>{item.email}</td>
-                    <td>{item.telefone}</td>
-                    <td>
-                      <div className="flex space-x-2">
-                        <button 
-                          className="wp-button flex items-center gap-1 text-xs py-1 px-2"
-                          onClick={() => handleApprove(item.id)}
-                        >
-                          <Check size={14} />
-                          Aprovar
-                        </button>
-                        <button 
-                          className="wp-button-secondary border-wp-error text-wp-error hover:bg-red-50 flex items-center gap-1 text-xs py-1 px-2"
-                          onClick={() => handleReject(item.id)}
-                        >
-                          <X size={14} />
-                          Rejeitar
-                        </button>
-                      </div>
+                {pendentes.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="h-24 text-center text-muted-foreground">
+                      Nenhuma aprovação pendente encontrada.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  pendentes.map((item) => (
+                    <tr key={item.id}>
+                      <td>{getTipoBadge(item.tipo)}</td>
+                      <td>{item.nome}</td>
+                      <td>{item.documento}</td>
+                      <td>{item.dataCadastro}</td>
+                      <td>{item.email}</td>
+                      <td>{item.telefone}</td>
+                      <td>
+                        <div className="flex space-x-2">
+                          <button 
+                            className="wp-button flex items-center gap-1 text-xs py-1 px-2"
+                            onClick={() => handleApprove(item.id)}
+                          >
+                            <Check size={14} />
+                            Aprovar
+                          </button>
+                          <button 
+                            className="wp-button-secondary border-wp-error text-wp-error hover:bg-red-50 flex items-center gap-1 text-xs py-1 px-2"
+                            onClick={() => handleReject(item.id)}
+                          >
+                            <X size={14} />
+                            Rejeitar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
