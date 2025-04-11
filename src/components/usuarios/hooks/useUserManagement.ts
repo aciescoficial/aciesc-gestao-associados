@@ -1,13 +1,13 @@
 
-import { useState } from 'react';
+import { useDialogState } from './useDialogState';
 import { User } from '../types';
 import { useUserFetch } from './useUserFetch';
 import { useUserCreate } from './useUserCreate';
 import { useUserEdit } from './useUserEdit';
 
 export const useUserManagement = () => {
-  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
-  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const addUserDialog = useDialogState(false);
+  const editUserDialog = useDialogState(false);
   
   const { 
     users, 
@@ -19,7 +19,7 @@ export const useUserManagement = () => {
   } = useUserFetch();
 
   const handleUserCreated = (newUser: User) => {
-    setIsAddUserDialogOpen(false);
+    addUserDialog.close();
   };
 
   const { 
@@ -29,7 +29,7 @@ export const useUserManagement = () => {
   } = useUserCreate(handleUserCreated);
 
   const handleUserUpdated = (updatedUser: User) => {
-    setIsEditUserDialogOpen(false);
+    editUserDialog.close();
   };
 
   const {
@@ -48,15 +48,15 @@ export const useUserManagement = () => {
     filteredUsers,
     
     // Add user dialog state
-    isAddUserDialogOpen,
-    setIsAddUserDialogOpen,
+    isAddUserDialogOpen: addUserDialog.isOpen,
+    setIsAddUserDialogOpen: addUserDialog.setIsOpen,
     newUser,
     handleNewUserChange,
     addUser,
     
     // Edit user dialog state
-    isEditUserDialogOpen,
-    setIsEditUserDialogOpen,
+    isEditUserDialogOpen: editUserDialog.isOpen,
+    setIsEditUserDialogOpen: editUserDialog.setIsOpen,
     selectedUser,
     setSelectedUser,
     handleSelectedUserChange,
