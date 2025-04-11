@@ -68,14 +68,12 @@ export const generateSubscriptionLink = async (associationType: AssociationType)
 // Map our payment method types to Asaas billing types
 const mapToBillingType = (paymentMethod: PaymentMethod): string => {
   switch (paymentMethod) {
-    case 'credit_card':
+    case 'cartao':
       return 'CREDIT_CARD';
-    case 'debit_card':
-      return 'CREDIT_CARD'; // Asaas handles debit through credit card flow
-    case 'boleto':
-      return 'BOLETO';
     case 'pix':
       return 'PIX';
+    case 'boleto':
+      return 'BOLETO';
     default:
       return 'UNDEFINED';
   }

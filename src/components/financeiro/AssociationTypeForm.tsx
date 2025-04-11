@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,9 +10,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { PaymentMethodOption, InterestPaymentByOption, formatCurrency } from './utils';
+import { 
+  PaymentMethodOption, 
+  InterestPaymentByOption, 
+  formatCurrency 
+} from './utils';
 import { Loader2, Link as LinkIcon } from 'lucide-react';
 import { generatePaymentLink, generateSubscriptionLink } from './services/asaasService';
+import { InterestPaymentBy, PaymentMethod } from './types';
 
 const formSchema = z.object({
   title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
@@ -21,13 +25,12 @@ const formSchema = z.object({
   value: z.number().positive('O valor deve ser maior que zero'),
   payment_methods: z.array(z.string()).min(1, 'Selecione pelo menos um método de pagamento'),
   max_installments: z.number().int().min(1, 'Mínimo de 1 parcela').optional(),
-  interest_payment_by: z.string().optional(),
+  interest_payment_by: z.enum(['associado', 'associacao']).optional(),
   active: z.boolean().default(true),
 });
 
 const paymentMethods: PaymentMethodOption[] = [
-  { value: 'credit_card', label: 'Cartão de Crédito' },
-  { value: 'debit_card', label: 'Cartão de Débito' },
+  { value: 'cartao', label: 'Cartão de Crédito' },
   { value: 'boleto', label: 'Boleto' },
   { value: 'pix', label: 'PIX' },
 ];
@@ -43,9 +46,9 @@ interface AssociationTypeFormProps {
     title: string;
     description: string;
     value: number;
-    payment_methods: string[];
+    payment_methods: PaymentMethod[];
     max_installments: number;
-    interest_payment_by: string;
+    interest_payment_by: InterestPaymentBy;
     active: boolean;
   };
   id?: string;
@@ -83,6 +86,8 @@ const AssociationTypeForm: React.FC<AssociationTypeFormProps> = ({
     try {
       const payload = {
         ...data,
+        payment_methods: data.payment_methods as PaymentMethod[],
+        interest_payment_by: data.interest_payment_by as InterestPaymentBy,
         updated_at: new Date().toISOString(),
       };
 
@@ -133,25 +138,22 @@ const AssociationTypeForm: React.FC<AssociationTypeFormProps> = ({
         return;
       }
 
-      // Create a temporary association type object to pass to the link generator
       const tempAssociationType = {
         id: id || '',
         title: formData.title,
         description: formData.description || '',
         value: formData.value,
-        payment_methods: formData.payment_methods as any[],
+        payment_methods: formData.payment_methods as PaymentMethod[],
         max_installments: formData.max_installments || 1,
-        interest_payment_by: formData.interest_payment_by as any || 'associado',
+        interest_payment_by: formData.interest_payment_by as InterestPaymentBy || 'associado',
         active: formData.active,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
       
-      // Generate payment link for one-time payment
       const paymentLinkUrl = await generatePaymentLink(tempAssociationType);
       setPaymentLink(paymentLinkUrl);
       
-      // Generate subscription link for recurring payment
       const subscriptionLinkUrl = await generateSubscriptionLink(tempAssociationType);
       setSubscriptionLink(subscriptionLinkUrl);
       

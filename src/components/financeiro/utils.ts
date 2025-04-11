@@ -1,3 +1,4 @@
+import type { PaymentMethod, InterestPaymentBy } from './types';
 
 /**
  * Format a number as currency in Brazilian format
@@ -99,3 +100,14 @@ export function formatDate(date: Date | string | null): string {
   
   return dateObj.toLocaleDateString('pt-BR');
 }
+
+export type PaymentMethodOption = {
+  value: PaymentMethod;
+  label: string;
+  description?: string;
+};
+
+export type InterestPaymentByOption = {
+  value: InterestPaymentBy;
+  label: string;
+};

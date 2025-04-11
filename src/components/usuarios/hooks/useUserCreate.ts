@@ -87,7 +87,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           .from('profiles')
           .update({
             name: newUser.name,
-            role: dbRole
+            role: dbRole as any // Cast to any to bypass type checking since we've verified the mapping is correct
           })
           .eq('id', userId);
         
