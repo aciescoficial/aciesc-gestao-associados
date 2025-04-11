@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +33,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, PlusCircle, RefreshCw, Search } from 'lucide-react';
 
+type DatabaseUserRole = 'admin' | 'user' | 'associado' | 'diretoria' | 'conveniado' | 'empresa';
+
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +53,27 @@ const UserManagement: React.FC = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const mapToDbRole = (appRole: UserRole): DatabaseUserRole => {
+    switch(appRole) {
+      case 'admin': return 'admin';
+      case 'user': return 'user';
+      case 'empresa': return 'empresa';
+      default: return 'user';
+    }
+  };
+
+  const mapFromDbRole = (dbRole: string): UserRole => {
+    if (['associado', 'diretoria'].includes(dbRole)) {
+      return 'user';
+    } else if (dbRole === 'conveniado' || dbRole === 'empresa') {
+      return 'empresa';
+    } else if (dbRole === 'admin') {
+      return 'admin';
+    } else {
+      return 'user';
+    }
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -73,19 +95,7 @@ const UserManagement: React.FC = () => {
       
       if (data) {
         const formattedUsers: User[] = data.map(profile => {
-          let role: UserRole;
-          const dbRole = profile.role as string;
-          
-          // Map the database role to our UserRole type
-          if (['associado', 'diretoria'].includes(dbRole)) {
-            role = 'user';
-          } else if (dbRole === 'conveniado' || dbRole === 'empresa') {
-            role = 'empresa';
-          } else if (dbRole === 'admin' || dbRole === 'user') {
-            role = dbRole as UserRole;
-          } else {
-            role = 'user';
-          }
+          const role = mapFromDbRole(profile.role);
           
           return {
             id: profile.id,
@@ -119,7 +129,7 @@ const UserManagement: React.FC = () => {
         options: {
           data: {
             name: newUser.name,
-            role: newUser.role,
+            role: mapToDbRole(newUser.role),
           }
         }
       });
@@ -170,7 +180,7 @@ const UserManagement: React.FC = () => {
         .from('profiles')
         .update({
           name: selectedUser.name,
-          role: selectedUser.role
+          role: mapToDbRole(selectedUser.role) as any
         })
         .eq('id', selectedUser.id);
         
