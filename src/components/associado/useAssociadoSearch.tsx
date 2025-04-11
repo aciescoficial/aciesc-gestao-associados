@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Associado, AssociadoStatus } from './AssociadoSearchResult';
+import { Associado, AssociadoStatus } from './types';
 
 export const useAssociadoSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');

@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, RefreshCw, Filter } from 'lucide-react';
-import { AssociadoStatus } from './AssociadoSearchResult';
+import { AssociadoStatus } from './types';
 
 interface AssociadoSearchFormProps {
   searchTerm: string;

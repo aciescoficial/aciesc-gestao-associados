@@ -1,3 +1,4 @@
+
 import { Database } from '@/integrations/supabase/types';
 
 export type StatusType = Database['public']['Enums']['status_type'];
