@@ -5,10 +5,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { mapFromDbRole } from '../utils/roleUtils';
 
-// Define interface for auth user data
+// Define interface for auth user data with explicit types
 interface AuthUser {
   id: string;
   email?: string;
+  [key: string]: any;
+}
+
+// Define interface for admin API response
+interface AdminUserResponse {
+  users: AuthUser[];
   [key: string]: any;
 }
 
