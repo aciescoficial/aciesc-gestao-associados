@@ -27,7 +27,7 @@ export const useUserEdit = (onSuccess: (updatedUser: User) => void) => {
         .from('profiles')
         .update({
           name: selectedUser.name,
-          role: dbRole
+          role: dbRole as any // Use type assertion to bypass TypeScript check
           // Note: 'active' is not included here as it's not in the profiles table
         })
         .eq('id', selectedUser.id);

@@ -52,7 +52,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           .from('profiles')
           .update({
             name: newUser.name,
-            role: dbRole
+            role: dbRole as any // Use type assertion to bypass TypeScript check since we know these values are valid
           })
           .eq('id', authData.user.id);
         

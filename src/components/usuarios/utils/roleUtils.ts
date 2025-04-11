@@ -1,7 +1,7 @@
 
 import { UserRole } from '../types';
 
-// Update this type to include 'empresa' to match what's used in the code
+// This type should match exactly what's allowed in the database enum
 export type DatabaseUserRole = 'admin' | 'user' | 'associado' | 'diretoria' | 'conveniado' | 'empresa';
 
 export const mapToDbRole = (appRole: UserRole): DatabaseUserRole => {
