@@ -1,23 +1,104 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Building, Clock, Calendar } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard: React.FC = () => {
-  // Mock data - would be fetched from API in real implementation
-  const stats = {
-    associados: 127,
-    empresas: 43,
-    pendentes: 8,
+  const [stats, setStats] = useState({
+    associados: 0,
+    empresas: 0,
+    pendentes: 0,
     ultimaAtualizacao: new Date().toLocaleDateString()
-  };
+  });
+  
+  const [recentActivity, setRecentActivity] = useState<{
+    type: 'associado' | 'empresa';
+    name: string;
+    action: string;
+    date: string;
+  }[]>([]);
+  
+  const [loading, setLoading] = useState(true);
 
-  // Recent activity mock data
-  const recentActivity = [
-    { type: 'associado', name: 'João Silva', action: 'cadastrado', date: '05/04/2025' },
-    { type: 'empresa', name: 'Farmácia Saúde', action: 'conveniada', date: '04/04/2025' },
-    { type: 'associado', name: 'Maria Oliveira', action: 'aprovado', date: '03/04/2025' },
-    { type: 'empresa', name: 'Academia Fitness', action: 'aprovada', date: '02/04/2025' },
-  ];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        // Fetch associados count
+        const { count: associadosCount, error: associadosError } = await supabase
+          .from('associados')
+          .select('*', { count: 'exact', head: true });
+        
+        if (associadosError) throw associadosError;
+        
+        // Fetch empresas count
+        const { count: empresasCount, error: empresasError } = await supabase
+          .from('empresas')
+          .select('*', { count: 'exact', head: true });
+        
+        if (empresasError) throw empresasError;
+        
+        // Fetch pending approvals count
+        const { count: pendentesCount, error: pendentesError } = await supabase
+          .from('associados')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pendente');
+        
+        if (pendentesError) throw pendentesError;
+        
+        // Update stats
+        setStats({
+          associados: associadosCount || 0,
+          empresas: empresasCount || 0,
+          pendentes: pendentesCount || 0,
+          ultimaAtualizacao: new Date().toLocaleDateString()
+        });
+        
+        // Fetch recent activity (newest associados and empresas)
+        const { data: recentAssociados, error: recentAssociadosError } = await supabase
+          .from('associados')
+          .select('nome, sobrenome, status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(3);
+        
+        if (recentAssociadosError) throw recentAssociadosError;
+        
+        const { data: recentEmpresas, error: recentEmpresasError } = await supabase
+          .from('empresas')
+          .select('nome_fantasia, status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(3);
+        
+        if (recentEmpresasError) throw recentEmpresasError;
+        
+        // Combine and format recent activity
+        const formattedActivity = [
+          ...(recentAssociados?.map(item => ({
+            type: 'associado' as const,
+            name: `${item.nome} ${item.sobrenome}`,
+            action: item.status === 'pendente' ? 'pendente' : 'cadastrado',
+            date: new Date(item.created_at).toLocaleDateString()
+          })) || []),
+          ...(recentEmpresas?.map(item => ({
+            type: 'empresa' as const,
+            name: item.nome_fantasia,
+            action: item.status === 'pendente' ? 'pendente' : 'conveniada',
+            date: new Date(item.created_at).toLocaleDateString()
+          })) || [])
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 4); // Get only the 4 most recent activities
+        
+        setRecentActivity(formattedActivity);
+        
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -80,20 +161,30 @@ const Dashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {recentActivity.map((activity, index) => (
-                <tr key={index}>
-                  <td>
-                    {activity.type === 'associado' ? (
-                      <span className="wp-badge-success">Associado</span>
-                    ) : (
-                      <span className="wp-badge-warning">Empresa</span>
-                    )}
-                  </td>
-                  <td>{activity.name}</td>
-                  <td>{activity.action}</td>
-                  <td>{activity.date}</td>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="text-center py-4">Carregando atividades...</td>
                 </tr>
-              ))}
+              ) : recentActivity.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="text-center py-4">Nenhuma atividade recente encontrada</td>
+                </tr>
+              ) : (
+                recentActivity.map((activity, index) => (
+                  <tr key={index}>
+                    <td>
+                      {activity.type === 'associado' ? (
+                        <span className="wp-badge-success">Associado</span>
+                      ) : (
+                        <span className="wp-badge-warning">Empresa</span>
+                      )}
+                    </td>
+                    <td>{activity.name}</td>
+                    <td>{activity.action}</td>
+                    <td>{activity.date}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

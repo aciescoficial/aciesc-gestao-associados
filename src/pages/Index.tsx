@@ -28,6 +28,7 @@ import ListaAssociados from '@/components/associado/ListaAssociados';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import ConfiguracoesPage from '@/components/configuracoes/ConfiguracoesPage';
+import { UserRole } from '@/components/usuarios/types';
 
 const Index: React.FC = () => {
   return (
@@ -67,7 +68,7 @@ const Index: React.FC = () => {
         </AdminRoute>
       } />
       
-      {/* Admin routes - formerly diretoria */}
+      {/* Admin routes */}
       <Route path="/associados/cadastrar" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <LayoutWrapper>

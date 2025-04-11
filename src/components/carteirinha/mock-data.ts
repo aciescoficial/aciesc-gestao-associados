@@ -1,6 +1,6 @@
 
 import { ConveniadoData } from './types';
 
-// Mock data - would be fetched from API in real implementation
+// This file is kept for type compatibility with existing components
+// But we're now using real data from the database
 export const mockData: ConveniadoData[] = [];
-

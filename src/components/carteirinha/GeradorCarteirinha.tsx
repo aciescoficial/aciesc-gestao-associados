@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { CardSettings, ConveniadoData, ACIESC_COLORS } from './types';
-import { mockData } from './mock-data';
 import SearchPanel from './SearchPanel';
 import AssociadoInfoCard from './ConveniadoInfoCard';
 import CardPersonalizationPanel from './CardPersonalizationPanel';
 import CardPreviewPanel from './CardPreviewPanel';
+import { supabase } from '@/integrations/supabase/client';
 
 const GeradorCarteirinha: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,35 +47,51 @@ const GeradorCarteirinha: React.FC = () => {
     setIsSearching(true);
     
     try {
-      // Mock API call - would call actual API in real implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Filter mock data based on search criteria
+      // Real API call to Supabase
       const term = searchTerm.toLowerCase();
-      const filteredResults = mockData.filter(
-        item => item.nome.toLowerCase().includes(term) || 
-                item.sobrenome.toLowerCase().includes(term) || 
-                item.cpf.includes(searchTerm)
-      );
+      const { data, error } = await supabase
+        .from('associados')
+        .select('*')
+        .or(`nome.ilike.%${term}%,sobrenome.ilike.%${term}%,cpf.ilike.%${term}%`);
       
-      if (filteredResults.length === 0) {
+      if (error) throw error;
+      
+      if (!data || data.length === 0) {
         toast({
           title: "Nenhum resultado encontrado",
           description: "Não foram encontrados associados com os critérios informados.",
         });
         setSelectedConveniado(null);
-      } else if (filteredResults.length === 1) {
-        setSelectedConveniado(filteredResults[0]);
+      } else if (data.length === 1) {
+        // Map the database record to ConveniadoData type
+        const associado = data[0];
+        setSelectedConveniado({
+          nome: associado.nome || '',
+          sobrenome: associado.sobrenome || '',
+          cpf: associado.cpf || '',
+          creci: associado.creci || '',
+          validade: associado.validade ? new Date(associado.validade).toLocaleDateString() : 'N/A',
+          foto: associado.foto_url || undefined
+        });
       } else {
         // If more than one result, select the first one for this demo
-        // In a real application, you might show a list for selection
-        setSelectedConveniado(filteredResults[0]);
+        const associado = data[0];
+        setSelectedConveniado({
+          nome: associado.nome || '',
+          sobrenome: associado.sobrenome || '',
+          cpf: associado.cpf || '',
+          creci: associado.creci || '',
+          validade: associado.validade ? new Date(associado.validade).toLocaleDateString() : 'N/A',
+          foto: associado.foto_url || undefined
+        });
+        
         toast({
           title: "Múltiplos resultados",
-          description: `Encontramos ${filteredResults.length} associados. Exibindo o primeiro resultado.`,
+          description: `Encontramos ${data.length} associados. Exibindo o primeiro resultado.`,
         });
       }
     } catch (error) {
+      console.error("Error searching:", error);
       toast({
         title: "Erro na busca",
         description: "Ocorreu um erro ao realizar a busca. Tente novamente.",
