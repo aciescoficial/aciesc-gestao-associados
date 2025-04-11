@@ -72,8 +72,14 @@ const GeradorCarteirinha: React.FC = () => {
           cpf: associado.cpf || '',
           creci: associado.creci || '',
           validade: associado.validade ? new Date(associado.validade).toLocaleDateString() : 'N/A',
-          foto: associado.foto || undefined
+          // Use a propriedade correta para a foto
+          foto: undefined // Será atualizado se houver uma imagem de perfil
         });
+        
+        // Se tiver um ID do associado, busque a imagem no perfil relacionado
+        if (associado.id) {
+          fetchAssociadoFoto(associado.id);
+        }
       } else {
         // If more than one result, select the first one for this demo
         const associado = data[0];
@@ -84,8 +90,14 @@ const GeradorCarteirinha: React.FC = () => {
           cpf: associado.cpf || '',
           creci: associado.creci || '',
           validade: associado.validade ? new Date(associado.validade).toLocaleDateString() : 'N/A',
-          foto: associado.foto || undefined
+          // Use a propriedade correta para a foto
+          foto: undefined // Será atualizado se houver uma imagem de perfil
         });
+        
+        // Se tiver um ID do associado, busque a imagem no perfil relacionado
+        if (associado.id) {
+          fetchAssociadoFoto(associado.id);
+        }
         
         toast({
           title: "Múltiplos resultados",
@@ -101,6 +113,34 @@ const GeradorCarteirinha: React.FC = () => {
       });
     } finally {
       setIsSearching(false);
+    }
+  };
+  
+  // Função para buscar a foto do associado do perfil
+  const fetchAssociadoFoto = async (associadoId: string) => {
+    try {
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', associadoId)
+        .single();
+      
+      if (error) {
+        console.error("Error fetching profile image:", error);
+        return;
+      }
+      
+      if (profileData && profileData.avatar_url) {
+        setSelectedConveniado(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            foto: profileData.avatar_url
+          };
+        });
+      }
+    } catch (err) {
+      console.error("Error in fetchAssociadoFoto:", err);
     }
   };
 
