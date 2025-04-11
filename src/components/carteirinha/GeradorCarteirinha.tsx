@@ -1,149 +1,19 @@
 
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { CardSettings, ConveniadoData, ACIESC_COLORS } from './types';
 import SearchPanel from './SearchPanel';
 import AssociadoInfoCard from './ConveniadoInfoCard';
 import CardPersonalizationPanel from './CardPersonalizationPanel';
 import CardPreviewPanel from './CardPreviewPanel';
-import { supabase } from '@/integrations/supabase/client';
+import { useConveniadoSearch } from './hooks/useConveniadoSearch';
+import { useCardSettings } from './hooks/useCardSettings';
 
 const GeradorCarteirinha: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [selectedConveniado, setSelectedConveniado] = useState<ConveniadoData | null>(null);
   const [cardView, setCardView] = useState<'front' | 'back'>('front');
   const { toast } = useToast();
+  const { searchTerm, setSearchTerm, isSearching, selectedConveniado, handleSearch } = useConveniadoSearch();
+  const { cardSettings, updateCardSetting } = useCardSettings();
   
-  // Card customization settings with ACIESC colors as default values
-  const [cardSettings, setCardSettings] = useState<CardSettings>({
-    primaryColor: ACIESC_COLORS.primaryGreen,
-    secondaryColor: ACIESC_COLORS.darkGreen,
-    textColor: ACIESC_COLORS.white,
-    fontFamily: 'Arial, sans-serif',
-    showCPF: true,
-    showCreci: true,
-    showQRCode: true,
-    logoPosition: 'top',
-    photoPosition: { x: 50, y: 50 },
-    textPosition: { x: 70, y: 50 },
-    frontBackgroundImage: undefined,
-    backBackgroundImage: undefined,
-    defaultBackImage: '/lovable-uploads/3da9ac21-93f9-4795-bef1-3943d4484a78.png'
-  });
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!searchTerm.trim()) {
-      toast({
-        title: "Campo de busca vazio",
-        description: "Por favor, insira um nome ou CPF para buscar o associado.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsSearching(true);
-    
-    try {
-      // Real API call to Supabase
-      const term = searchTerm.toLowerCase();
-      const { data, error } = await supabase
-        .from('associados')
-        .select('*')
-        .or(`nome.ilike.%${term}%,sobrenome.ilike.%${term}%,cpf.ilike.%${term}%`);
-      
-      if (error) throw error;
-      
-      if (!data || data.length === 0) {
-        toast({
-          title: "Nenhum resultado encontrado",
-          description: "Não foram encontrados associados com os critérios informados.",
-        });
-        setSelectedConveniado(null);
-      } else if (data.length === 1) {
-        // Map the database record to ConveniadoData type
-        const associado = data[0];
-        setSelectedConveniado({
-          id: associado.id,
-          nome: associado.nome || '',
-          sobrenome: associado.sobrenome || '',
-          cpf: associado.cpf || '',
-          creci: associado.creci || '',
-          validade: associado.validade ? new Date(associado.validade).toLocaleDateString() : 'N/A',
-          // Use a propriedade correta para a foto
-          foto: undefined // Será atualizado se houver uma imagem de perfil
-        });
-        
-        // Se tiver um ID do associado, busque a imagem no perfil relacionado
-        if (associado.id) {
-          fetchAssociadoFoto(associado.id);
-        }
-      } else {
-        // If more than one result, select the first one for this demo
-        const associado = data[0];
-        setSelectedConveniado({
-          id: associado.id,
-          nome: associado.nome || '',
-          sobrenome: associado.sobrenome || '',
-          cpf: associado.cpf || '',
-          creci: associado.creci || '',
-          validade: associado.validade ? new Date(associado.validade).toLocaleDateString() : 'N/A',
-          // Use a propriedade correta para a foto
-          foto: undefined // Será atualizado se houver uma imagem de perfil
-        });
-        
-        // Se tiver um ID do associado, busque a imagem no perfil relacionado
-        if (associado.id) {
-          fetchAssociadoFoto(associado.id);
-        }
-        
-        toast({
-          title: "Múltiplos resultados",
-          description: `Encontramos ${data.length} associados. Exibindo o primeiro resultado.`,
-        });
-      }
-    } catch (error) {
-      console.error("Error searching:", error);
-      toast({
-        title: "Erro na busca",
-        description: "Ocorreu um erro ao realizar a busca. Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSearching(false);
-    }
-  };
-  
-  // Função para buscar a foto do associado do perfil
-  const fetchAssociadoFoto = async (associadoId: string) => {
-    try {
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('id', associadoId)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching profile image:", error);
-        return;
-      }
-      
-      if (profileData && profileData.avatar_url) {
-        setSelectedConveniado(prev => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            foto: profileData.avatar_url
-          };
-        });
-      }
-    } catch (err) {
-      console.error("Error in fetchAssociadoFoto:", err);
-    }
-  };
-
   const handlePrint = () => {
     toast({
       title: "Impressão iniciada",
@@ -158,13 +28,6 @@ const GeradorCarteirinha: React.FC = () => {
       description: "O arquivo da carteirinha foi gerado para download.",
     });
     // In a real implementation, this would generate and download a PDF
-  };
-
-  const updateCardSetting = <K extends keyof CardSettings>(key: K, value: CardSettings[K]) => {
-    setCardSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
   };
 
   return (
