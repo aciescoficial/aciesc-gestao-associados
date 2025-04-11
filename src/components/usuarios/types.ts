@@ -28,6 +28,14 @@ export interface Permission {
   roles: UserRole[];
 }
 
+// Tipo de permissão de menu
+export interface MenuPermission {
+  menuId: string;
+  role: UserRole;
+  enabled: boolean;
+  subPermissions: Record<string, boolean>;
+}
+
 // User type for user management
 export interface User {
   id: string;

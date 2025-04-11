@@ -3,6 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, Map, Users } from 'lucide-react';
 import GoogleMapsConfig from './GoogleMapsConfig';
+import PermissionPanel from '../usuarios/PermissionPanel';
 
 const ConfiguracoesPage: React.FC = () => {
   return (
@@ -40,10 +41,7 @@ const ConfiguracoesPage: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="permissoes">
-          <div className="p-4">
-            <h2 className="text-xl font-semibold mb-4">Configurações de Permissões</h2>
-            <p>Configurações de permissões do sistema estarão disponíveis aqui.</p>
-          </div>
+          <PermissionPanel />
         </TabsContent>
       </Tabs>
     </div>

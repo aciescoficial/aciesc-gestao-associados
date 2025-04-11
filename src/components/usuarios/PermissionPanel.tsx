@@ -1,15 +1,34 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Permission, UserRole } from './types';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Settings, Tool, Play, BookOpen, Calendar, Certificate, Users, Contact, MessageSquare, LayoutDashboard, Funnel, DollarSign, Building, CreditCard, FileText, Shield, Image, Rocket } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+
+// Definir estrutura para os itens de menu e suas permissões
+interface MenuPermission {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  enabled: boolean;
+  subPermissions: {
+    id: string;
+    description: string;
+    enabled: boolean;
+  }[];
+}
 
 const PermissionPanel: React.FC = () => {
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [menuPermissions, setMenuPermissions] = useState<Record<UserRole, MenuPermission[]>>({
+    admin: [],
+    user: [],
+    empresa: []
+  });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
@@ -21,50 +40,132 @@ const PermissionPanel: React.FC = () => {
   const fetchPermissions = async () => {
     setLoading(true);
     try {
-      // In a real app with Supabase, we would fetch permissions from a permissions table
-      // For demonstration, we'll use the same mock data but with better structure
+      // Em um aplicativo real com Supabase, buscaríamos as permissões de uma tabela de permissões
+      // Mockup de dados baseados nos menus existentes do PluginLayout.tsx
       
-      // Example of how we would fetch from a permissions table:
-      // const { data, error } = await supabase
-      //   .from('permissions')
-      //   .select('*')
-      //   .order('module, name');
-      // if (error) throw error;
-      // setPermissions(data || []);
+      // Criando a estrutura de menus e subpermissões
+      const defaultMenus: MenuPermission[] = [
+        {
+          id: 'dashboard',
+          name: 'Dashboard',
+          icon: <LayoutDashboard size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'view_dashboard', description: 'Visualizar dashboard', enabled: true }
+          ]
+        },
+        {
+          id: 'usuarios',
+          name: 'Usuários',
+          icon: <Users size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'view_users', description: 'Visualizar usuários', enabled: true },
+            { id: 'manage_users', description: 'Gerenciar usuários', enabled: true }
+          ]
+        },
+        {
+          id: 'permissoes',
+          name: 'Permissões',
+          icon: <Shield size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'view_permissions', description: 'Visualizar permissões', enabled: true },
+            { id: 'manage_permissions', description: 'Gerenciar permissões', enabled: true }
+          ]
+        },
+        {
+          id: 'associados',
+          name: 'Associados',
+          icon: <Users size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'register_associado', description: 'Cadastrar associado', enabled: true },
+            { id: 'search_associado', description: 'Pesquisar associado', enabled: true },
+            { id: 'list_associado', description: 'Listar associados', enabled: true }
+          ]
+        },
+        {
+          id: 'empresas',
+          name: 'Empresas',
+          icon: <Building size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'register_empresa', description: 'Cadastrar empresa', enabled: true },
+            { id: 'search_empresa', description: 'Pesquisar empresa', enabled: true },
+            { id: 'pending_empresa', description: 'Aprovações pendentes', enabled: true }
+          ]
+        },
+        {
+          id: 'financeiro',
+          name: 'Financeiro',
+          icon: <DollarSign size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'view_summary', description: 'Visualizar resumo', enabled: true },
+            { id: 'manage_associados', description: 'Gerenciar associados', enabled: true },
+            { id: 'manage_integration', description: 'Gerenciar integração', enabled: true },
+            { id: 'view_reports', description: 'Visualizar relatórios', enabled: true }
+          ]
+        },
+        {
+          id: 'carteirinhas',
+          name: 'Carteirinhas',
+          icon: <CreditCard size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'generate_card', description: 'Gerar carteirinha', enabled: true }
+          ]
+        },
+        {
+          id: 'mensagens',
+          name: 'Mensagens',
+          icon: <MessageSquare size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'view_messages', description: 'Visualizar mensagens', enabled: true },
+            { id: 'send_messages', description: 'Enviar mensagens', enabled: true }
+          ]
+        },
+        {
+          id: 'configuracoes',
+          name: 'Configurações',
+          icon: <Settings size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'manage_settings', description: 'Gerenciar configurações', enabled: true }
+          ]
+        },
+      ];
+
+      // Definir permissões para cada tipo de usuário
+      const adminPermissions = [...defaultMenus];
       
-      // For now, using the mock data with simplified roles:
-      setPermissions([
-        {
-          id: '1',
-          name: 'view_associados',
-          description: 'Visualizar associados',
-          module: 'associados',
-          roles: ['admin', 'user']
-        },
-        {
-          id: '2',
-          name: 'edit_associados',
-          description: 'Editar associados',
-          module: 'associados',
-          roles: ['admin']
-        },
-        {
-          id: '3',
-          name: 'view_empresas',
-          description: 'Visualizar empresas',
-          module: 'empresas',
-          roles: ['admin']
-        },
-        {
-          id: '4',
-          name: 'edit_financeiro',
-          description: 'Editar dados financeiros',
-          module: 'financeiro',
-          roles: ['admin']
-        }
-      ]);
+      const userPermissions = defaultMenus.map(menu => ({
+        ...menu,
+        enabled: ['dashboard', 'mensagens'].includes(menu.id),
+        subPermissions: menu.subPermissions.map(perm => ({
+          ...perm,
+          enabled: ['view_dashboard', 'view_messages'].includes(perm.id)
+        }))
+      }));
+
+      const empresaPermissions = defaultMenus.map(menu => ({
+        ...menu,
+        enabled: ['dashboard', 'mensagens'].includes(menu.id),
+        subPermissions: menu.subPermissions.map(perm => ({
+          ...perm,
+          enabled: ['view_dashboard', 'view_messages'].includes(perm.id)
+        }))
+      }));
+
+      setMenuPermissions({
+        admin: adminPermissions,
+        user: userPermissions,
+        empresa: empresaPermissions
+      });
     } catch (error) {
-      console.error("Error fetching permissions:", error);
+      console.error("Erro ao carregar permissões:", error);
       toast({
         title: "Erro ao carregar permissões",
         description: "Não foi possível carregar as permissões.",
@@ -75,145 +176,146 @@ const PermissionPanel: React.FC = () => {
     }
   };
 
-  const updatePermission = async (permission: Permission, role: UserRole, hasPermission: boolean) => {
-    const permissionKey = `${permission.id}-${role}`;
-    setSaveLoading(prev => ({ ...prev, [permissionKey]: true }));
+  const toggleMenuPermission = async (role: UserRole, menuId: string, enabled: boolean) => {
+    const permKey = `${role}-${menuId}`;
+    setSaveLoading(prev => ({ ...prev, [permKey]: true }));
     
     try {
-      // In a real app with Supabase, we would update a role_permissions junction table
-      // For demonstration, we'll just log and show a toast
+      // Em um aplicativo real com Supabase, atualizaríamos a tabela de permissões
+      console.log(`${role} ${enabled ? 'agora tem' : 'não tem mais'} acesso ao menu ${menuId}`);
       
-      // Example of how we would update permissions:
-      // if (hasPermission) {
-      //   // Add permission to role
-      //   const { error } = await supabase
-      //     .from('role_permissions')
-      //     .insert({ role, permission_id: permission.id });
-      //   if (error) throw error;
-      // } else {
-      //   // Remove permission from role
-      //   const { error } = await supabase
-      //     .from('role_permissions')
-      //     .delete()
-      //     .eq('role', role)
-      //     .eq('permission_id', permission.id);
-      //   if (error) throw error;
-      // }
-      
-      // For demonstration purposes:
-      console.log(`${role} ${hasPermission ? 'now has' : 'no longer has'} ${permission.name} permission`);
-      
-      // Update local state to reflect changes
-      setPermissions(prevPermissions => 
-        prevPermissions.map(p => {
-          if (p.id === permission.id) {
-            const updatedRoles = hasPermission
-              ? [...p.roles, role].filter((v, i, a) => a.indexOf(v) === i) // Add role uniquely
-              : p.roles.filter(r => r !== role); // Remove role
-            
-            return { ...p, roles: updatedRoles };
+      // Atualiza o estado local
+      setMenuPermissions(prev => ({
+        ...prev,
+        [role]: prev[role].map(menu => {
+          if (menu.id === menuId) {
+            // Se desabilitar o menu principal, também desabilite todas as subpermissões
+            const updatedSubPermissions = !enabled 
+              ? menu.subPermissions.map(subPerm => ({ ...subPerm, enabled: false }))
+              : menu.subPermissions;
+              
+            return { 
+              ...menu, 
+              enabled, 
+              subPermissions: updatedSubPermissions 
+            };
           }
-          return p;
+          return menu;
         })
-      );
+      }));
       
       toast({
         title: "Permissão atualizada",
-        description: `${role} ${hasPermission ? 'agora tem' : 'não tem mais'} permissão para ${permission.description}`,
+        description: `${role} ${enabled ? 'agora tem' : 'não tem mais'} acesso ao menu ${menuId}`,
       });
     } catch (error) {
-      console.error("Error updating permission:", error);
+      console.error("Erro ao atualizar permissão:", error);
       toast({
         title: "Erro ao atualizar permissão",
         description: "Não foi possível salvar a alteração.",
         variant: "destructive"
       });
     } finally {
-      setSaveLoading(prev => ({ ...prev, [permissionKey]: false }));
+      setSaveLoading(prev => ({ ...prev, [permKey]: false }));
     }
   };
 
-  const hasPermission = (permission: Permission, role: UserRole) => {
-    return permission.roles.includes(role);
+  const toggleSubPermission = async (role: UserRole, menuId: string, subPermId: string, enabled: boolean) => {
+    const permKey = `${role}-${menuId}-${subPermId}`;
+    setSaveLoading(prev => ({ ...prev, [permKey]: true }));
+    
+    try {
+      // Em um aplicativo real com Supabase, atualizaríamos a tabela de permissões
+      console.log(`${role} ${enabled ? 'agora tem' : 'não tem mais'} permissão ${subPermId}`);
+      
+      // Atualiza o estado local
+      setMenuPermissions(prev => ({
+        ...prev,
+        [role]: prev[role].map(menu => {
+          if (menu.id === menuId) {
+            // Se uma subpermissão for habilitada, garantimos que o menu principal também está habilitado
+            const menuEnabled = enabled ? true : menu.enabled;
+            
+            return { 
+              ...menu, 
+              enabled: menuEnabled,
+              subPermissions: menu.subPermissions.map(subPerm => {
+                if (subPerm.id === subPermId) {
+                  return { ...subPerm, enabled };
+                }
+                return subPerm;
+              }) 
+            };
+          }
+          return menu;
+        })
+      }));
+      
+      toast({
+        title: "Permissão atualizada",
+        description: `${role} ${enabled ? 'agora tem' : 'não tem mais'} permissão para ${subPermId}`,
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar permissão:", error);
+      toast({
+        title: "Erro ao atualizar permissão",
+        description: "Não foi possível salvar a alteração.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaveLoading(prev => ({ ...prev, [permKey]: false }));
+    }
   };
 
-  const renderPermissionsTable = (role: UserRole) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-[300px]">Permissão</TableHead>
-          <TableHead>Descrição</TableHead>
-          <TableHead className="w-[100px]">Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {permissions
-          .filter(p => p.module === 'associados')
-          .map(permission => {
-            const permissionKey = `${permission.id}-${role}`;
+  const renderPermissionSection = (role: UserRole, menu: MenuPermission) => {
+    const permKey = `${role}-${menu.id}`;
+    const isLoading = saveLoading[permKey] || false;
+    
+    return (
+      <div key={`${role}-${menu.id}`} className="py-4 border-b last:border-b-0">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={menu.enabled}
+              onCheckedChange={(checked) => toggleMenuPermission(role, menu.id, checked)}
+              disabled={role === 'admin'} // Administradores sempre têm todas as permissões
+              id={`${role}-${menu.id}-switch`}
+            />
+            <div className="flex items-center gap-2">
+              {menu.icon}
+              <span className="font-medium">{menu.name}</span>
+            </div>
+          </div>
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+        </div>
+        
+        <div className="ml-10 space-y-2">
+          {menu.subPermissions.map((subPerm) => {
+            const subPermKey = `${role}-${menu.id}-${subPerm.id}`;
+            const isSubLoading = saveLoading[subPermKey] || false;
+            
             return (
-              <TableRow key={`${permission.id}-${role}-associados`}>
-                <TableCell>{permission.name}</TableCell>
-                <TableCell>{permission.description}</TableCell>
-                <TableCell>
-                  {saveLoading[permissionKey] ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Checkbox 
-                      checked={hasPermission(permission, role)}
-                      onCheckedChange={(checked) => updatePermission(permission, role, !!checked)}
-                      disabled={role === 'admin'} // Admin always has all permissions
-                    />
-                  )}
-                </TableCell>
-              </TableRow>
+              <div key={subPermKey} className="flex items-center gap-2">
+                <Checkbox 
+                  id={subPermKey}
+                  checked={menu.enabled && subPerm.enabled}
+                  onCheckedChange={(checked) => toggleSubPermission(role, menu.id, subPerm.id, !!checked)}
+                  disabled={role === 'admin' || !menu.enabled} // Desabilitado se o menu principal estiver desabilitado
+                />
+                <label 
+                  htmlFor={subPermKey}
+                  className={`text-sm ${!menu.enabled ? 'text-muted-foreground' : ''}`}
+                >
+                  {subPerm.description}
+                </label>
+                {isSubLoading && <Loader2 className="h-3 w-3 animate-spin" />}
+              </div>
             );
           })}
-
-        {permissions.filter(p => p.module === 'empresas').map(permission => {
-          const permissionKey = `${permission.id}-${role}`;
-          return (
-            <TableRow key={`${permission.id}-${role}-empresas`}>
-              <TableCell>{permission.name}</TableCell>
-              <TableCell>{permission.description}</TableCell>
-              <TableCell>
-                {saveLoading[permissionKey] ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Checkbox 
-                    checked={hasPermission(permission, role)}
-                    onCheckedChange={(checked) => updatePermission(permission, role, !!checked)}
-                    disabled={role === 'admin'} // Admin always has all permissions
-                  />
-                )}
-              </TableCell>
-            </TableRow>
-          );
-        })}
-
-        {permissions.filter(p => p.module === 'financeiro').map(permission => {
-          const permissionKey = `${permission.id}-${role}`;
-          return (
-            <TableRow key={`${permission.id}-${role}-financeiro`}>
-              <TableCell>{permission.name}</TableCell>
-              <TableCell>{permission.description}</TableCell>
-              <TableCell>
-                {saveLoading[permissionKey] ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Checkbox 
-                    checked={hasPermission(permission, role)}
-                    onCheckedChange={(checked) => updatePermission(permission, role, !!checked)}
-                    disabled={role === 'admin'} // Admin always has all permissions
-                  />
-                )}
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
-  );
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -238,28 +340,59 @@ const PermissionPanel: React.FC = () => {
             <span>Carregando permissões...</span>
           </div>
         ) : (
-          <Tabs defaultValue="admin" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="admin">Administrador</TabsTrigger>
-              <TabsTrigger value="user">Associado</TabsTrigger>
-              <TabsTrigger value="empresa">Empresa</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="admin">
-              <div className="p-4 rounded-md bg-muted/50 mb-4">
-                <p className="text-muted-foreground">Administradores têm acesso total ao sistema. Essas permissões não podem ser modificadas.</p>
+          <div className="flex">
+            <div className="w-1/4 border-r pr-4">
+              <h3 className="text-lg font-medium mb-4">Usuário Informações</h3>
+              <div className="flex flex-col">
+                <Button variant="link" className="text-primary justify-start font-bold">
+                  Funções & Permissões
+                </Button>
               </div>
-              {renderPermissionsTable('admin')}
-            </TabsContent>
+            </div>
             
-            <TabsContent value="user">
-              {renderPermissionsTable('user')}
-            </TabsContent>
-            
-            <TabsContent value="empresa">
-              {renderPermissionsTable('empresa')}
-            </TabsContent>
-          </Tabs>
+            <div className="w-3/4 pl-4">
+              <Tabs defaultValue="admin" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 mb-4">
+                  <TabsTrigger value="admin">Administrador</TabsTrigger>
+                  <TabsTrigger value="user">Associado</TabsTrigger>
+                  <TabsTrigger value="empresa">Empresa</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="admin">
+                  <div className="p-4 rounded-md bg-muted/50 mb-4">
+                    <p className="text-muted-foreground">Administradores têm acesso total ao sistema. Essas permissões não podem ser modificadas.</p>
+                  </div>
+                  <div className="space-y-1">
+                    {menuPermissions.admin.map((menu) => renderPermissionSection('admin', menu))}
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button variant="outline">Cancelar</Button>
+                    <Button>Salvar</Button>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="user">
+                  <div className="space-y-1">
+                    {menuPermissions.user.map((menu) => renderPermissionSection('user', menu))}
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button variant="outline">Cancelar</Button>
+                    <Button>Salvar</Button>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="empresa">
+                  <div className="space-y-1">
+                    {menuPermissions.empresa.map((menu) => renderPermissionSection('empresa', menu))}
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button variant="outline">Cancelar</Button>
+                    <Button>Salvar</Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
         )}
       </div>
     </div>
