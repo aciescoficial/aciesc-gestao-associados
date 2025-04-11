@@ -1,7 +1,7 @@
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, handleSupabaseError } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/components/usuarios/types';
 
@@ -31,68 +31,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Use setTimeout to avoid potential Supabase callback deadlocks
-        if (session?.user) {
-          setTimeout(() => {
-            checkUserRole(session.user.id);
-          }, 0);
-          
-          // Log authentication events
-          if (event === 'SIGNED_IN') {
-            setTimeout(async () => {
-              try {
-                // Insert directly into user_access_logs table
-                await supabase
-                  .from('user_access_logs')
-                  .insert({
-                    user_id: session.user.id,
-                    event: 'Login',
-                    created_at: new Date().toISOString()
-                  });
-              } catch (error) {
-                console.error('Error logging sign in:', error);
-              }
-            }, 0);
-          }
-        } else {
-          resetRoles();
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        checkUserRole(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const resetRoles = () => {
-    setIsAdmin(false);
-    setIsAssociado(false);
-    setIsEmpresa(false);
-    setUserRole(null);
-  };
-
-  const checkUserRole = async (userId: string) => {
+  // Use a callback to avoid recreation on each render
+  const checkUserRole = useCallback(async (userId: string) => {
     try {
-      // First check for admin role
+      // First check for admin role using the RPC function
       const { data: adminData, error: adminError } = await supabase
         .rpc('has_role', { user_id: userId, role_to_check: 'admin' });
       
@@ -100,6 +42,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (adminData) {
         setIsAdmin(true);
+        setIsAssociado(false);
+        setIsEmpresa(false);
         setUserRole('admin');
         return;
       }
@@ -121,26 +65,108 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Convert legacy roles to new simplified structure
         if (dbRole === 'associado' || dbRole === 'diretoria') {
           role = 'user';
-        } else if (dbRole === 'conveniado') {
+          setIsAssociado(true);
+          setIsAdmin(false);
+          setIsEmpresa(false);
+        } else if (dbRole === 'conveniado' || dbRole === 'empresa') {
           role = 'empresa';
-        } else if (dbRole === 'admin' || dbRole === 'user' || dbRole === 'empresa') {
-          // Use the role as is if it's already one of our valid types
-          role = dbRole as UserRole;
+          setIsEmpresa(true);
+          setIsAdmin(false);
+          setIsAssociado(false);
+        } else if (dbRole === 'admin') {
+          // Use the role as is if it's admin
+          role = 'admin';
+          setIsAdmin(true);
+          setIsAssociado(false);
+          setIsEmpresa(false);
         } else {
           // Default fallback
           role = 'user';
+          setIsAssociado(true);
+          setIsAdmin(false);
+          setIsEmpresa(false);
         }
         
         setUserRole(role);
-        setIsAdmin(role === 'admin');
-        setIsAssociado(role === 'user');
-        setIsEmpresa(role === 'empresa');
       }
     } catch (error) {
       console.error("Error checking user role:", error);
       resetRoles();
     }
-  };
+  }, []);
+
+  const resetRoles = useCallback(() => {
+    setIsAdmin(false);
+    setIsAssociado(false);
+    setIsEmpresa(false);
+    setUserRole(null);
+  }, []);
+
+  useEffect(() => {
+    // Avoid state updates if the component is unmounting
+    let mounted = true;
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        if (!mounted) return;
+        
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        // Use setTimeout to avoid potential Supabase callback deadlocks
+        if (currentSession?.user) {
+          setTimeout(() => {
+            if (mounted) {
+              checkUserRole(currentSession.user.id);
+            }
+          }, 0);
+          
+          // Log authentication events
+          if (event === 'SIGNED_IN') {
+            setTimeout(async () => {
+              try {
+                if (!mounted) return;
+                
+                // Insert directly into user_access_logs table
+                await supabase
+                  .from('user_access_logs')
+                  .insert({
+                    user_id: currentSession.user.id,
+                    event: 'Login',
+                    created_at: new Date().toISOString()
+                  });
+              } catch (error) {
+                console.error('Error logging sign in:', error);
+              }
+            }, 0);
+          }
+        } else {
+          if (mounted) {
+            resetRoles();
+          }
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      if (!mounted) return;
+      
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      
+      if (currentSession?.user) {
+        checkUserRole(currentSession.user.id);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [checkUserRole, resetRoles]);
 
   const signIn = async (email: string, password: string) => {
     try {

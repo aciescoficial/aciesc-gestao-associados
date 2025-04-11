@@ -1,12 +1,13 @@
 
 import { useState } from 'react';
 import { User } from '../types';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, handleSupabaseError } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { mapToDbRole } from '../utils/roleUtils';
 
 export const useUserEdit = (onSuccess: (updatedUser: User) => void) => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSelectedUserChange = (field: string, value: any) => {
@@ -18,6 +19,7 @@ export const useUserEdit = (onSuccess: (updatedUser: User) => void) => {
   const updateUser = async () => {
     if (!selectedUser) return;
     
+    setIsLoading(true);
     try {
       // Map the role properly
       const dbRole = mapToDbRole(selectedUser.role);
@@ -41,22 +43,32 @@ export const useUserEdit = (onSuccess: (updatedUser: User) => void) => {
         description: `O usuário ${selectedUser.name} foi atualizado com sucesso.`
       });
     } catch (error) {
-      console.error("Error updating user:", error);
+      const errorMessage = handleSupabaseError(error);
+      
       toast({
         title: "Erro ao atualizar usuário",
-        description: "Não foi possível atualizar o usuário.",
+        description: errorMessage,
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const toggleUserActive = async (userId: string, active: boolean) => {
+    setIsLoading(true);
     try {
-      // We need to track active status separately since it's not in the profiles table
-      // For now, we'll update a custom field in the database or handle it client-side
+      // Buscar informações do usuário para garantir que temos todos os dados
+      const { data: userData, error: userError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
       
-      // Since 'active' is not in the profiles table, we won't update it in the database
-      // Instead, we'll just update the local state and notify of success
+      if (userError) throw userError;
+      
+      // Implementar soft delete ou flag de status na tabela de perfis
+      // Por enquanto, apenas atualizamos o estado local
       
       // Notify of success
       toast({
@@ -73,24 +85,28 @@ export const useUserEdit = (onSuccess: (updatedUser: User) => void) => {
       onSuccess({
         id: userId,
         active,
-        name: selectedUser?.name || '',
+        name: userData?.name || selectedUser?.name || '',
         email: selectedUser?.email || '',
-        role: selectedUser?.role || 'user',
-        createdAt: new Date()
+        role: (userData?.role as any) || selectedUser?.role || 'user',
+        createdAt: userData?.created_at ? new Date(userData.created_at) : new Date()
       });
     } catch (error) {
-      console.error("Error toggling user active status:", error);
+      const errorMessage = handleSupabaseError(error);
+      
       toast({
         title: "Erro ao atualizar status do usuário",
-        description: "Não foi possível atualizar o status do usuário.",
+        description: errorMessage,
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return {
     selectedUser,
     setSelectedUser,
+    isLoading,
     handleSelectedUserChange,
     updateUser,
     toggleUserActive

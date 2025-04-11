@@ -1,7 +1,7 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User } from '../types';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, handleSupabaseError } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { mapFromDbRole } from '../utils/roleUtils';
 
@@ -11,27 +11,44 @@ export const useUserFetch = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch all auth users - this requires admin rights
-      const { data: authUsers, error: authError } = await supabase
+      // Fetch profiles data
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*');
       
-      if (authError) throw authError;
-      
-      if (authUsers && authUsers.length > 0) {
+      if (profilesError) throw profilesError;
+
+      // If we have profiles data, format it
+      if (profilesData && profilesData.length > 0) {
+        // Get user emails from auth.users if possible (requires admin rights)
+        let authUsers: {id: string, email: string}[] = [];
+        try {
+          // Try to get user emails from auth schema - might fail due to permissions
+          const { data, error } = await supabase
+            .rpc('get_auth_users');
+          
+          if (!error && data) {
+            authUsers = data;
+          }
+        } catch (error) {
+          console.warn("Could not fetch auth users data. Continuing with profiles only.", error);
+        }
+        
+        // Map auth users to a dictionary for faster lookups
+        const authUsersDict = authUsers.reduce((dict, user) => {
+          dict[user.id] = user.email;
+          return dict;
+        }, {} as Record<string, string>);
+        
         // Format users from profiles
-        const formattedUsers: User[] = authUsers.map(profile => {
+        const formattedUsers: User[] = profilesData.map(profile => {
           return {
             id: profile.id,
             name: profile.name || '',
-            email: '', // We'll need to populate this separately or through a join
+            email: authUsersDict[profile.id] || '', // Get email from dictionary if available
             role: mapFromDbRole(profile.role),
             active: true, // Default to active since this isn't in the database
             createdAt: profile.created_at ? new Date(profile.created_at) : new Date()
@@ -39,18 +56,26 @@ export const useUserFetch = () => {
         });
         
         setUsers(formattedUsers);
+      } else {
+        setUsers([]);
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
+      const errorMessage = handleSupabaseError(error);
+      
       toast({
         title: "Erro ao carregar usuários",
-        description: "Não foi possível carregar a lista de usuários.",
+        description: errorMessage,
         variant: "destructive"
       });
+      setUsers([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const filteredUsers = users.filter(user => 
     (user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||

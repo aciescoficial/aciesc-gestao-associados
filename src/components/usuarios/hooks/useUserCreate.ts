@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { UserRole, User } from '../types';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, handleSupabaseError } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { mapToDbRole } from '../utils/roleUtils';
 
@@ -12,6 +12,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
     role: 'user' as UserRole,
     password: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleNewUserChange = (field: string, value: string) => {
@@ -19,6 +20,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
   };
 
   const addUser = async () => {
+    setIsLoading(true);
     try {
       // Validate input
       if (!newUser.name || !newUser.email || !newUser.password) {
@@ -27,8 +29,12 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           description: "Por favor, preencha todos os campos obrigatórios.",
           variant: "destructive"
         });
+        setIsLoading(false);
         return;
       }
+
+      // Map the role properly before sending to Supabase
+      const dbRole = mapToDbRole(newUser.role);
 
       // Create the user in auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -37,6 +43,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
         options: {
           data: {
             name: newUser.name,
+            role: dbRole
           }
         }
       });
@@ -44,15 +51,12 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
       if (authError) throw authError;
       
       if (authData && authData.user) {
-        // Map the role properly
-        const dbRole = mapToDbRole(newUser.role);
-        
         // Set the user role in profiles table
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             name: newUser.name,
-            role: dbRole as any // Use type assertion to bypass TypeScript check since we know these values are valid
+            role: dbRole as any // Use type assertion to bypass TypeScript check
           })
           .eq('id', authData.user.id);
         
@@ -77,16 +81,19 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           title: "Usuário criado",
           description: `O usuário ${createdUser.name} foi criado com sucesso.`
         });
+      } else {
+        throw new Error('Não foi possível criar o usuário. Nenhum dado retornado.');
       }
     } catch (error) {
-      console.error("Error adding user:", error);
+      const errorMessage = handleSupabaseError(error);
+      
       toast({
         title: "Erro ao criar usuário",
-        description: typeof error === 'object' && error !== null && 'message' in error 
-          ? String(error.message) 
-          : "Não foi possível criar o usuário.",
+        description: errorMessage,
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -101,6 +108,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
 
   return {
     newUser,
+    isLoading,
     handleNewUserChange,
     addUser,
     resetNewUser

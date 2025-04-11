@@ -16,6 +16,49 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true
+    },
+    db: {
+      schema: 'public'
+    },
+    global: {
+      headers: {
+        'x-application-name': 'aciesc-app'
+      },
+      fetch: (url, options) => {
+        // Custom fetch logic with timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+        
+        return fetch(url, {
+          ...options,
+          signal: controller.signal
+        }).then(response => {
+          clearTimeout(timeoutId);
+          return response;
+        }).catch(error => {
+          clearTimeout(timeoutId);
+          throw error;
+        });
+      }
     }
   }
 );
+
+// Helper function to handle Supabase errors
+export const handleSupabaseError = (error: any): string => {
+  console.error('Supabase error:', error);
+  
+  if (error?.code === '42501') {
+    return 'Permissão negada para esta operação. Por favor, verifique suas credenciais ou entre em contato com o administrador.';
+  }
+  
+  if (error?.code === '23505') {
+    return 'Este registro já existe no sistema.';
+  }
+  
+  if (error?.message?.includes('infinite recursion')) {
+    return 'Erro de recursão no banco de dados. Por favor, entre em contato com o administrador.';
+  }
+  
+  return error?.message || 'Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.';
+};
