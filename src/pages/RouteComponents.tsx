@@ -1,4 +1,3 @@
-
 import React from 'react';
 import PluginLayout from '@/components/PluginLayout';
 import Dashboard from '@/components/Dashboard';
@@ -106,7 +105,7 @@ const RouteComponents = {
   SolicitarCarteirinhaPage,
   EmpresasConveniadasPage,
   EmpresasPesquisaPage,
-  ConfiguracoesPage, // Added missing component to export
+  ConfiguracoesPage,
   NotFound: () => <div>Página não encontrada</div>
 };
 

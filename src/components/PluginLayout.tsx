@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -48,15 +47,14 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
     { header: "Admin", roles: ['admin'] },
     { icon: UserCog, label: "Usuários", path: "/usuarios", roles: ['admin'] },
     { icon: Shield, label: "Permissões", path: "/usuarios/permissoes", roles: ['admin'] },
+    { icon: CheckSquare, label: "Aprovações Pendentes", path: "/aprovacoes", roles: ['admin'] },
     { header: "Associados", roles: ['admin'] },
     { icon: UserPlus, label: "Cadastrar", path: "/associados/cadastro", roles: ['admin'] },
-    { icon: CheckSquare, label: "Aprovação Pendente", path: "/aprovacoes", roles: ['admin'] },
-    { icon: CreditCard, label: "Gerar Carteirinha", path: "/carteirinhas", roles: ['admin'] },
     { icon: Search, label: "Pesquisar", path: "/associados/pesquisa", roles: ['admin', 'user'] },
     { icon: Users, label: "Listar Todos", path: "/associados/listar", roles: ['admin'] },
+    { icon: CreditCard, label: "Gerar Carteirinha", path: "/carteirinhas", roles: ['admin'] },
     { header: "Empresas", roles: ['admin'] },
     { icon: Building, label: "Cadastrar", path: "/empresas/cadastro", roles: ['admin'] },
-    { icon: CheckSquare, label: "Aprovação Pendente", path: "/empresas/pendentes", roles: ['admin'] },
     { icon: Search, label: "Pesquisar", path: "/empresas/pesquisa", roles: ['admin'] },
     { header: "Financeiro", roles: ['admin'] },
     { icon: BarChart, label: "Resumo", path: "/financeiro", roles: ['admin'] },

@@ -54,12 +54,8 @@ const AppRoutes: React.FC = () => {
               <RouteComponents.PesquisaEmpresa />
             </ProtectedRoute>
           } />
-          <Route path="/empresas/pendentes" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <RouteComponents.AprovacoesPendentes />
-            </ProtectedRoute>
-          } />
-
+          
+          {/* Admin approval route - moved under admin section */}
           <Route path="/aprovacoes" element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <RouteComponents.AprovacoesPendentes />
