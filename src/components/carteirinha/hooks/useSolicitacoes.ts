@@ -24,9 +24,12 @@ export function useSolicitacoes() {
       const from = (currentPage - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
       
-      // Constrói a query com filtros - usando type casting para contornar erros de tipo
-      let query = (supabase
-        .from('carteirinha_solicitacoes') as any)
+      // Contorna o erro de tipo usando type assertion
+      const supabaseAny = supabase as any;
+      
+      // Constrói a query com filtros
+      let query = supabaseAny
+        .from('carteirinha_solicitacoes')
         .select('*', { count: 'exact' });
       
       // Aplica filtro de status se selecionado
@@ -46,7 +49,7 @@ export function useSolicitacoes() {
       
       if (error) throw error;
       
-      // Atualiza os estados e aplica casting seguro
+      // Atualiza os estados com type assertion seguro
       if (data) {
         setSolicitacoes(data as unknown as CarteirinhaSolicitacao[]);
       }
@@ -87,9 +90,11 @@ export function useSolicitacoes() {
   // Handler para atualização de status
   const updateSolicitacao = async (id: string, data: Partial<CarteirinhaSolicitacao>): Promise<boolean> => {
     try {
-      // Usa type casting para contornar erros de tipo no Supabase
-      const { error } = await (supabase
-        .from('carteirinha_solicitacoes') as any)
+      // Contorna o erro de tipo usando type assertion
+      const supabaseAny = supabase as any;
+      
+      const { error } = await supabaseAny
+        .from('carteirinha_solicitacoes')
         .update(data)
         .eq('id', id);
       
