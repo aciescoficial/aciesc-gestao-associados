@@ -14,10 +14,7 @@ interface PendenteData {
 }
 
 const AprovacoesPendentes: React.FC = () => {
-  const [pendentes, setPendentes] = useState<PendenteData[]>([
-    { id: '2', tipo: 'empresa', nome: 'Academia Fitness', documento: '22.222.222/0001-22', dataCadastro: '02/04/2025', email: 'contato@academiafitness.com.br', telefone: '(47) 3333-3333' },
-    { id: '4', tipo: 'empresa', nome: 'Café Expresso', documento: '44.444.444/0001-44', dataCadastro: '31/03/2025', email: 'contato@cafeexpresso.com.br', telefone: '(47) 3333-5555' }
-  ]);
+  const [pendentes, setPendentes] = useState<PendenteData[]>([]);
   
   const { toast } = useToast();
   
