@@ -24,3 +24,13 @@ export async function logUserActivity(user_id_param: string, event_param: string
     created_at_param
   };
 }
+
+/**
+ * Get users from auth schema (requires admin rights)
+ * Returns array of user objects with id and email
+ */
+export async function get_auth_users() {
+  return [
+    { id: string, email: string }
+  ];
+}

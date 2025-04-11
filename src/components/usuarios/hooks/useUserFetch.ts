@@ -31,7 +31,7 @@ export const useUserFetch = () => {
             .rpc('get_auth_users');
           
           if (!error && data) {
-            authUsers = data;
+            authUsers = data as {id: string, email: string}[];
           }
         } catch (error) {
           console.warn("Could not fetch auth users data. Continuing with profiles only.", error);
