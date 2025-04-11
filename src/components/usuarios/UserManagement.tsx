@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { PlusCircle, RefreshCw, Search } from 'lucide-react';
+import { PlusCircle, RefreshCw } from 'lucide-react';
 import UserList from './components/UserList';
+import UserFilters from './components/UserFilters';
 import AddUserDialog from './components/AddUserDialog';
 import EditUserDialog from './components/EditUserDialog';
 import { useUserManagement } from './hooks/useUserManagement';
@@ -12,8 +12,8 @@ import { getRoleBadgeColor, getRoleLabel } from './utils/roleUtils';
 const UserManagement: React.FC = () => {
   const {
     loading,
-    searchTerm,
-    setSearchTerm,
+    filters,
+    updateFilters,
     filteredUsers,
     isAddUserDialogOpen,
     setIsAddUserDialogOpen,
@@ -47,15 +47,10 @@ const UserManagement: React.FC = () => {
       </div>
       
       <div className="wp-card space-y-4">
-        <div className="flex items-center space-x-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Pesquisar por nome ou email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
-        </div>
+        <UserFilters 
+          filters={filters}
+          onUpdateFilters={updateFilters}
+        />
         
         <UserList 
           loading={loading}

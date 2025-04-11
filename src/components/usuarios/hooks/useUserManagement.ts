@@ -10,11 +10,10 @@ export const useUserManagement = () => {
   const editUserDialog = useDialogState(false);
   
   const { 
-    users, 
     filteredUsers, 
     loading, 
-    searchTerm, 
-    setSearchTerm,
+    filters,
+    updateFilters,
     fetchUsers 
   } = useUserFetch();
 
@@ -43,8 +42,8 @@ export const useUserManagement = () => {
   return {
     // User list state
     loading,
-    searchTerm,
-    setSearchTerm,
+    filters,
+    updateFilters,
     filteredUsers,
     
     // Add user dialog state
