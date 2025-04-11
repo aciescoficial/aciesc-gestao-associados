@@ -4,6 +4,8 @@ import { Route, Routes, Outlet } from "react-router-dom";
 import RouteComponents from "./pages/RouteComponents";
 import { ProtectedRoute, AdminRoute } from "./pages/AuthRoutes";
 import PluginLayout from "./components/PluginLayout";
+import LoginPage from "./components/auth/LoginPage";
+import NotFound from "./pages/NotFound";
 
 // Página de configurações
 const ConfiguracoesPage = lazy(() => import("./components/configuracoes/ConfiguracoesPage"));
@@ -13,8 +15,9 @@ const AppRoutes: React.FC = () => {
     <Suspense fallback={<div className="p-4">Carregando...</div>}>
       <Routes>
         <Route path="/auth/*" element={<RouteComponents.Index />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<RouteComponents.Index />} />
-        <Route path="*" element={<RouteComponents.NotFound />} />
+        <Route path="*" element={<NotFound />} />
 
         {/* Fixed route by using element with children prop properly through Outlet */}
         <Route path="/" element={<PluginLayout><Outlet /></PluginLayout>}>
