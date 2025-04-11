@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,13 +71,10 @@ const UserManagement: React.FC = () => {
       if (error) throw error;
       
       if (data) {
-        // Convert legacy roles to new simplified structure if needed
         const formattedUsers: User[] = data.map(profile => {
-          // Map legacy roles to new simplified structure
           let role: UserRole;
           const dbRole = profile.role as string;
           
-          // Handle role mapping to our defined UserRole type
           if (['associado', 'diretoria'].includes(dbRole)) {
             role = 'user';
           } else if (dbRole === 'conveniado' || dbRole === 'empresa') {
@@ -86,7 +82,6 @@ const UserManagement: React.FC = () => {
           } else if (dbRole === 'admin' || dbRole === 'user') {
             role = dbRole as UserRole;
           } else {
-            // Default fallback
             role = 'user';
           }
           
