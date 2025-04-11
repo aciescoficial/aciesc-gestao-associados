@@ -1,62 +1,139 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
+import { Label } from '@/components/ui/label';
+import { 
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue 
 } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
-interface FinanceiroRelatoriosFilterProps {
-  onApplyFilters: () => void;
+interface FilterProps {
+  onApplyFilters: (filters: any) => void;
 }
 
-export const FinanceiroRelatoriosFilter: React.FC<FinanceiroRelatoriosFilterProps> = ({
+export const FinanceiroRelatoriosFilter: React.FC<FilterProps> = ({
   onApplyFilters
 }) => {
-  const [statusFilter, setStatusFilter] = useState<string>('todos');
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('todos');
-  const [dateFromFilter, setDateFromFilter] = useState<Date | undefined>(undefined);
-  const [dateToFilter, setDateToFilter] = useState<Date | undefined>(undefined);
-  const [valueMinFilter, setValueMinFilter] = useState<string>('');
-  const [valueMaxFilter, setValueMaxFilter] = useState<string>('');
+  const [startDate, setStartDate] = React.useState<Date>();
+  const [endDate, setEndDate] = React.useState<Date>();
+  const [tipoTransacao, setTipoTransacao] = React.useState<string>('');
+  const [status, setStatus] = React.useState<string>('');
+  const [valorMin, setValorMin] = React.useState<string>('');
+  const [valorMax, setValorMax] = React.useState<string>('');
 
   const handleApplyFilters = () => {
-    // In a real implementation, we would pass these filters to the parent component
-    onApplyFilters();
+    onApplyFilters({
+      startDate,
+      endDate,
+      tipoTransacao,
+      status,
+      valorMin: valorMin ? parseFloat(valorMin) : undefined,
+      valorMax: valorMax ? parseFloat(valorMax) : undefined,
+    });
   };
 
   const handleResetFilters = () => {
-    setStatusFilter('todos');
-    setPaymentMethodFilter('todos');
-    setDateFromFilter(undefined);
-    setDateToFilter(undefined);
-    setValueMinFilter('');
-    setValueMaxFilter('');
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setTipoTransacao('');
+    setStatus('');
+    setValorMin('');
+    setValorMax('');
+    onApplyFilters({});
   };
 
   return (
-    <div className="bg-muted/30 border rounded-md p-4 space-y-4">
-      <h3 className="text-sm font-medium">Filtrar por:</h3>
+    <div className="border rounded-md p-4 bg-card">
+      <h3 className="font-semibold mb-4">Filtros avançados</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Status filter */}
-        <div>
-          <label className="text-sm text-muted-foreground mb-1 block">Status</label>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione um status" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Data Inicial */}
+        <div className="space-y-2">
+          <Label htmlFor="startDate">Data Inicial</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {startDate ? format(startDate, "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={setStartDate}
+                initialFocus
+                locale={ptBR}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        
+        {/* Data Final */}
+        <div className="space-y-2">
+          <Label htmlFor="endDate">Data Final</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {endDate ? format(endDate, "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={setEndDate}
+                initialFocus
+                locale={ptBR}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        
+        {/* Tipo de Transação */}
+        <div className="space-y-2">
+          <Label htmlFor="tipoTransacao">Tipo de Transação</Label>
+          <Select value={tipoTransacao} onValueChange={setTipoTransacao}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione o tipo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="mensalidade">Mensalidade</SelectItem>
+              <SelectItem value="anuidade">Anuidade</SelectItem>
+              <SelectItem value="taxa_adesao">Taxa de Adesão</SelectItem>
+              <SelectItem value="carteirinha">Taxa de Carteirinha</SelectItem>
+              <SelectItem value="outros">Outros</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Status */}
+        <div className="space-y-2">
+          <Label htmlFor="status">Status</Label>
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione o status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos</SelectItem>
               <SelectItem value="pago">Pago</SelectItem>
               <SelectItem value="pendente">Pendente</SelectItem>
               <SelectItem value="atrasado">Atrasado</SelectItem>
@@ -65,107 +142,38 @@ export const FinanceiroRelatoriosFilter: React.FC<FinanceiroRelatoriosFilterProp
           </Select>
         </div>
         
-        {/* Payment method filter */}
-        <div>
-          <label className="text-sm text-muted-foreground mb-1 block">Forma de pagamento</label>
-          <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione uma forma de pagamento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="boleto">Boleto Bancário</SelectItem>
-              <SelectItem value="pix">Pix</SelectItem>
-              <SelectItem value="cartao">Cartão de Crédito</SelectItem>
-              <SelectItem value="dinheiro">Dinheiro</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Valor Mínimo */}
+        <div className="space-y-2">
+          <Label htmlFor="valorMin">Valor Mínimo (R$)</Label>
+          <Input 
+            id="valorMin" 
+            type="number" 
+            step="0.01"
+            placeholder="0,00"
+            value={valorMin}
+            onChange={(e) => setValorMin(e.target.value)}
+          />
         </div>
         
-        {/* Value range filter */}
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-sm text-muted-foreground mb-1 block">Valor mínimo</label>
-            <Input
-              type="number"
-              placeholder="R$ 0,00"
-              value={valueMinFilter}
-              onChange={(e) => setValueMinFilter(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-sm text-muted-foreground mb-1 block">Valor máximo</label>
-            <Input
-              type="number"
-              placeholder="R$ 9.999,99"
-              value={valueMaxFilter}
-              onChange={(e) => setValueMaxFilter(e.target.value)}
-            />
-          </div>
-        </div>
-        
-        {/* Date range filter */}
-        <div>
-          <label className="text-sm text-muted-foreground mb-1 block">De</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !dateFromFilter && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateFromFilter ? format(dateFromFilter, 'dd/MM/yyyy') : "Selecionar data"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={dateFromFilter}
-                onSelect={setDateFromFilter}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        
-        <div>
-          <label className="text-sm text-muted-foreground mb-1 block">Até</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !dateToFilter && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateToFilter ? format(dateToFilter, 'dd/MM/yyyy') : "Selecionar data"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={dateToFilter}
-                onSelect={setDateToFilter}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+        {/* Valor Máximo */}
+        <div className="space-y-2">
+          <Label htmlFor="valorMax">Valor Máximo (R$)</Label>
+          <Input 
+            id="valorMax" 
+            type="number" 
+            step="0.01"
+            placeholder="0,00"
+            value={valorMax}
+            onChange={(e) => setValorMax(e.target.value)}
+          />
         </div>
       </div>
       
-      <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={handleResetFilters}>
-          Limpar filtros
-        </Button>
-        <Button onClick={handleApplyFilters}>
-          Aplicar filtros
-        </Button>
+      <div className="mt-6 flex justify-end space-x-2">
+        <Button variant="outline" onClick={handleResetFilters}>Limpar Filtros</Button>
+        <Button onClick={handleApplyFilters}>Aplicar Filtros</Button>
       </div>
     </div>
   );
 };
+

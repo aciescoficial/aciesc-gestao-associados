@@ -5,6 +5,7 @@ import { ProtectedRoute } from '../AuthRoutes';
 import PluginLayout from '@/components/PluginLayout';
 import PesquisaAssociado from '@/components/PesquisaAssociado';
 import EmpresasConveniadas from '@/components/associado/EmpresasConveniadas';
+import SolicitarCarteirinhaPage from '@/components/associado/SolicitarCarteirinhaPage';
 
 // Layout wrapper component to avoid circular dependencies
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -20,18 +21,6 @@ const PagamentosAssociadoPage = () => (
     <div className="wp-card">
       <p className="text-muted-foreground">
         Esta página de pagamentos está em construção.
-      </p>
-    </div>
-  </div>
-);
-
-// Placeholder for member ID card request page
-const SolicitarCarteirinhaPage = () => (
-  <div className="space-y-6">
-    <h1 className="wp-header">Solicitar Carteirinha</h1>
-    <div className="wp-card">
-      <p className="text-muted-foreground">
-        Esta página para solicitar carteirinha está em construção.
       </p>
     </div>
   </div>

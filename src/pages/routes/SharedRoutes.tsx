@@ -7,6 +7,7 @@ import Dashboard from '@/components/Dashboard';
 import ProfilePage from '@/components/auth/ProfilePage';
 import MensagensPage from '@/components/mensagens/MensagensPage';
 import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
+import PagamentoSucesso from '@/components/pagamento/PagamentoSucesso';
 
 // Layout wrapper component to avoid circular dependencies
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -54,6 +55,15 @@ export const SharedRoutes = [
     <ProtectedRoute>
       <LayoutWrapper>
         <MensagensPage />
+      </LayoutWrapper>
+    </ProtectedRoute>
+  } />,
+  
+  // Payment success page
+  <Route key="pagamento-sucesso" path="/pagamento-sucesso" element={
+    <ProtectedRoute>
+      <LayoutWrapper>
+        <PagamentoSucesso />
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
