@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Users, Receipt, DollarSign, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,30 +19,22 @@ import { type ChartData, type FinancialSummary } from './types';
 import FinanceiroResumoFilter, { FinanceiroFilters } from './FinanceiroResumoFilter';
 
 const FinanceiroResumoPage: React.FC = () => {
-  // This would typically come from an API or database
+  // Initial data with zeros to represent a clean state
   const [summaryData] = useState<FinancialSummary>({
-    clients: { total: 19, defaulters: 0 },
-    bills: { expected: 24, overdue: 0, received: 3 },
-    revenue: { expected: 45514.23, confirmed: 967.23, received: 5787.00 }
+    clients: { total: 0, defaulters: 0 },
+    bills: { expected: 0, overdue: 0, received: 0 },
+    revenue: { expected: 0, confirmed: 0, received: 0 }
   });
 
-  // Mock chart data
+  // Clean chart data - empty state
   const [chartData] = useState<ChartData[]>([
-    { date: '01/Abr/2025', expected: 0, received: 0 },
-    { date: '03/Abr/2025', expected: 0, received: 1500 },
-    { date: '05/Abr/2025', expected: 0, received: 1800 },
-    { date: '07/Abr/2025', expected: 0, received: 0 },
-    { date: '09/Abr/2025', expected: 1800, received: 2900 },
-    { date: '11/Abr/2025', expected: 0, received: 0 },
-    { date: '13/Abr/2025', expected: 0, received: 0 },
-    { date: '15/Abr/2025', expected: 2000, received: 7000 },
-    { date: '17/Abr/2025', expected: 0, received: 0 },
-    { date: '19/Abr/2025', expected: 0, received: 12500 },
-    { date: '21/Abr/2025', expected: 0, received: 0 },
-    { date: '23/Abr/2025', expected: 0, received: 0 },
-    { date: '25/Abr/2025', expected: 0, received: 2800 },
-    { date: '27/Abr/2025', expected: 0, received: 3800 },
-    { date: '29/Abr/2025', expected: 0, received: 0 },
+    { date: '01/Abr', expected: 0, received: 0 },
+    { date: '05/Abr', expected: 0, received: 0 },
+    { date: '10/Abr', expected: 0, received: 0 },
+    { date: '15/Abr', expected: 0, received: 0 },
+    { date: '20/Abr', expected: 0, received: 0 },
+    { date: '25/Abr', expected: 0, received: 0 },
+    { date: '30/Abr', expected: 0, received: 0 },
   ]);
 
   const [filters, setFilters] = useState<FinanceiroFilters>({
