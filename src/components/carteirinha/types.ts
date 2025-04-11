@@ -31,6 +31,31 @@ export interface CardSettings {
   defaultBackImage?: string;
 }
 
+export interface CarteirinhaSolicitacao {
+  id: string;
+  associado_id: string;
+  nome: string;
+  sobrenome: string;
+  endereco_entrega: string;
+  complemento?: string;
+  valor: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  pagamento_id?: string;
+  codigo_rastreio?: string;
+  observacoes?: string;
+  email?: string;
+}
+
+export type CarteirinhaStatus = 
+  | 'pendente_pagamento'
+  | 'pagamento_aprovado'
+  | 'em_producao'
+  | 'enviado'
+  | 'entregue'
+  | 'cancelado';
+
 // Cores padrão da ACIESC
 export const ACIESC_COLORS = {
   primaryGreen: '#00A650', // Verde principal

@@ -8,7 +8,7 @@ import CardPreviewPanel from './CardPreviewPanel';
 import { useConveniadoSearch } from './hooks/useConveniadoSearch';
 import { useCardSettings } from './hooks/useCardSettings';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CreditCard, Truck } from 'lucide-react';
+import { CreditCard, Truck } from 'lucide-react';
 import CarteirinhaSolicitacoes from './CarteirinhaSolicitacoes';
 
 const GeradorCarteirinha: React.FC = () => {
