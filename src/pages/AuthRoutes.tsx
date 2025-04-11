@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { LoaderCircle } from 'lucide-react';
+import { UserRole } from '@/components/usuarios/types';
 
 // Improved loading component with better UX
 const LoadingSpinner = () => (
@@ -18,39 +19,34 @@ export const ProtectedRoute = ({
   allowedRoles = [] 
 }: { 
   children: React.ReactNode, 
-  allowedRoles?: string[] 
+  allowedRoles?: UserRole[] 
 }) => {
   const { user, loading, userRole, isAdmin } = useAuth();
   const location = useLocation();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
   
   useEffect(() => {
     // Only run the authorization check once we have the user data
     if (!loading) {
       if (!user) {
         setIsAuthorized(false);
-        setAuthChecked(true);
         return;
       }
       
       // Admin can access everything
       if (isAdmin) {
         setIsAuthorized(true);
-        setAuthChecked(true);
         return;
       }
       
       // Check if current user role is allowed
       if (allowedRoles.length > 0 && userRole) {
         setIsAuthorized(allowedRoles.includes(userRole));
-        setAuthChecked(true);
         return;
       }
       
       // If no specific roles required, authorized by default
       setIsAuthorized(true);
-      setAuthChecked(true);
     }
   }, [loading, user, userRole, isAdmin, allowedRoles]);
   

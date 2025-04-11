@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -212,7 +211,6 @@ const LoginPage = () => {
                       </div>
                     </div>
                     
-                    {/* reCAPTCHA placeholder - actual integration needs API keys */}
                     <div className="border border-gray-200 rounded p-2 bg-gray-50 flex justify-center items-center h-[78px]">
                       <div className="text-sm text-gray-500">reCAPTCHA será carregado aqui</div>
                     </div>
@@ -308,7 +306,6 @@ const LoginPage = () => {
                       </Select>
                     </div>
                     
-                    {/* reCAPTCHA placeholder - actual integration needs API keys */}
                     <div className="border border-gray-200 rounded p-2 bg-gray-50 flex justify-center items-center h-[78px]">
                       <div className="text-sm text-gray-500">reCAPTCHA será carregado aqui</div>
                     </div>

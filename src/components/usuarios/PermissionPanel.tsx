@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -171,7 +170,6 @@ const PermissionPanel: React.FC = () => {
             );
           })}
 
-        {/* Continue with other modules, same pattern */}
         {permissions.filter(p => p.module === 'empresas').map(permission => {
           const permissionKey = `${permission.id}-${role}`;
           return (

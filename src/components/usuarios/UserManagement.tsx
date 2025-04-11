@@ -75,9 +75,17 @@ const UserManagement: React.FC = () => {
         // Convert legacy roles to new simplified structure if needed
         const formattedUsers: User[] = data.map(profile => {
           // Map legacy roles to new simplified structure
-          let role = profile.role as UserRole;
-          if (role === 'associado' || role === 'diretoria' || role === 'conveniado') {
-            role = role === 'associado' ? 'user' : (role === 'conveniado' ? 'empresa' : role);
+          const dbRole = profile.role as string;
+          let role: UserRole;
+          
+          // Convert legacy roles to new simplified structure
+          if (dbRole === 'associado' || dbRole === 'diretoria') {
+            role = 'user';
+          } else if (dbRole === 'conveniado') {
+            role = 'empresa';
+          } else {
+            // Use the role as is if it's already one of our valid types
+            role = dbRole as UserRole;
           }
           
           return {

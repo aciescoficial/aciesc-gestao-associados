@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -114,12 +113,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (profileError) throw profileError;
       
       if (profileData) {
-        // Map legacy roles to new simplified roles if needed
-        let role = profileData.role as UserRole;
+        // Map legacy roles to new simplified roles
+        const dbRole = profileData.role as string;
+        let role: UserRole;
         
         // Convert legacy roles to new simplified structure
-        if (role === 'associado' || role === 'diretoria' || role === 'conveniado') {
-          role = role === 'associado' ? 'user' : (role === 'conveniado' ? 'empresa' : role);
+        if (dbRole === 'associado' || dbRole === 'diretoria') {
+          role = 'user';
+        } else if (dbRole === 'conveniado') {
+          role = 'empresa';
+        } else {
+          // Use the role as is if it's already one of our valid types
+          role = dbRole as UserRole;
         }
         
         setUserRole(role);
