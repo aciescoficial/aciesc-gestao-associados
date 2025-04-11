@@ -17,11 +17,11 @@ interface MainSidebarProps {
 
 const MainSidebar: React.FC<MainSidebarProps> = ({ location }) => {
   return (
-    <Sidebar variant="sidebar" collapsible="icon">
-      <SidebarHeader className="py-4">
-        <div className="px-2 flex items-center justify-between">
-          <h1 className="text-xl font-bold">ACIESC</h1>
-          <SidebarTrigger />
+    <Sidebar variant="sidebar" collapsible="icon" className="bg-aciesc-primary text-white">
+      <SidebarHeader className="py-4 border-b border-aciesc-dark">
+        <div className="px-4 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-white">ACIESC</h1>
+          <SidebarTrigger className="text-white hover:text-gray-200" />
         </div>
       </SidebarHeader>
       <SidebarContent>

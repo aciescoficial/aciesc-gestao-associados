@@ -106,19 +106,19 @@
 }
 
 .wp-sidebar {
-  @apply bg-gray-900 text-white min-h-screen relative;
+  @apply bg-aciesc-primary text-white min-h-screen relative;
 }
 
 .wp-sidebar-header {
-  @apply text-xs uppercase font-medium text-gray-400 px-4 py-2 mt-4;
+  @apply text-xs uppercase font-medium text-gray-200 px-4 py-2 mt-4;
 }
 
 .wp-sidebar-link {
-  @apply flex items-center px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors;
+  @apply flex items-center px-4 py-2 text-gray-300 hover:bg-aciesc-dark hover:text-white transition-colors;
 }
 
 .wp-sidebar-link.active {
-  @apply bg-aciesc-primary text-white;
+  @apply bg-aciesc-dark text-white;
 }
 
 /* Custom styles for ACIESC */
@@ -128,4 +128,12 @@
 
 .aciesc-secondary-btn {
   @apply bg-white border border-aciesc-primary text-aciesc-primary rounded-md px-4 py-2 hover:bg-gray-50 transition-colors;
+}
+
+.wp-header {
+  @apply text-2xl font-bold mb-6;
+}
+
+.wp-card {
+  @apply bg-white p-6 rounded-lg shadow-sm;
 }

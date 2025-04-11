@@ -35,19 +35,19 @@ const SidebarSubmenu: React.FC<SidebarSubmenuProps> = ({
   return (
     <SidebarGroup key={header}>
       <div 
-        className="flex items-center justify-between cursor-pointer py-2 px-2"
+        className="flex items-center justify-between cursor-pointer py-2 px-4 text-white hover:bg-aciesc-dark transition-colors"
         onClick={() => toggleMenu(header)}
       >
-        <SidebarGroupLabel>{header}</SidebarGroupLabel>
+        <SidebarGroupLabel className="text-white text-sm">{header}</SidebarGroupLabel>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="h-4 w-4 text-white" />
         ) : (
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4 text-white" />
         )}
       </div>
       
       {isExpanded && submenu && submenu.length > 0 && (
-        <SidebarGroupContent>
+        <SidebarGroupContent className="bg-aciesc-dark bg-opacity-30">
           <SidebarMenu>
             {submenu.map((subItem, index) => (
               <SidebarMenuItem
