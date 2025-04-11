@@ -5,7 +5,6 @@ import { useUserFetch } from './useUserFetch';
 import { useUserCreate } from './useUserCreate';
 import { useUserEdit } from './useUserEdit';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 export const useUserManagement = () => {
   const addUserDialog = useDialogState(false);

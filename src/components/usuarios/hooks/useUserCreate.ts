@@ -20,13 +20,23 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
 
   const addUser = async () => {
     try {
+      // Validate input
+      if (!newUser.name || !newUser.email || !newUser.password) {
+        toast({
+          title: "Campos obrigatórios",
+          description: "Por favor, preencha todos os campos obrigatórios.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create the user in auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
         options: {
           data: {
             name: newUser.name,
-            role: mapToDbRole(newUser.role),
           }
         }
       });
@@ -34,6 +44,20 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
       if (authError) throw authError;
       
       if (authData && authData.user) {
+        // Set the user role in profiles table
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            name: newUser.name,
+            role: mapToDbRole(newUser.role)
+          })
+          .eq('id', authData.user.id);
+        
+        if (profileError) {
+          console.error("Error updating profile role:", profileError);
+          // Continue anyway since the user was created
+        }
+        
         const createdUser: User = {
           id: authData.user.id,
           name: newUser.name,

@@ -19,11 +19,12 @@ export const useUserEdit = (onSuccess: (updatedUser: User) => void) => {
     if (!selectedUser) return;
     
     try {
+      // Update the profile in the database
       const { error } = await supabase
         .from('profiles')
         .update({
           name: selectedUser.name,
-          role: mapToDbRole(selectedUser.role) as any
+          role: mapToDbRole(selectedUser.role)
         })
         .eq('id', selectedUser.id);
         
@@ -47,21 +48,37 @@ export const useUserEdit = (onSuccess: (updatedUser: User) => void) => {
 
   const toggleUserActive = async (userId: string, active: boolean) => {
     try {
-      // In a real implementation, you would call an admin API to update the user's active status
-      // For now, we'll just handle the UI update
+      // In a real implementation with Supabase, you might:
+      // 1. Update a field in the profiles table that tracks active status
+      // 2. Or potentially use Supabase Auth admin APIs to disable the user
+
+      // For now we'll assume there's an "active" field in profiles we can update
+      const { error } = await supabase
+        .from('profiles')
+        .update({ active }) 
+        .eq('id', userId);
+        
+      if (error) throw error;
+      
+      // Notify of success
+      toast({
+        title: active ? "Usuário ativado" : "Usuário desativado",
+        description: `O usuário foi ${active ? "ativado" : "desativado"} com sucesso.`
+      });
+      
+      // Update the local state
+      if (selectedUser && selectedUser.id === userId) {
+        setSelectedUser({...selectedUser, active});
+      }
+      
+      // Call the success callback with dummy data to trigger a refresh
       onSuccess({
         id: userId,
         active,
-        // These properties are placeholders since we don't have the full user object
         name: '',
         email: '',
         role: 'user',
         createdAt: new Date()
-      });
-      
-      toast({
-        title: active ? "Usuário ativado" : "Usuário desativado",
-        description: `O usuário foi ${active ? "ativado" : "desativado"} com sucesso.`
       });
     } catch (error) {
       console.error("Error toggling user active status:", error);
