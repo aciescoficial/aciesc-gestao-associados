@@ -1,8 +1,9 @@
 
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import type { EnderecoFormValues } from './EnderecoEntregaForm';
+import { useCarteirinhaData } from './hooks/useCarteirinhaData';
+import { useCarteirinhaSubmit } from './hooks/useCarteirinhaSubmit';
+import { useEndereco } from './hooks/useEndereco';
 
 interface UseCarteirinhaSolicitacaoProps {
   navigateToPayment: (url: string) => void;
@@ -15,182 +16,22 @@ export const useCarteirinhaSolicitacao = ({
   entregaMethod = 'entrega',
   retiradaLocation = 'grafica'
 }: UseCarteirinhaSolicitacaoProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
-  const [taxaEntrega, setTaxaEntrega] = useState(15.00); // Valor padrão
-  const [paymentGateway, setPaymentGateway] = useState<'asaas' | 'stripe'>('asaas');
-  const { toast } = useToast();
+  // Use our extracted hooks
+  const { userData, taxaEntrega, isLoading, paymentGateway, setIsLoading } = useCarteirinhaData();
+  const { handleSubmit: submitCarteirinha } = useCarteirinhaSubmit({
+    userData,
+    taxaEntrega,
+    entregaMethod,
+    retiradaLocation,
+    paymentGateway,
+    navigateToPayment,
+    setIsLoading
+  });
+  const { getDefaultValues } = useEndereco(userData);
 
-  // Carrega os dados do associado logado
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setIsLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          const { data: associado } = await supabase
-            .from('associados')
-            .select('*')
-            .eq('email', user.email)
-            .maybeSingle();
-          
-          if (associado) {
-            setUserData(associado);
-          }
-        }
-        
-        // Carrega a configuração de pagamento
-        const { data: configData } = await supabase
-          .from('system_config')
-          .select('*')
-          .in('key', ['PAYMENT_GATEWAY', 'ID_CARD_FEE'])
-          .order('key');
-        
-        if (configData) {
-          const paymentConfig = configData.find(item => item.key === 'PAYMENT_GATEWAY');
-          const feeConfig = configData.find(item => item.key === 'ID_CARD_FEE');
-          
-          if (paymentConfig) {
-            setPaymentGateway(paymentConfig.value as 'asaas' | 'stripe');
-          }
-          
-          if (feeConfig) {
-            setTaxaEntrega(parseFloat(feeConfig.value));
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        toast({
-          title: "Erro ao carregar dados",
-          description: "Não foi possível carregar seus dados.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [toast]);
-
-  const handleSubmit = async (data: EnderecoFormValues) => {
-    try {
-      setIsLoading(true);
-      
-      if (!userData?.id) {
-        throw new Error("Dados do usuário não encontrados");
-      }
-      
-      // Valor a ser cobrado (0 se for retirada pessoalmente)
-      const valorCobrado = entregaMethod === 'entrega' ? taxaEntrega : 0;
-      
-      // Montar o endereço formatado (para entrega) ou local de retirada
-      let enderecoCompleto = '';
-      let tipoEntrega = '';
-      
-      if (entregaMethod === 'entrega') {
-        enderecoCompleto = `${data.endereco}, ${data.numero}, ${data.bairro}, ${data.cidade}-${data.estado}, ${data.cep}`;
-        tipoEntrega = 'entrega';
-      } else {
-        enderecoCompleto = retiradaLocation === 'grafica' ? 'Retirada na Gráfica Parceira' : 'Retirada na sede da ACIESC';
-        tipoEntrega = `retirada_${retiradaLocation}`;
-      }
-      
-      // Contorna o erro de tipo usando type assertion
-      const supabaseAny = supabase as any;
-      
-      // Salvar a solicitação no banco de dados
-      const { data: solicitacao, error } = await supabaseAny
-        .from('carteirinha_solicitacoes')
-        .insert({
-          associado_id: userData.id,
-          nome: data.nome || userData.nome,
-          sobrenome: data.sobrenome || userData.sobrenome,
-          endereco_entrega: enderecoCompleto,
-          complemento: entregaMethod === 'entrega' ? data.complemento : null,
-          valor: valorCobrado,
-          status: valorCobrado > 0 ? 'pendente_pagamento' : 'aguardando_producao',
-          email: userData.email,
-          tipo_entrega: tipoEntrega
-        })
-        .select('id')
-        .single();
-      
-      if (error) throw error;
-      
-      // Se há taxa a pagar, inicia o processo de pagamento
-      if (valorCobrado > 0) {
-        if (paymentGateway === 'asaas') {
-          // Chama a função de pagamento do Asaas
-          const { data: paymentData, error: paymentError } = await supabase.functions.invoke('asaas-payment', {
-            body: {
-              customer: {
-                name: `${userData.nome} ${userData.sobrenome}`,
-                email: userData?.email,
-                cpfCnpj: userData?.cpf
-              },
-              value: valorCobrado,
-              description: `Taxa de carteirinha - Solicitação #${solicitacao.id}`,
-              solicitacaoId: solicitacao.id
-            }
-          });
-          
-          if (paymentError) throw paymentError;
-          
-          // Redirecionamos para a URL de pagamento
-          navigateToPayment(paymentData.invoiceUrl);
-        } else {
-          // Chama a função de pagamento do Stripe
-          const { data: paymentData, error: paymentError } = await supabase.functions.invoke('stripe-payment', {
-            body: {
-              customerId: userData?.id,
-              customerEmail: userData?.email,
-              amount: valorCobrado * 100, // Stripe recebe valores em centavos
-              description: `Taxa de carteirinha - Solicitação #${solicitacao.id}`,
-              solicitacaoId: solicitacao.id
-            }
-          });
-          
-          if (paymentError) throw paymentError;
-          
-          // Redirecionamos para a URL de checkout do Stripe
-          navigateToPayment(paymentData.url);
-        }
-      } else {
-        // Sem taxa, redirecionamos para página de sucesso
-        toast({
-          title: "Solicitação enviada",
-          description: "Sua carteirinha foi solicitada com sucesso e está em produção.",
-        });
-        
-        // Redirecionamos para página de sucesso
-        navigateToPayment('/pagamento-sucesso?status=gratuito');
-      }
-    } catch (error: any) {
-      console.error('Erro ao solicitar carteirinha:', error);
-      toast({
-        title: "Erro ao processar solicitação",
-        description: error.message || "Ocorreu um erro ao processar sua solicitação.",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-    }
-  };
-
-  const getDefaultValues = () => {
-    return {
-      nome: userData?.nome || '',
-      sobrenome: userData?.sobrenome || '',
-      cep: userData?.cep || '',
-      endereco: userData?.rua || '',
-      numero: userData?.numero || '',
-      complemento: userData?.complemento || '',
-      bairro: userData?.bairro || '',
-      cidade: userData?.cidade || '',
-      estado: userData?.estado || '',
-      confirmarEndereco: false,
-    };
+  // Main submit handler
+  const handleSubmit = (data: EnderecoFormValues) => {
+    return submitCarteirinha(data);
   };
 
   return {
