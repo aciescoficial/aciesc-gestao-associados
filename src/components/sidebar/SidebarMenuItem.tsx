@@ -28,13 +28,13 @@ const SidebarMenuItem: React.FC<SidebarMenuItemProps> = ({
         isActive={isActive}
         tooltip={label}
         className={cn(
-          "hover:bg-aciesc-dark transition-colors duration-200 h-10 w-10 flex items-center justify-center rounded-md",
-          isActive && "bg-aciesc-dark text-white"
+          "hover:bg-[#2A2F3C] transition-colors duration-200",
+          isActive && "bg-[#2A2F3C] text-white"
         )}
       >
-        <Link to={path || "#"} className="flex items-center justify-center text-white">
-          {Icon && <Icon className="h-5 w-5" />}
-          <span className="sr-only">{label}</span>
+        <Link to={path || "#"} className="flex items-center text-white">
+          {Icon && <Icon className="mr-2 h-4 w-4" />}
+          <span className="truncate">{label}</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItemComponent>
