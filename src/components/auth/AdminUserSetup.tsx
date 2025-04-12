@@ -75,7 +75,7 @@ const AdminUserSetup: React.FC = () => {
         toast({
           title: "Usuário ROOT criado",
           description: "O usuário ROOT foi criado com sucesso com a senha fornecida.",
-          variant: "success"
+          variant: "default" // Changed from "success" to "default" as only "default" and "destructive" are supported
         });
         
         setCreated(true);
