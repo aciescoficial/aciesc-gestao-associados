@@ -12,6 +12,8 @@ export const mapToDbRole = (role: UserRole): DatabaseUserRole => {
       return 'associado';
     case 'empresa':
       return 'empresa';
+    case 'diretoria':
+      return 'diretoria';
     default:
       return 'associado';
   }
@@ -23,12 +25,13 @@ export const mapFromDbRole = (dbRole: DatabaseUserRole | string): UserRole => {
     case 'admin':
       return 'admin';
     case 'associado':
-    case 'diretoria':
     case 'user':
       return 'user';
     case 'conveniado':
     case 'empresa':
       return 'empresa';
+    case 'diretoria':
+      return 'diretoria';
     default:
       return 'user';
   }
@@ -43,6 +46,8 @@ export const getRoleLabel = (role: UserRole): string => {
       return 'Associado';
     case 'empresa':
       return 'Empresa';
+    case 'diretoria':
+      return 'Diretoria';
     default:
       return 'Usuário';
   }
@@ -57,6 +62,8 @@ export const getRoleBadgeColor = (role: UserRole): string => {
       return 'bg-blue-100 text-blue-800 border-blue-200';
     case 'empresa':
       return 'bg-amber-100 text-amber-800 border-amber-200';
+    case 'diretoria':
+      return 'bg-purple-100 text-purple-800 border-purple-200';
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200';
   }

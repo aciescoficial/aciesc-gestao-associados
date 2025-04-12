@@ -1,4 +1,5 @@
-export type UserRole = "user" | "admin" | "empresa";
+
+export type UserRole = "user" | "admin" | "empresa" | "diretoria";
 
 export type UserTag = 
   | "corretor" 

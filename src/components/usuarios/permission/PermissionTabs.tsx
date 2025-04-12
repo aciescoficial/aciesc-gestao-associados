@@ -20,8 +20,9 @@ const PermissionTabs: React.FC<PermissionTabsProps> = ({
 }) => {
   return (
     <Tabs defaultValue="admin" className="w-full">
-      <TabsList className="grid w-full grid-cols-3 mb-4">
+      <TabsList className="grid w-full grid-cols-4 mb-4">
         <TabsTrigger value="admin">Administrador</TabsTrigger>
+        <TabsTrigger value="diretoria">Diretoria</TabsTrigger>
         <TabsTrigger value="user">Associado</TabsTrigger>
         <TabsTrigger value="empresa">Empresa</TabsTrigger>
       </TabsList>
@@ -32,6 +33,17 @@ const PermissionTabs: React.FC<PermissionTabsProps> = ({
           menuPermissions={menuPermissions.admin}
           saveLoading={saveLoading}
           isAdmin={true}
+          toggleMenuPermission={toggleMenuPermission}
+          toggleSubPermission={toggleSubPermission}
+        />
+      </TabsContent>
+      
+      <TabsContent value="diretoria">
+        <RoleTabPanel
+          role="diretoria"
+          menuPermissions={menuPermissions.diretoria}
+          saveLoading={saveLoading}
+          isAdmin={false}
           toggleMenuPermission={toggleMenuPermission}
           toggleSubPermission={toggleSubPermission}
         />
