@@ -4,49 +4,43 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowRight } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Loader2 } from 'lucide-react';
 
-export const enderecoFormSchema = z.object({
-  nome: z.string().min(2, 'Nome é obrigatório'),
-  sobrenome: z.string().min(2, 'Sobrenome é obrigatório'),
-  cep: z.string().min(8, 'CEP é obrigatório'),
-  endereco: z.string().min(5, 'Endereço é obrigatório'),
-  numero: z.string().min(1, 'Número é obrigatório'),
+const enderecoSchema = z.object({
+  nome: z.string().min(2, "Nome é obrigatório"),
+  sobrenome: z.string().min(2, "Sobrenome é obrigatório"),
+  cep: z.string().min(8, "CEP inválido").max(9, "CEP inválido"),
+  endereco: z.string().min(3, "Endereço é obrigatório"),
+  numero: z.string().min(1, "Número é obrigatório"),
   complemento: z.string().optional(),
-  bairro: z.string().min(2, 'Bairro é obrigatório'),
-  cidade: z.string().min(2, 'Cidade é obrigatória'),
-  estado: z.string().min(2, 'Estado é obrigatório'),
-  confirmarEndereco: z.boolean().refine(value => value === true, {
-    message: 'Você precisa confirmar o endereço de entrega',
-  }),
+  bairro: z.string().min(2, "Bairro é obrigatório"),
+  cidade: z.string().min(2, "Cidade é obrigatória"),
+  estado: z.string().min(2, "Estado é obrigatório"),
+  confirmarEndereco: z.boolean().refine(val => val === true, {
+    message: "Você precisa confirmar que o endereço está correto"
+  })
 });
 
-export type EnderecoFormValues = z.infer<typeof enderecoFormSchema>;
+export type EnderecoFormValues = z.infer<typeof enderecoSchema>;
 
 interface EnderecoEntregaFormProps {
-  defaultValues: EnderecoFormValues;
+  defaultValues: Partial<EnderecoFormValues>;
   onSubmit: (data: EnderecoFormValues) => void;
   isLoading: boolean;
 }
 
-export const EnderecoEntregaForm: React.FC<EnderecoEntregaFormProps> = ({
+export const EnderecoEntregaForm: React.FC<EnderecoEntregaFormProps> = ({ 
   defaultValues,
   onSubmit,
   isLoading
 }) => {
   const form = useForm<EnderecoFormValues>({
-    resolver: zodResolver(enderecoFormSchema),
-    defaultValues,
+    resolver: zodResolver(enderecoSchema),
+    defaultValues
   });
 
   return (
@@ -60,7 +54,7 @@ export const EnderecoEntregaForm: React.FC<EnderecoEntregaFormProps> = ({
               <FormItem>
                 <FormLabel>Nome</FormLabel>
                 <FormControl>
-                  <Input placeholder="Seu nome" {...field} />
+                  <Input placeholder="Nome" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -74,7 +68,7 @@ export const EnderecoEntregaForm: React.FC<EnderecoEntregaFormProps> = ({
               <FormItem>
                 <FormLabel>Sobrenome</FormLabel>
                 <FormControl>
-                  <Input placeholder="Seu sobrenome" {...field} />
+                  <Input placeholder="Sobrenome" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -82,37 +76,37 @@ export const EnderecoEntregaForm: React.FC<EnderecoEntregaFormProps> = ({
           />
         </div>
         
-        <FormField
-          control={form.control}
-          name="cep"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>CEP</FormLabel>
-              <FormControl>
-                <Input placeholder="00000-000" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2">
-            <FormField
-              control={form.control}
-              name="endereco"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Endereço</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Rua, Avenida, etc..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="cep"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>CEP</FormLabel>
+                <FormControl>
+                  <Input placeholder="00000-000" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           
+          <FormField
+            control={form.control}
+            name="endereco"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Endereço</FormLabel>
+                <FormControl>
+                  <Input placeholder="Rua / Avenida" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="numero"
@@ -120,41 +114,41 @@ export const EnderecoEntregaForm: React.FC<EnderecoEntregaFormProps> = ({
               <FormItem>
                 <FormLabel>Número</FormLabel>
                 <FormControl>
-                  <Input placeholder="123" {...field} />
+                  <Input placeholder="Número" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="complemento"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Complemento</FormLabel>
+                <FormControl>
+                  <Input placeholder="Apartamento, bloco, etc." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="bairro"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bairro</FormLabel>
+                <FormControl>
+                  <Input placeholder="Bairro" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        
-        <FormField
-          control={form.control}
-          name="complemento"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Complemento (opcional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Apto, Bloco, Casa, etc..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="bairro"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bairro</FormLabel>
-              <FormControl>
-                <Input placeholder="Seu bairro" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
@@ -164,7 +158,7 @@ export const EnderecoEntregaForm: React.FC<EnderecoEntregaFormProps> = ({
               <FormItem>
                 <FormLabel>Cidade</FormLabel>
                 <FormControl>
-                  <Input placeholder="Sua cidade" {...field} />
+                  <Input placeholder="Cidade" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -178,7 +172,7 @@ export const EnderecoEntregaForm: React.FC<EnderecoEntregaFormProps> = ({
               <FormItem>
                 <FormLabel>Estado</FormLabel>
                 <FormControl>
-                  <Input placeholder="UF" {...field} />
+                  <Input placeholder="Estado" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -190,35 +184,32 @@ export const EnderecoEntregaForm: React.FC<EnderecoEntregaFormProps> = ({
           control={form.control}
           name="confirmarEndereco"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4 pt-4 border-t">
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>
-                <Checkbox 
+                <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel>
-                  Confirmo que o endereço acima está correto e é o endereço de entrega da minha carteirinha
+                  Confirmo que este endereço está correto e a carteirinha deve ser enviada para este local
                 </FormLabel>
+                <FormMessage />
               </div>
-              <FormMessage />
             </FormItem>
           )}
         />
         
-        <div className="pt-4 mt-2">
-          <Button 
-            type="submit" 
-            className="w-full md:w-auto" 
-            disabled={isLoading}
-          >
+        <div className="pt-4">
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
-              "Processando..."
-            ) : (
               <>
-                Prosseguir para pagamento <ArrowRight className="ml-2 h-4 w-4" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processando...
               </>
+            ) : (
+              "Confirmar e Prosseguir para Pagamento"
             )}
           </Button>
         </div>

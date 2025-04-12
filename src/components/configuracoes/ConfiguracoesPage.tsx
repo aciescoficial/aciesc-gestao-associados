@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Map, Users, ClipboardList, Mail } from 'lucide-react';
+import { Settings, Map, Users, ClipboardList, Mail, CreditCard } from 'lucide-react';
 import GoogleMapsConfig from './GoogleMapsConfig';
 import PermissionPanel from '../usuarios/PermissionPanel';
 import { AuditLogSettings } from './AuditLogSettings';
 import EmailTemplatesConfig from './EmailTemplatesConfig';
+import CarteirinhaConfig from './CarteirinhaConfig';
 
 const ConfiguracoesPage: React.FC = () => {
   return (
@@ -16,7 +17,7 @@ const ConfiguracoesPage: React.FC = () => {
       </h1>
       
       <Tabs defaultValue="geral" className="wp-card">
-        <TabsList className="grid grid-cols-5 mb-6">
+        <TabsList className="grid grid-cols-6 mb-6">
           <TabsTrigger value="geral" className="flex items-center gap-2">
             <Settings size={16} />
             Geral
@@ -24,6 +25,10 @@ const ConfiguracoesPage: React.FC = () => {
           <TabsTrigger value="maps" className="flex items-center gap-2">
             <Map size={16} />
             Google Maps
+          </TabsTrigger>
+          <TabsTrigger value="carteirinha" className="flex items-center gap-2">
+            <CreditCard size={16} />
+            Carteirinha
           </TabsTrigger>
           <TabsTrigger value="permissoes" className="flex items-center gap-2">
             <Users size={16} />
@@ -48,6 +53,10 @@ const ConfiguracoesPage: React.FC = () => {
         
         <TabsContent value="maps">
           <GoogleMapsConfig />
+        </TabsContent>
+        
+        <TabsContent value="carteirinha">
+          <CarteirinhaConfig />
         </TabsContent>
         
         <TabsContent value="permissoes">

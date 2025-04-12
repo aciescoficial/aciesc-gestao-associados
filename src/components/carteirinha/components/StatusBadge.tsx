@@ -1,60 +1,106 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Check, CreditCard, Package, Truck, XCircle } from 'lucide-react';
+import {
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  PackageCheck,
+  Truck,
+  PackageX,
+  ExternalLink
+} from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface StatusBadgeProps {
   status: string;
-  rastreioCode?: string;
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, rastreioCode }) => {
-  switch (status) {
-    case 'pendente_pagamento':
-      return <Badge variant="outline" className="flex items-center gap-1">
-        <AlertCircle className="h-3 w-3" /> Aguardando Pagamento
-      </Badge>;
-    case 'pagamento_aprovado':
-      return <Badge variant="outline" className="flex items-center gap-1 text-blue-600 border-blue-600">
-        <Check className="h-3 w-3" /> Pagamento Aprovado
-      </Badge>;
-    case 'em_producao':
-      return <Badge variant="outline" className="flex items-center gap-1 text-purple-600 border-purple-600">
-        <CreditCard className="h-3 w-3" /> Em Produção
-      </Badge>;
-    case 'enviado':
-      return <Badge variant="outline" className="flex items-center gap-1 text-indigo-600 border-indigo-600">
-        <Package className="h-3 w-3" /> Enviado
-      </Badge>;
-    case 'entregue':
-      return <Badge variant="outline" className="flex items-center gap-1 text-green-600 border-green-600">
-        <Check className="h-3 w-3" /> Entregue
-      </Badge>;
-    case 'cancelado':
-      return <Badge variant="outline" className="flex items-center gap-1 text-red-600 border-red-600">
-        <XCircle className="h-3 w-3" /> Cancelado
-      </Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
-};
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
+  const getStatusConfig = () => {
+    switch (status) {
+      case 'pendente_pagamento':
+        return {
+          label: 'Pendente Pagamento',
+          variant: 'outline' as const,
+          icon: <Clock className="h-3 w-3 text-yellow-500" />,
+          className: 'border-yellow-200 text-yellow-700 bg-yellow-50'
+        };
+      case 'pagamento_aprovado':
+        return {
+          label: 'Pagamento Aprovado',
+          variant: 'outline' as const,
+          icon: <CheckCircle2 className="h-3 w-3 text-green-500" />,
+          className: 'border-green-200 text-green-700 bg-green-50'
+        };
+      case 'em_producao':
+        return {
+          label: 'Em Produção',
+          variant: 'outline' as const,
+          icon: <PackageCheck className="h-3 w-3 text-blue-500" />,
+          className: 'border-blue-200 text-blue-700 bg-blue-50'
+        };
+      case 'enviado':
+        return {
+          label: 'Enviado',
+          variant: 'outline' as const,
+          icon: <Truck className="h-3 w-3 text-indigo-500" />,
+          className: 'border-indigo-200 text-indigo-700 bg-indigo-50'
+        };
+      case 'entregue':
+        return {
+          label: 'Entregue',
+          variant: 'outline' as const,
+          icon: <CheckCircle2 className="h-3 w-3 text-emerald-500" />,
+          className: 'border-emerald-200 text-emerald-700 bg-emerald-50'
+        };
+      case 'cancelado':
+        return {
+          label: 'Cancelado',
+          variant: 'outline' as const,
+          icon: <PackageX className="h-3 w-3 text-red-500" />,
+          className: 'border-red-200 text-red-700 bg-red-50'
+        };
+      default:
+        return {
+          label: 'Desconhecido',
+          variant: 'outline' as const,
+          icon: <AlertCircle className="h-3 w-3" />,
+          className: 'border-gray-200 text-gray-700 bg-gray-50'
+        };
+    }
+  };
 
-export const statusOptions = [
-  { value: "", label: "Todos os status" },
-  { value: "pendente_pagamento", label: "Aguardando Pagamento" },
-  { value: "pagamento_aprovado", label: "Pagamento Aprovado" },
-  { value: "em_producao", label: "Em Produção" },
-  { value: "enviado", label: "Enviado" },
-  { value: "entregue", label: "Entregue" },
-  { value: "cancelado", label: "Cancelado" },
-];
-
-export const TrackingInfo: React.FC<{ code: string }> = ({ code }) => {
-  if (!code) return null;
+  const { label, variant, icon, className } = getStatusConfig();
 
   return (
-    <div className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
-      <Truck className="h-3 w-3" /> {code}
-    </div>
+    <Badge variant={variant} className={className}>
+      <span className="flex items-center gap-1">
+        {icon} {label}
+      </span>
+    </Badge>
+  );
+};
+
+interface TrackingInfoProps {
+  code: string;
+}
+
+export const TrackingInfo: React.FC<TrackingInfoProps> = ({ code }) => {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <span className="inline-flex items-center text-xs text-blue-500 ml-2 cursor-pointer hover:underline">
+            <span className="mr-0.5">Rastreio</span>
+            <ExternalLink className="h-3 w-3" />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Código de rastreio: {code}</p>
+          <p className="text-xs text-muted-foreground">Clique para rastrear</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };

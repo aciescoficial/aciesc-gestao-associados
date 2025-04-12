@@ -198,6 +198,65 @@ export type Database = {
         }
         Relationships: []
       }
+      carteirinha_solicitacoes: {
+        Row: {
+          associado_id: string
+          codigo_rastreio: string | null
+          complemento: string | null
+          created_at: string
+          email: string | null
+          endereco_entrega: string
+          id: string
+          nome: string
+          observacoes: string | null
+          pagamento_id: string | null
+          sobrenome: string
+          status: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          associado_id: string
+          codigo_rastreio?: string | null
+          complemento?: string | null
+          created_at?: string
+          email?: string | null
+          endereco_entrega: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          pagamento_id?: string | null
+          sobrenome: string
+          status?: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          associado_id?: string
+          codigo_rastreio?: string | null
+          complemento?: string | null
+          created_at?: string
+          email?: string | null
+          endereco_entrega?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          pagamento_id?: string | null
+          sobrenome?: string
+          status?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carteirinha_solicitacoes_associado_id_fkey"
+            columns: ["associado_id"]
+            isOneToOne: false
+            referencedRelation: "associados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_logs: {
         Row: {
           body: string

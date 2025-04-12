@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { CarteirinhaSolicitacao } from '../types';
-import { statusOptions } from './StatusBadge';
 import {
   Dialog,
   DialogContent,
@@ -18,138 +17,145 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { FileText } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, Pencil } from 'lucide-react';
 
 interface SolicitacaoEditDialogProps {
   solicitacao: CarteirinhaSolicitacao;
   onUpdate: (id: string, data: Partial<CarteirinhaSolicitacao>) => Promise<boolean>;
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
-export const SolicitacaoEditDialog: React.FC<SolicitacaoEditDialogProps> = ({ 
-  solicitacao, 
+export const SolicitacaoEditDialog: React.FC<SolicitacaoEditDialogProps> = ({
+  solicitacao,
   onUpdate,
-  onSuccess 
+  onSuccess,
 }) => {
-  const [open, setOpen] = useState(false);
-  const [editData, setEditData] = useState<CarteirinhaSolicitacao>(solicitacao);
-  const [rastreioCode, setRastreioCode] = useState(solicitacao.codigo_rastreio || '');
-  const [observacoes, setObservacoes] = useState(solicitacao.observacoes || '');
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    status: solicitacao.status,
+    codigo_rastreio: solicitacao.codigo_rastreio || '',
+    observacoes: solicitacao.observacoes || '',
+  });
 
-  const handleStatusChange = async () => {
-    const updateData: Partial<CarteirinhaSolicitacao> = {
-      status: editData.status,
-      codigo_rastreio: rastreioCode || undefined,
-      observacoes: observacoes || undefined
-    };
+  const statusOptions = [
+    { value: 'pendente_pagamento', label: 'Pendente Pagamento' },
+    { value: 'pagamento_aprovado', label: 'Pagamento Aprovado' },
+    { value: 'em_producao', label: 'Em Produção' },
+    { value: 'enviado', label: 'Enviado' },
+    { value: 'entregue', label: 'Entregue' },
+    { value: 'cancelado', label: 'Cancelado' },
+  ];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleStatusChange = (value: string) => {
+    setFormData(prev => ({ ...prev, status: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
     
-    const success = await onUpdate(editData.id, updateData);
-    
-    if (success) {
-      setOpen(false);
-      if (onSuccess) onSuccess();
+    try {
+      const success = await onUpdate(solicitacao.id, {
+        status: formData.status,
+        codigo_rastreio: formData.codigo_rastreio || null,
+        observacoes: formData.observacoes || null,
+      });
+      
+      if (success) {
+        setIsOpen(false);
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar solicitação:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost" 
-          size="icon" 
-          onClick={() => {
-            setEditData(solicitacao);
-            setRastreioCode(solicitacao.codigo_rastreio || '');
-            setObservacoes(solicitacao.observacoes || '');
-          }}
-        >
-          <FileText className="h-4 w-4" />
-          <span className="sr-only">Editar</span>
+        <Button variant="ghost" size="icon">
+          <Pencil className="h-4 w-4" />
+          <span className="sr-only">Editar Solicitação</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Atualizar Solicitação</DialogTitle>
           <DialogDescription>
-            Altere o status ou adicione informações da solicitação
+            Edite as informações da solicitação de carteirinha
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 mt-2">
-          <div>
-            <h4 className="text-sm font-medium mb-1">Solicitante</h4>
-            <p>{`${editData?.nome} ${editData?.sobrenome}`}</p>
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="status">Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={handleStatusChange}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="codigo_rastreio">Código de Rastreio</Label>
+              <Input
+                id="codigo_rastreio"
+                name="codigo_rastreio"
+                value={formData.codigo_rastreio}
+                onChange={handleChange}
+                placeholder="Digite o código de rastreio"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="observacoes">Observações</Label>
+              <Textarea
+                id="observacoes"
+                name="observacoes"
+                value={formData.observacoes}
+                onChange={handleChange}
+                placeholder="Digite observações adicionais"
+                rows={3}
+              />
+            </div>
           </div>
           
-          <div>
-            <h4 className="text-sm font-medium mb-1">Endereço de Entrega</h4>
-            <p className="text-sm">{editData?.endereco_entrega}</p>
-            {editData?.complemento && <p className="text-sm">{editData.complemento}</p>}
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="status" className="text-sm font-medium">
-              Status
-            </label>
-            <Select 
-              value={editData?.status} 
-              onValueChange={(value) => {
-                setEditData({ ...editData, status: value });
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o status" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.filter(opt => opt.value).map(option => (
-                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="rastreio" className="text-sm font-medium">
-              Código de Rastreio
-            </label>
-            <Input
-              id="rastreio"
-              value={rastreioCode}
-              onChange={(e) => setRastreioCode(e.target.value)}
-              placeholder="Código de rastreio da entrega"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="observacoes" className="text-sm font-medium">
-              Observações
-            </label>
-            <Textarea
-              id="observacoes"
-              value={observacoes}
-              onChange={(e) => setObservacoes(e.target.value)}
-              placeholder="Observações adicionais"
-              rows={3}
-            />
-          </div>
-        </div>
-        
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setOpen(false)}
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleStatusChange}
-          >
-            Salvar Alterações
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                "Salvar Alterações"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
