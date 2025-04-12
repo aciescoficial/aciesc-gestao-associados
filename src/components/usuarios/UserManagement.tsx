@@ -57,7 +57,7 @@ const UserManagement: React.FC = () => {
         <div className="flex gap-2">
           <Button onClick={fetchUsers} variant="outline">
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            {loading ? 'Carregando...' : 'Atualizar'}
+            {/* Removed the "Carregando..." text */}
           </Button>
           <Button onClick={() => setIsAddUserDialogOpen(true)}>
             <PlusCircle className="h-4 w-4 mr-2" />

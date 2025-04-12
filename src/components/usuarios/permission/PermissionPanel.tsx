@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -20,10 +21,7 @@ const PermissionPanel: React.FC = () => {
         <h1 className="wp-header">Gerenciamento de Permissões</h1>
         <Button onClick={fetchPermissions} disabled={loading}>
           {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Carregando...
-            </>
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             "Atualizar"
           )}
