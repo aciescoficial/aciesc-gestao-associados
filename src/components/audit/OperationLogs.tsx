@@ -28,8 +28,8 @@ export const OperationLogs: React.FC = () => {
       
       try {
         setLoading(true);
-        const data = await getOperationLogs();
-        setLogs(data || []);
+        const { logs } = await getOperationLogs({});
+        setLogs(logs);
       } catch (error) {
         console.error('Erro ao buscar logs:', error);
         toast({
@@ -94,6 +94,12 @@ export const OperationLogs: React.FC = () => {
             Exportação
           </Badge>
         );
+      case 'create':
+        return (
+          <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
+            Criação
+          </Badge>
+        );
       default:
         return (
           <Badge variant="outline">
@@ -116,7 +122,7 @@ export const OperationLogs: React.FC = () => {
     }
   };
   
-  const getFormatBadge = (format?: string) => {
+  const getFormatBadge = (format?: string | null) => {
     if (!format) return null;
     
     switch (format.toLowerCase()) {
@@ -171,22 +177,18 @@ export const OperationLogs: React.FC = () => {
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  {getEventIcon(log.event_type)}
-                  {getEventBadge(log.event_type)}
+                  {getEventIcon(log.eventType)}
+                  {getEventBadge(log.eventType)}
                 </div>
               </TableCell>
-              <TableCell>{getEntityLabel(log.entity_type)}</TableCell>
+              <TableCell>{getEntityLabel(log.entityType)}</TableCell>
               <TableCell>{getFormatBadge(log.format)}</TableCell>
-              <TableCell>{log.record_count || '-'}</TableCell>
+              <TableCell>{log.recordCount || '-'}</TableCell>
               <TableCell>
-                {log.profiles ? (
-                  <div className="flex flex-col">
-                    <span className="font-medium text-sm">{log.profiles.name}</span>
-                    <span className="text-xs text-gray-500">{log.profiles.email}</span>
-                  </div>
-                ) : (
-                  <span className="text-gray-500">-</span>
-                )}
+                <div className="flex flex-col">
+                  <span className="font-medium text-sm">{log.userName}</span>
+                  {log.userId && <span className="text-xs text-gray-500">{log.userId.substring(0, 8)}...</span>}
+                </div>
               </TableCell>
               <TableCell>{log.details || '-'}</TableCell>
             </TableRow>

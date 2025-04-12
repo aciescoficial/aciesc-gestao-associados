@@ -114,13 +114,13 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
             const bucketExists = buckets?.some(bucket => bucket.name === 'payment-proofs');
             
             if (!bucketExists) {
-              // Create the bucket through RPC call
-              await supabase.rpc('create_storage_bucket', {
-                name: 'payment-proofs',
+              // Create the bucket using storage API
+              const { error } = await supabase.storage.createBucket('payment-proofs', {
                 public: false,
-                file_size_limit: 10485760 // 10MB
+                fileSizeLimit: 10485760 // 10MB
               });
               
+              if (error) throw error;
               console.log('Created payment-proofs bucket');
             }
           } catch (bucketError) {
@@ -141,7 +141,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
             toast({
               title: "Aviso",
               description: "Usuário criado, mas houve um erro ao fazer upload do comprovante de pagamento.",
-              variant: "warning"
+              variant: "default"
             });
           }
         }

@@ -47,8 +47,21 @@ export async function get_current_user_role() {
   return 'user' as 'user' | 'admin' | 'empresa';
 }
 
+/**
+ * Create a storage bucket with specified parameters
+ */
+export async function create_storage_bucket(
+  name: string, 
+  public_access: boolean = false, 
+  file_size_limit: number | null = null
+) {
+  // This is just a type definition for the RPC function
+  return { name, public: public_access, file_size_limit };
+}
+
 // Make the function names available for TypeScript to recognize in rpc calls
-type RpcFunctionNames = 'has_role' | 'get_user_role' | 'get_auth_users' | 'get_current_user_role';
+type RpcFunctionNames = 'has_role' | 'get_user_role' | 'get_auth_users' | 'get_current_user_role' | 'create_storage_bucket';
+
 declare module '@supabase/supabase-js' {
   interface SupabaseClient {
     rpc<T = any>(

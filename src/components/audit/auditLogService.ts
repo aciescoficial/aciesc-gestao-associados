@@ -10,6 +10,21 @@ interface LogOperationParams {
   format?: string;
 }
 
+// Define the OperationLog interface for use in components
+export interface OperationLog {
+  id: string;
+  eventType: string;
+  entityType: string;
+  details: string | null;
+  recordCount: number | null;
+  format: string | null;
+  created_at: string;
+  userId: string | null;
+  userName: string | null;
+  createdAt: string;
+  profiles?: { name: string | null };
+}
+
 /**
  * Logs an operation in the database for audit purposes
  * @param params Operation parameters to log
@@ -52,7 +67,7 @@ export async function getOperationLogs(options: {
   event_type?: string;
   startDate?: string;
   endDate?: string;
-}) {
+} = {}) {  // Add default empty object for options
   try {
     const {
       limit = 100,
@@ -87,7 +102,7 @@ export async function getOperationLogs(options: {
     if (startDate) query = query.gte('created_at', startDate);
     if (endDate) query = query.lte('created_at', endDate);
 
-    const { data, error, count } = await query;
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -101,10 +116,12 @@ export async function getOperationLogs(options: {
       format: log.format,
       createdAt: new Date(log.created_at).toLocaleString(),
       userName: log.profiles?.name || 'Unknown',
-      userId: log.user_id
+      userId: log.user_id,
+      created_at: log.created_at,
+      profiles: log.profiles
     }));
 
-    return { logs: formattedLogs || [], count };
+    return { logs: formattedLogs || [], count: formattedLogs?.length || 0 };
   } catch (error) {
     console.error('Error fetching operation logs:', error);
     throw error;
@@ -120,46 +137,73 @@ export async function getOperationStats() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    const { data: statsByType, error: statsError } = await supabase
+    // Use separate count queries instead of group
+    const { data: statsData, error: statsError } = await supabase
       .from('operation_logs')
-      .select('event_type, count(*)')
-      .gte('created_at', thirtyDaysAgo.toISOString())
-      .group('event_type');
+      .select('event_type, id')
+      .gte('created_at', thirtyDaysAgo.toISOString());
     
     if (statsError) throw statsError;
     
-    // Get count of operations by entity in the last 30 days
-    const { data: statsByEntity, error: entityError } = await supabase
+    // Process the data to get counts by type
+    const statsByType = statsData ? 
+      Array.from(
+        statsData.reduce((acc, curr) => {
+          const count = (acc.get(curr.event_type) || 0) + 1;
+          acc.set(curr.event_type, count);
+          return acc;
+        }, new Map())
+      ).map(([event_type, count]) => ({ event_type, count })) : [];
+    
+    // Get count of operations by entity
+    const { data: entityData, error: entityError } = await supabase
       .from('operation_logs')
-      .select('entity_type, count(*)')
-      .gte('created_at', thirtyDaysAgo.toISOString())
-      .group('entity_type');
+      .select('entity_type, id')
+      .gte('created_at', thirtyDaysAgo.toISOString());
     
     if (entityError) throw entityError;
     
+    // Process the data to get counts by entity type
+    const statsByEntity = entityData ? 
+      Array.from(
+        entityData.reduce((acc, curr) => {
+          const count = (acc.get(curr.entity_type) || 0) + 1;
+          acc.set(curr.entity_type, count);
+          return acc;
+        }, new Map())
+      ).map(([entity_type, count]) => ({ entity_type, count })) : [];
+    
     // Get most active users
-    const { data: activeUsers, error: usersError } = await supabase
+    const { data: userData, error: usersError } = await supabase
       .from('operation_logs')
-      .select(`
-        user_id,
-        profiles:user_id (name),
-        count
-      `)
-      .gte('created_at', thirtyDaysAgo.toISOString())
-      .group('user_id, profiles:user_id (name)')
-      .order('count', { ascending: false })
-      .limit(5);
+      .select(`user_id, profiles:user_id (name)`)
+      .gte('created_at', thirtyDaysAgo.toISOString());
     
     if (usersError) throw usersError;
     
+    // Process the data to get user activity counts
+    const userCounts = userData ? 
+      Array.from(
+        userData.reduce((acc, curr) => {
+          const count = (acc.get(curr.user_id) || 0) + 1;
+          acc.set(curr.user_id, {
+            count,
+            name: curr.profiles?.name || 'Unknown'
+          });
+          return acc;
+        }, new Map())
+      ).map(([user_id, data]) => ({
+        id: user_id,
+        name: data.name,
+        count: data.count
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5) : [];
+    
     return {
-      byType: statsByType || [],
-      byEntity: statsByEntity || [],
-      activeUsers: activeUsers ? activeUsers.map(user => ({
-        id: user.user_id,
-        name: user.profiles?.name || 'Unknown',
-        count: user.count
-      })) : []
+      byType: statsByType,
+      byEntity: statsByEntity,
+      activeUsers: userCounts
     };
   } catch (error) {
     console.error('Error fetching operation stats:', error);

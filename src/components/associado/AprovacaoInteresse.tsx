@@ -1,325 +1,231 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Loader2, Check, X, FileText, ExternalLink } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { generatePaymentLink } from '../financeiro/services/asaasService';
-import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 
-interface InteresseData {
+import React, { useEffect, useState } from 'react';
+import { Check, X, Info, UserPlus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { getAssociadoInteresses, updateInterestStatus } from './services/associadoInteressesService';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+export interface AssociadoInteresse {
   id: string;
   nome: string;
   sobrenome: string;
-  cpf: string;
-  creci?: string;
   email: string;
   celular: string;
   cidade: string;
   estado: string;
-  motivo_interesse: string;
-  status: 'pendente' | 'aprovado' | 'rejeitado';
+  cpf: string;
+  creci: string | null;
+  motivo_interesse: string | null;
+  status: string;
   created_at: string;
-  pagamento_url?: string;
+  pagamento_confirmado: boolean | null;
+  pagamento_data: string | null;
+  payment_proof_url: string | null;
 }
 
+// Component to approve or reject associate interest applications
 const AprovacaoInteresse: React.FC = () => {
-  const [interessados, setInteressados] = useState<InteresseData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [processando, setProcessando] = useState<string | null>(null);
-  const [tiposAssociacao, setTiposAssociacao] = useState<any[]>([]);
-  const [selectedInteresse, setSelectedInteresse] = useState<InteresseData | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedTipoId, setSelectedTipoId] = useState<string | null>(null);
-  
+  const [interesses, setInteresses] = useState<AssociadoInteresse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { isAdmin } = useAuth();
   const { toast } = useToast();
-  
-  // Buscar interessados
+
   useEffect(() => {
-    const fetchInteressados = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await extendedSupabase
-          .from('associado_interesse')
-          .select('*')
-          .order('created_at', { ascending: false });
-          
-        if (error) throw error;
-        setInteressados(data || []);
-        
-        // Buscar tipos de associação
-        const { data: tiposData, error: tiposError } = await extendedSupabase
-          .from('association_types')
-          .select('*')
-          .eq('active', true);
-          
-        if (tiposError) throw tiposError;
-        setTiposAssociacao(tiposData || []);
-        
-      } catch (error: any) {
-        console.error('Erro ao buscar interessados:', error);
-        toast({
-          title: 'Erro ao carregar dados',
-          description: error.message || 'Ocorreu um erro ao buscar os dados',
-          variant: 'destructive'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchInteressados();
-  }, [toast]);
-  
-  const handleVerDetalhes = (interesse: InteresseData) => {
-    setSelectedInteresse(interesse);
-    setDialogOpen(true);
-  };
-  
-  const handleRejeitar = async (id: string) => {
-    setProcessando(id);
+    if (isAdmin) {
+      fetchPendingInterests();
+    }
+  }, [isAdmin]);
+
+  const fetchPendingInterests = async () => {
     try {
-      const { error } = await extendedSupabase
-        .from('associado_interesse')
-        .update({ status: 'rejeitado' })
-        .eq('id', id);
-      
-      if (error) throw error;
-      
-      // Atualizar lista
-      setInteressados(interessados.map(item => 
-        item.id === id ? { ...item, status: 'rejeitado' } : item
-      ));
-      
+      setIsLoading(true);
+      const data = await getAssociadoInteresses();
+      setInteresses(data);
+    } catch (error) {
+      console.error('Error fetching pending interests:', error);
       toast({
-        title: 'Interesse rejeitado',
-        description: 'O interesse foi rejeitado com sucesso',
-      });
-      
-    } catch (error: any) {
-      console.error('Erro ao rejeitar interesse:', error);
-      toast({
-        title: 'Erro ao rejeitar',
-        description: error.message || 'Ocorreu um erro ao rejeitar o interesse',
-        variant: 'destructive'
+        title: 'Erro',
+        description: 'Não foi possível carregar os interesses pendentes.',
+        variant: 'destructive',
       });
     } finally {
-      setProcessando(null);
+      setIsLoading(false);
     }
   };
-  
-  const handleAprovar = async () => {
-    if (!selectedInteresse || !selectedTipoId) return;
-    
-    setProcessando(selectedInteresse.id);
+
+  const handleApprove = async (id: string, email: string, nome: string, sobrenome: string) => {
     try {
-      // Buscar tipo de associação
-      const tipoAssociacao = tiposAssociacao.find(tipo => tipo.id === selectedTipoId);
+      await updateInterestStatus(id, 'aprovado');
       
-      if (!tipoAssociacao) {
-        throw new Error('Tipo de associação não encontrado');
+      // Generate a signup token valid for 7 days
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+      
+      const token = Math.random().toString(36).substring(2, 15) + 
+                    Math.random().toString(36).substring(2, 15);
+      
+      // Save the token to database
+      const { error: tokenError } = await supabase
+        .from('signup_tokens')
+        .insert({
+          associado_interesse_id: id,
+          token,
+          expires_at: expiresAt.toISOString(),
+          used: false
+        });
+      
+      if (tokenError) {
+        throw tokenError;
       }
       
-      // Gerar link de pagamento
-      const paymentUrl = await generatePaymentLink(tipoAssociacao);
+      // TODO: Send email with signup link
       
-      // Atualizar registro de interesse
-      const { error } = await extendedSupabase
-        .from('associado_interesse')
-        .update({ 
-          status: 'aprovado',
-          pagamento_url: paymentUrl
-        })
-        .eq('id', selectedInteresse.id);
-      
-      if (error) throw error;
-      
-      // Atualizar lista local
-      setInteressados(interessados.map(item => 
-        item.id === selectedInteresse.id ? 
-          { ...item, status: 'aprovado', pagamento_url: paymentUrl } : 
-          item
-      ));
-      
-      // Fechar diálogo
-      setDialogOpen(false);
-      
-      // Enviar e-mail com o link de pagamento
-      await enviarEmailAprovacao(selectedInteresse.email, selectedInteresse.nome, paymentUrl);
+      // Update local state
+      setInteresses(prev => prev.filter(item => item.id !== id));
       
       toast({
         title: 'Interesse aprovado',
-        description: 'O link de pagamento foi gerado e enviado por e-mail',
+        description: `Uma notificação foi enviada para ${nome} ${sobrenome} com instruções para cadastro.`,
       });
-      
-    } catch (error: any) {
-      console.error('Erro ao aprovar interesse:', error);
+    } catch (error) {
+      console.error('Error approving interest:', error);
       toast({
-        title: 'Erro ao aprovar',
-        description: error.message || 'Ocorreu um erro ao aprovar o interesse',
-        variant: 'destructive'
+        title: 'Erro',
+        description: 'Ocorreu um erro ao aprovar o interesse. Tente novamente.',
+        variant: 'destructive',
       });
-    } finally {
-      setProcessando(null);
     }
   };
   
-  const enviarEmailAprovacao = async (email: string, nome: string, linkPagamento: string) => {
+  const handleReject = async (id: string) => {
     try {
-      const response = await fetch(`${window.location.origin}/api/send-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to: email,
-          template_id: 'aprovacao_interesse',
-          template_data: {
-            nome: nome,
-            link_pagamento: linkPagamento
-          }
-        }),
-      });
+      await updateInterestStatus(id, 'rejeitado');
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao enviar email');
-      }
+      // Update local state
+      setInteresses(prev => prev.filter(item => item.id !== id));
       
-      return true;
-    } catch (error: any) {
-      console.error('Erro ao enviar email:', error);
       toast({
-        title: 'Alerta',
-        description: 'O link foi gerado, mas houve um erro ao enviar o email. Verifique as configurações de email.',
-        variant: 'warning'
+        title: 'Interesse rejeitado',
+        description: 'O interesse foi rejeitado com sucesso.',
       });
-      return false;
+    } catch (error) {
+      console.error('Error rejecting interest:', error);
+      toast({
+        title: 'Erro',
+        description: 'Ocorreu um erro ao rejeitar o interesse. Tente novamente.',
+        variant: 'destructive',
+      });
     }
   };
-  
-  const formatarData = (dataStr: string) => {
-    const data = new Date(dataStr);
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(data);
-  };
-  
+
+  if (!isAdmin) {
+    return (
+      <div className="text-center p-6">
+        <p>Você não tem permissão para acessar esta página.</p>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <div className="wp-card">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="wp-subheader mb-0">Solicitações de Interesse</h2>
-          {loading ? (
-            <Loader2 size={20} className="animate-spin text-muted-foreground" />
-          ) : (
-            <span className="wp-badge bg-blue-100 text-blue-800">
-              {interessados.filter(i => i.status === 'pendente').length} pendentes
-            </span>
-          )}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Aprovação de Interesses</h1>
+        <Button onClick={fetchPendingInterests} variant="outline" disabled={isLoading}>
+          Atualizar
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center p-12">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
         </div>
-        
-        {loading ? (
-          <div className="flex justify-center p-8">
-            <Loader2 size={30} className="animate-spin text-muted-foreground" />
-          </div>
-        ) : interessados.length === 0 ? (
-          <div className="wp-notice-success">
-            <p className="font-medium">Nenhuma solicitação!</p>
-            <p>Não há solicitações de interesse no momento.</p>
-          </div>
-        ) : (
+      ) : interesses.length === 0 ? (
+        <Alert>
+          <AlertTitle>Nenhum interesse pendente</AlertTitle>
+          <AlertDescription>
+            Não há novos interesses de associação para avaliar no momento.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <div className="space-y-4">
+          <Alert variant="default" className="bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Instruções</AlertTitle>
+            <AlertDescription>
+              Avalie cada solicitação de interesse. Ao aprovar, será enviado um email com link para cadastro.
+            </AlertDescription>
+          </Alert>
+          
           <div className="overflow-x-auto">
-            <table className="wp-table">
+            <table className="w-full border-collapse">
               <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>CPF</th>
-                  <th>Email</th>
-                  <th>Telefone</th>
-                  <th>Cidade/UF</th>
-                  <th>Data</th>
-                  <th>Status</th>
-                  <th>Ações</th>
+                <tr className="bg-gray-100">
+                  <th className="text-left p-3">Nome</th>
+                  <th className="text-left p-3">Email</th>
+                  <th className="text-left p-3">Telefone</th>
+                  <th className="text-left p-3">CPF</th>
+                  <th className="text-left p-3">Cidade/UF</th>
+                  <th className="text-left p-3">Data</th>
+                  <th className="text-left p-3">Pagamento</th>
+                  <th className="text-center p-3">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {interessados.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.nome} {item.sobrenome}</td>
-                    <td>{item.cpf}</td>
-                    <td>{item.email}</td>
-                    <td>{item.celular}</td>
-                    <td>{item.cidade}/{item.estado}</td>
-                    <td>{formatarData(item.created_at)}</td>
-                    <td>
-                      {item.status === 'pendente' && (
-                        <span className="wp-badge bg-yellow-100 text-yellow-800">Pendente</span>
-                      )}
-                      {item.status === 'aprovado' && (
-                        <span className="wp-badge bg-green-100 text-green-800">Aprovado</span>
-                      )}
-                      {item.status === 'rejeitado' && (
-                        <span className="wp-badge bg-red-100 text-red-800">Rejeitado</span>
+                {interesses.map((interesse) => (
+                  <tr key={interesse.id} className="border-b hover:bg-gray-50">
+                    <td className="p-3">
+                      {interesse.nome} {interesse.sobrenome}
+                      {interesse.creci && (
+                        <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                          CRECI: {interesse.creci}
+                        </span>
                       )}
                     </td>
-                    <td>
-                      <div className="flex space-x-2">
+                    <td className="p-3">{interesse.email}</td>
+                    <td className="p-3">{interesse.celular}</td>
+                    <td className="p-3">{interesse.cpf}</td>
+                    <td className="p-3">
+                      {interesse.cidade}/{interesse.estado}
+                    </td>
+                    <td className="p-3">
+                      {new Date(interesse.created_at).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="p-3">
+                      {interesse.pagamento_confirmado ? (
+                        <span className="text-green-600 font-medium">Confirmado</span>
+                      ) : (
+                        <span className="text-amber-600 font-medium">Pendente</span>
+                      )}
+                    </td>
+                    <td className="p-3">
+                      <div className="flex justify-center space-x-2">
                         <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleVerDetalhes(item)}
-                          title="Ver detalhes"
+                          size="sm"
+                          onClick={() => 
+                            handleApprove(
+                              interesse.id, 
+                              interesse.email,
+                              interesse.nome,
+                              interesse.sobrenome
+                            )
+                          }
+                          className="flex items-center"
                         >
-                          <FileText size={18} />
+                          <UserPlus className="w-4 h-4 mr-1" />
+                          Aprovar
                         </Button>
-                        
-                        {item.status === 'pendente' ? (
-                          <>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="text-green-600 border-green-600 hover:bg-green-50"
-                              onClick={() => handleVerDetalhes(item)}
-                              disabled={!!processando}
-                              title="Aprovar"
-                            >
-                              {processando === item.id ? (
-                                <Loader2 size={18} className="animate-spin" />
-                              ) : (
-                                <Check size={18} />
-                              )}
-                            </Button>
-                            
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="text-red-600 border-red-600 hover:bg-red-50"
-                              onClick={() => handleRejeitar(item.id)}
-                              disabled={!!processando}
-                              title="Rejeitar"
-                            >
-                              {processando === item.id ? (
-                                <Loader2 size={18} className="animate-spin" />
-                              ) : (
-                                <X size={18} />
-                              )}
-                            </Button>
-                          </>
-                        ) : item.status === 'aprovado' && item.pagamento_url ? (
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                            onClick={() => window.open(item.pagamento_url, '_blank')}
-                            title="Link de pagamento"
-                          >
-                            <ExternalLink size={18} />
-                          </Button>
-                        ) : null}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleReject(interesse.id)}
+                          className="flex items-center"
+                        >
+                          <X className="w-4 h-4 mr-1" />
+                          Rejeitar
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -327,129 +233,9 @@ const AprovacaoInteresse: React.FC = () => {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
-      
-      {/* Diálogo de detalhes */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Detalhes da Solicitação</DialogTitle>
-          </DialogHeader>
-          
-          {selectedInteresse && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Nome completo</p>
-                  <p className="font-medium">{selectedInteresse.nome} {selectedInteresse.sobrenome}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-muted-foreground">CPF</p>
-                  <p className="font-medium">{selectedInteresse.cpf}</p>
-                </div>
-                
-                {selectedInteresse.creci && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">CRECI</p>
-                    <p className="font-medium">{selectedInteresse.creci}</p>
-                  </div>
-                )}
-                
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{selectedInteresse.email}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-muted-foreground">Telefone</p>
-                  <p className="font-medium">{selectedInteresse.celular}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-muted-foreground">Localização</p>
-                  <p className="font-medium">{selectedInteresse.cidade}/{selectedInteresse.estado}</p>
-                </div>
-              </div>
-              
-              <div>
-                <p className="text-sm text-muted-foreground">Motivo do interesse</p>
-                <p className="mt-1 border rounded p-2 text-sm">{selectedInteresse.motivo_interesse}</p>
-              </div>
-              
-              {selectedInteresse.status === 'pendente' && (
-                <div>
-                  <p className="text-sm font-medium mb-2">Tipo de Associação</p>
-                  <select 
-                    className="w-full p-2 border rounded"
-                    value={selectedTipoId || ''}
-                    onChange={(e) => setSelectedTipoId(e.target.value || null)}
-                  >
-                    <option value="">Selecione um tipo</option>
-                    {tiposAssociacao.map(tipo => (
-                      <option key={tipo.id} value={tipo.id}>
-                        {tipo.title} - R$ {tipo.value.toFixed(2)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              {selectedInteresse.pagamento_url && (
-                <div className="border-t pt-4">
-                  <p className="text-sm text-muted-foreground">Link de pagamento</p>
-                  <a 
-                    href={selectedInteresse.pagamento_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline flex items-center gap-1 mt-1"
-                  >
-                    <ExternalLink size={14} /> Acessar link de pagamento
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
-          
-          <DialogFooter>
-            {selectedInteresse?.status === 'pendente' && (
-              <div className="flex gap-2 w-full sm:justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                
-                <Button
-                  type="button"
-                  onClick={handleAprovar}
-                  disabled={!selectedTipoId || !!processando}
-                >
-                  {processando ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Check className="mr-2 h-4 w-4" />
-                  )}
-                  Aprovar e Gerar Link
-                </Button>
-              </div>
-            )}
-            
-            {selectedInteresse?.status !== 'pendente' && (
-              <Button
-                type="button"
-                onClick={() => setDialogOpen(false)}
-              >
-                Fechar
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+        </div>
+      )}
+    </div>
   );
 };
 

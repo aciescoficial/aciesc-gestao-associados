@@ -17,12 +17,13 @@ export async function ensureStorageBucketExists(bucketName: string, isPublic: bo
     const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
     
     if (!bucketExists) {
-      // Create bucket via RPC call since storage.createBucket is not available
-      await supabase.rpc('create_storage_bucket', {
-        name: bucketName,
+      // Create bucket using standard storage API instead of RPC
+      const { error } = await supabase.storage.createBucket(bucketName, {
         public: isPublic,
-        file_size_limit: 10485760 // 10MB
+        fileSizeLimit: 10485760 // 10MB
       });
+      
+      if (error) throw error;
       console.log(`Created storage bucket: ${bucketName}`);
       return true;
     }
@@ -57,8 +58,9 @@ export async function secureDelete(tableName: string, id: string): Promise<boole
     throw new Error("Apenas administradores podem excluir registros");
   }
   
+  // Using type assertion to allow dynamic table names
   const { error } = await supabase
-    .from(tableName)
+    .from(tableName as any)
     .delete()
     .eq('id', id);
     
