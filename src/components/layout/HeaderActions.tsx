@@ -49,7 +49,7 @@ const HeaderActions: React.FC = () => {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-0">
+              <PopoverContent align="end" className="z-50 w-80 p-0 bg-white shadow-md">
                 <div className="p-2 border-b">
                   <h4 className="font-medium">Mensagens</h4>
                 </div>
@@ -86,7 +86,7 @@ const HeaderActions: React.FC = () => {
                   <HelpCircle className="h-5 w-5" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-0">
+              <PopoverContent align="end" className="z-50 w-80 p-0 bg-white shadow-md">
                 <div className="p-2 border-b">
                   <h4 className="font-medium">Ajuda</h4>
                 </div>

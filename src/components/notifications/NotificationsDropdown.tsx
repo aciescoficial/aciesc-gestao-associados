@@ -103,7 +103,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ className
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-0">
+              <PopoverContent align="end" className="z-50 w-80 p-0 bg-white shadow-md">
                 <div className="p-2 border-b flex justify-between items-center">
                   <h4 className="font-medium text-sm">Notificações</h4>
                   {unreadCount > 0 && (
