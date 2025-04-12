@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../AuthProvider';
+import { useAuth } from '../hooks/useAuthContext';
 import { useToast } from "@/hooks/use-toast";
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
