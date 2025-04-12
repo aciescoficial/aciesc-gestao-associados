@@ -1,7 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Users, Building, Clock, Calendar } from 'lucide-react';
+import { Users, Building, Clock, Calendar, Wallet, Mail, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState({
@@ -277,28 +280,34 @@ const Dashboard: React.FC = () => {
           <h2 className="wp-subheader">Estado do Sistema</h2>
           <div className="space-y-2">
             <div className="flex justify-between items-center p-2 border-b">
-              <span>Pagamentos</span>
-              <span className={`wp-badge-${systemStatus.asaas.active || systemStatus.stripe.active ? "success" : "error"}`}>
-                {systemStatus.asaas.active || systemStatus.stripe.active ? 'Conectado' : 'Desconectado'}
+              <span className="flex items-center">
+                <Wallet className="h-4 w-4 mr-2" />
+                Pagamentos
               </span>
+              <Badge variant={systemStatus.asaas.active || systemStatus.stripe.active ? "default" : "destructive"}>
+                {systemStatus.asaas.active || systemStatus.stripe.active ? 'Conectado' : 'Desconectado'}
+              </Badge>
             </div>
             <div className="flex justify-between items-center p-2 border-b">
               <span>API Asaas</span>
-              <span className={`wp-badge-${systemStatus.asaas.active ? "success" : "error"}`}>
+              <Badge variant={systemStatus.asaas.active ? "default" : "destructive"}>
                 {systemStatus.asaas.message}
-              </span>
+              </Badge>
             </div>
             <div className="flex justify-between items-center p-2 border-b">
               <span>API Stripe</span>
-              <span className={`wp-badge-${systemStatus.stripe.active ? "success" : "error"}`}>
+              <Badge variant={systemStatus.stripe.active ? "default" : "destructive"}>
                 {systemStatus.stripe.message}
-              </span>
+              </Badge>
             </div>
             <div className="flex justify-between items-center p-2">
-              <span>Emails</span>
-              <span className={`wp-badge-${systemStatus.emails.active ? "success" : "error"}`}>
-                {systemStatus.emails.message}
+              <span className="flex items-center">
+                <Mail className="h-4 w-4 mr-2" />
+                Emails
               </span>
+              <Badge variant={systemStatus.emails.active ? "default" : "destructive"}>
+                {systemStatus.emails.message}
+              </Badge>
             </div>
           </div>
         </div>
