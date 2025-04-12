@@ -42,7 +42,6 @@ export const ImportExportAssociado: React.FC = () => {
       try {
         const csvData = event.target?.result as string;
         
-        // Dynamically import PapaParse only when needed
         const Papa = (await import('papaparse')).default;
         
         Papa.parse(csvData, {
@@ -51,9 +50,7 @@ export const ImportExportAssociado: React.FC = () => {
           complete: (results) => {
             console.log("CSV parse results:", results);
             
-            // Map CSV headers to our data model
             const mappedData = results.data.map((row: any, index) => {
-              // Split full name into first name and last name
               let nome = row['Nome'] || '';
               let sobrenome = '';
               
@@ -63,7 +60,6 @@ export const ImportExportAssociado: React.FC = () => {
                 sobrenome = nameParts.slice(1).join(' ');
               }
               
-              // Parse date from DD/MM/YYYY to YYYY-MM-DD
               let validade = '';
               if (row['Validade']) {
                 const parts = row['Validade'].split('/');
@@ -96,7 +92,6 @@ export const ImportExportAssociado: React.FC = () => {
               };
             });
 
-            // Generate validation metadata for each field
             const validationFields = Object.keys(results.data[0] || {}).map(field => ({
               fieldName: field,
               targetField: mapFieldToTarget(field),
@@ -130,7 +125,6 @@ export const ImportExportAssociado: React.FC = () => {
   };
 
   const validateField = (field: string, data: any[]): boolean => {
-    // Required fields validation
     const requiredFields = ['Nome', 'Email', 'CPF', 'Cidade'];
     
     if (requiredFields.includes(field)) {
@@ -172,7 +166,6 @@ export const ImportExportAssociado: React.FC = () => {
     try {
       const count = await importAssociados(importData);
       
-      // Log the import operation
       await logOperation({
         eventType: 'import',
         entityType: 'associado',
@@ -221,7 +214,6 @@ export const ImportExportAssociado: React.FC = () => {
         return;
       }
       
-      // Dynamically import PapaParse only when needed
       const Papa = (await import('papaparse')).default;
       
       const csvContent = Papa.unparse({
@@ -255,7 +247,6 @@ export const ImportExportAssociado: React.FC = () => {
       
       downloadFile(csvContent, 'text/csv;charset=utf-8;', `associados_${new Date().toISOString().split('T')[0]}.csv`);
       
-      // Log the export operation
       await logOperation({
         eventType: 'export',
         entityType: 'associado',
@@ -325,7 +316,6 @@ export const ImportExportAssociado: React.FC = () => {
       
       downloadFile(xml, 'application/xml;charset=utf-8;', `associados_${new Date().toISOString().split('T')[0]}.xml`);
       
-      // Log the export operation
       await logOperation({
         eventType: 'export',
         entityType: 'associado',
