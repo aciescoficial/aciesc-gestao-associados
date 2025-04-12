@@ -4,18 +4,20 @@ import { UserRole, User } from '../types';
 import { supabase, handleSupabaseError } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { mapToDbRole } from '../utils/roleUtils';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 
 export const useUserCreate = (onSuccess: (user: User) => void) => {
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
     role: 'user' as UserRole,
-    password: ''
+    password: '',
+    paymentProof: null as File | null
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleNewUserChange = (field: string, value: string) => {
+  const handleNewUserChange = (field: string, value: string | File | null) => {
     setNewUser(prev => ({ ...prev, [field]: value }));
   };
 
@@ -95,6 +97,54 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           console.error("Error updating profile role:", profileError);
           // Continue anyway since the user was created
         }
+
+        // Upload payment proof if provided
+        if (newUser.paymentProof) {
+          const fileExt = newUser.paymentProof.name.split('.').pop();
+          const fileName = `${userId}-payment-proof.${fileExt}`;
+          const filePath = `payment-proofs/${fileName}`;
+          
+          // Create storage bucket if it doesn't exist
+          try {
+            // Check if bucket exists
+            const { data: buckets } = await supabase
+              .storage
+              .listBuckets();
+            
+            const bucketExists = buckets?.some(bucket => bucket.name === 'payment-proofs');
+            
+            if (!bucketExists) {
+              // Create the bucket through RPC call
+              await supabase.rpc('create_storage_bucket', {
+                name: 'payment-proofs',
+                public: false,
+                file_size_limit: 10485760 // 10MB
+              });
+              
+              console.log('Created payment-proofs bucket');
+            }
+          } catch (bucketError) {
+            console.error("Error checking/creating bucket:", bucketError);
+          }
+          
+          // Upload the file
+          const { error: uploadError } = await supabase
+            .storage
+            .from('payment-proofs')
+            .upload(filePath, newUser.paymentProof, {
+              cacheControl: '3600',
+              upsert: false
+            });
+          
+          if (uploadError) {
+            console.error("Error uploading payment proof:", uploadError);
+            toast({
+              title: "Aviso",
+              description: "Usuário criado, mas houve um erro ao fazer upload do comprovante de pagamento.",
+              variant: "warning"
+            });
+          }
+        }
         
         const createdUser: User = {
           id: userId,
@@ -134,7 +184,8 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
       name: '',
       email: '',
       role: 'user',
-      password: ''
+      password: '',
+      paymentProof: null
     });
   };
 

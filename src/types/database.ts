@@ -5,7 +5,7 @@ import { Database as OriginalDatabase } from "@/integrations/supabase/types";
 export interface ExtendedDatabase extends OriginalDatabase {
   public: {
     Tables: {
-      // Include all original tables
+      // Include all original tables from OriginalDatabase
       ...OriginalDatabase['public']['Tables'],
       
       // Add new tables
@@ -171,7 +171,7 @@ export interface ExtendedDatabase extends OriginalDatabase {
       ...OriginalDatabase['public']['Enums'];
     };
   };
-};
+}
 
 // Create a customized supabase client type
 export type ExtendedSupabaseClient = ReturnType<typeof createExtendedClient>;

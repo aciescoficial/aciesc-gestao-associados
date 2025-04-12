@@ -30,3 +30,4 @@ enabled = true
 [edge_functions]
 [edge_functions.send-email]
 verify_jwt = false
+
