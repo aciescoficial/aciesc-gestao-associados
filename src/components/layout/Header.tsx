@@ -18,7 +18,6 @@ const Header: React.FC = () => {
         <div className="flex items-center">
           <SidebarTrigger className="text-white mr-3 hover:text-gray-200" />
           <div className="flex items-center">
-            <span className="text-lg font-medium">SC</span>
             <SystemVersion />
           </div>
         </div>
