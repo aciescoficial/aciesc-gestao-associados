@@ -12,14 +12,14 @@ import { getComunicacaoMenuItems } from './ComunicacaoMenu';
 
 export const getAllMenuItems = (): MenuItem[] => {
   return [
-    ...getDashboardMenuItems(),
-    ...getAdminMenuItems(),
-    ...getAssociadosMenuItems(),
-    ...getEmpresasMenuItems(),
-    ...getFinanceiroMenuItems(),
-    ...getConfiguracoesMenuItems(),
-    ...getUserMenuItems(),
-    ...getEmpresaMenuItems(),
-    ...getComunicacaoMenuItems(),
+    ...getDashboardMenuItems(), // Block 1
+    ...getAdminMenuItems(),     // Block 3
+    ...getAssociadosMenuItems(), // Block 3
+    ...getEmpresasMenuItems(),  // Block 3
+    ...getFinanceiroMenuItems(), // Block 3
+    ...getUserMenuItems(),      // Block 4
+    ...getEmpresaMenuItems(),   // Block 4
+    ...getConfiguracoesMenuItems(), // Block 5
+    ...getComunicacaoMenuItems(), // Block 3
   ];
 };

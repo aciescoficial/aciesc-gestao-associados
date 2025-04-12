@@ -19,13 +19,15 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <TooltipProvider>
       <SidebarProvider defaultOpen={!isMobile}>
-        <div className="flex min-h-screen w-full flex-col bg-gray-50">
-          <Header />
+        <div className="flex min-h-screen w-full flex-col">
           <div className="flex flex-1 overflow-hidden">
             <MainSidebar location={location} />
-            <MainContent>
-              {children}
-            </MainContent>
+            <div className="flex flex-col flex-1">
+              <Header />
+              <MainContent>
+                {children}
+              </MainContent>
+            </div>
           </div>
         </div>
       </SidebarProvider>

@@ -6,7 +6,7 @@ import { MenuItem } from '../types/MenuItem';
 export const getAdminMenuItems = (): MenuItem[] => {
   return [
     { 
-      header: "Admin", 
+      header: "Gestão de Usuários", 
       roles: ['admin'],
       submenu: [
         { icon: UserCog, label: "Usuários", path: "/usuarios", roles: ['admin'] },
