@@ -79,7 +79,7 @@ export const getOperationLogs = async (): Promise<OperationLog[]> => {
     
     // Transform and validate the data
     const logs: OperationLog[] = data?.map(log => {
-      // Handle the case where profiles might be null or have an error
+      // Handle the case where profiles might be null
       let safeProfiles = null;
       
       if (log.profiles && 
