@@ -11,15 +11,25 @@ import {
 
 interface ConveniadoPaginationProps {
   currentPage: number;
-  totalPages: number;
   setCurrentPage: (page: number) => void;
+  // Allow either totalPages directly or the components to calculate it
+  totalPages?: number;
+  totalCount?: number;
+  itemsPerPage?: number;
 }
 
 const ConveniadoPagination: React.FC<ConveniadoPaginationProps> = ({
   currentPage,
-  totalPages,
-  setCurrentPage
+  setCurrentPage,
+  totalPages: propsTotalPages,
+  totalCount,
+  itemsPerPage
 }) => {
+  // Calculate totalPages if not directly provided
+  const totalPages = propsTotalPages || (itemsPerPage && totalCount 
+    ? Math.ceil(totalCount / itemsPerPage) 
+    : 1);
+  
   if (totalPages <= 1) return null;
   
   return (
