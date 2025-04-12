@@ -11,10 +11,13 @@ import {
   SelectValue, 
 } from "@/components/ui/select";
 import { ConveniadoStatus } from '../hooks/useConveniadoSearch';
+import { Label } from '@/components/ui/label';
 
 interface ConveniadoSearchFormProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
+  searchType?: 'nome' | 'cpf' | 'creci' | 'placa';
+  setSearchType?: (type: 'nome' | 'cpf' | 'creci' | 'placa') => void;
   statusFilter: ConveniadoStatus | 'todos';
   setStatusFilter: (status: ConveniadoStatus | 'todos') => void;
   cidadeFilter: string;
@@ -30,6 +33,8 @@ interface ConveniadoSearchFormProps {
 const ConveniadoSearchForm: React.FC<ConveniadoSearchFormProps> = ({
   searchTerm,
   setSearchTerm,
+  searchType = 'nome',
+  setSearchType,
   statusFilter,
   setStatusFilter,
   cidadeFilter,
@@ -44,25 +49,60 @@ const ConveniadoSearchForm: React.FC<ConveniadoSearchFormProps> = ({
   // Check if search term looks like a license plate format
   const isLicensePlateSearch = /^[A-Za-z0-9]{3,8}$/.test(searchTerm);
   
+  // Helper function to get the appropriate search icon
+  const getSearchIcon = () => {
+    if (searchType === 'placa' || (isLicensePlateSearch && searchType === 'nome')) {
+      return <Car className="h-5 w-5 text-gray-400" />;
+    }
+    return <Search className="h-5 w-5 text-gray-400" />;
+  };
+
+  // Helper function to get placeholder text based on search type
+  const getPlaceholderText = () => {
+    switch(searchType) {
+      case 'nome': return "Buscar por nome ou sobrenome...";
+      case 'cpf': return "Buscar por CPF...";
+      case 'creci': return "Buscar por número CRECI...";
+      case 'placa': return "Buscar por placa do veículo...";
+      default: return "Buscar conveniado...";
+    }
+  };
+  
   return (
     <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
       <form onSubmit={handleSearch} className="flex flex-1 gap-2">
         <div className="relative flex-1">
           <Input
-            placeholder="Buscar por nome, CPF, CRECI, telefone, email ou placa do veículo..."
+            placeholder={getPlaceholderText()}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            {isLicensePlateSearch ? (
-              <Car className="h-5 w-5 text-gray-400" />
-            ) : (
-              <Search className="h-5 w-5 text-gray-400" />
-            )}
+            {getSearchIcon()}
           </div>
         </div>
-        <Button type="submit">Buscar</Button>
+        
+        {setSearchType && (
+          <Select
+            value={searchType}
+            onValueChange={(value) => setSearchType(value as 'nome' | 'cpf' | 'creci' | 'placa')}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Buscar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="nome">Nome</SelectItem>
+              <SelectItem value="cpf">CPF</SelectItem>
+              <SelectItem value="creci">CRECI</SelectItem>
+              <SelectItem value="placa">Placa</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+        
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Buscando...' : 'Buscar'}
+        </Button>
       </form>
       
       <div className="flex flex-wrap gap-2 items-center">
@@ -122,7 +162,7 @@ const ConveniadoSearchForm: React.FC<ConveniadoSearchFormProps> = ({
         <Button 
           variant="outline" 
           size="icon" 
-          onClick={() => fetchConveniados()}
+          onClick={fetchConveniados}
           disabled={loading}
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />

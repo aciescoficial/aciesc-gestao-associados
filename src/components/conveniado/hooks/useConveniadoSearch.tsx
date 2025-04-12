@@ -22,6 +22,7 @@ export interface Conveniado {
 
 export const useConveniadoSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState<'nome' | 'cpf' | 'creci' | 'placa'>('nome');
   const [statusFilter, setStatusFilter] = useState<ConveniadoStatus | 'todos'>('todos');
   const [cidadeFilter, setCidadeFilter] = useState('todas');
   const [cidades, setCidades] = useState<string[]>([]);
@@ -62,7 +63,20 @@ export const useConveniadoSearch = () => {
       
       // Apply search term filter if provided
       if (searchTerm.trim()) {
-        query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%,creci.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,telefone.ilike.%${searchTerm}%,placa_principal.ilike.%${searchTerm}%,placa_secundaria.ilike.%${searchTerm}%`);
+        switch (searchType) {
+          case 'nome':
+            query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
+            break;
+          case 'cpf':
+            query = query.ilike('cpf', `%${searchTerm}%`);
+            break;
+          case 'creci':
+            query = query.ilike('creci', `%${searchTerm}%`);
+            break;
+          case 'placa':
+            query = query.or(`placa_principal.ilike.%${searchTerm}%,placa_secundaria.ilike.%${searchTerm}%`);
+            break;
+        }
       }
       
       // Apply status filter if not 'todos'
@@ -136,6 +150,8 @@ export const useConveniadoSearch = () => {
     loading,
     searchTerm,
     setSearchTerm,
+    searchType,
+    setSearchType,
     statusFilter,
     setStatusFilter,
     cidadeFilter,
