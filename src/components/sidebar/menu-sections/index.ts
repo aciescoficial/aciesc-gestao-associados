@@ -12,14 +12,25 @@ import { getComunicacaoMenuItems } from './ComunicacaoMenu';
 
 export const getAllMenuItems = (): MenuItem[] => {
   return [
+    // Block 0 - Dashboard
     ...getDashboardMenuItems(),
+    
+    // Block 2 - Gestão de Usuários
     ...getAdminMenuItems(),
     ...getAssociadosMenuItems(),
     ...getEmpresasMenuItems(),
-    ...getFinanceiroMenuItems(),
-    ...getConfiguracoesMenuItems(),
-    ...getUserMenuItems(),
-    ...getEmpresaMenuItems(),
     ...getComunicacaoMenuItems(),
+    
+    // Block 3 - Áreas de Acesso
+    ...getEmpresaMenuItems(),
+    
+    // Block 4 - Configurações
+    ...getConfiguracoesMenuItems(),
+    
+    // Block 5 - Usuário
+    ...getUserMenuItems(),
+    
+    // Removed from organization
+    ...getFinanceiroMenuItems(),
   ];
 };

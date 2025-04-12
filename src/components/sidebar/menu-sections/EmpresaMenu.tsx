@@ -6,13 +6,12 @@ import { MenuItem } from '../types/MenuItem';
 export const getEmpresaMenuItems = (): MenuItem[] => {
   return [
     { 
-      header: "Área da Empresa", 
+      header: "Área de Acesso", 
       roles: ['empresa'],
       submenu: [
-        { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['empresa'] },
+        { icon: ClipboardList, label: "Área da Empresa", path: "/perfil", roles: ['empresa'] },
         { icon: Users, label: "Pesquisar Associados", path: "/associados/pesquisa", roles: ['empresa'] },
       ]
     }
   ];
 };
-

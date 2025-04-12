@@ -27,7 +27,7 @@ const SubmenuContent: React.FC<SubmenuContentProps> = ({
   }
 
   return (
-    <SidebarGroupContent className="bg-aciesc-dark bg-opacity-30">
+    <SidebarGroupContent className="ml-3">
       <SidebarMenu>
         {submenu.map((subItem, index) => (
           <SidebarMenuItem
