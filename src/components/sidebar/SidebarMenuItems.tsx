@@ -32,6 +32,7 @@ interface MenuItem {
   path?: string;
   header?: string;
   roles?: string[];
+  requiredTags?: string[];
   submenu?: Omit<MenuItem, 'header' | 'submenu'>[];
 }
 
@@ -42,7 +43,7 @@ interface SidebarMenuItemsProps {
 }
 
 const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
-  const { userRole } = useAuth();
+  const { userRole, userTags, isAdmin, hasFinanceiroAccess } = useAuth();
   const { toggleMenu, isMenuExpanded } = useSidebarState();
   
   const allMenuItems: MenuItem[] = [
@@ -79,11 +80,12 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
     { 
       header: "Financeiro", 
       roles: ['admin'],
+      requiredTags: ['financeiro'],
       submenu: [
-        { icon: BarChart, label: "Resumo", path: "/financeiro", roles: ['admin'] },
-        { icon: UserCheck, label: "Associados", path: "/financeiro/associados", roles: ['admin'] },
-        { icon: DollarSign, label: "Integrações", path: "/financeiro/integracao", roles: ['admin'] },
-        { icon: FileText, label: "Relatórios", path: "/financeiro/relatorios", roles: ['admin'] },
+        { icon: BarChart, label: "Resumo", path: "/financeiro", roles: ['admin'], requiredTags: ['financeiro'] },
+        { icon: UserCheck, label: "Associados", path: "/financeiro/associados", roles: ['admin'], requiredTags: ['financeiro'] },
+        { icon: DollarSign, label: "Integrações", path: "/financeiro/integracao", roles: ['admin'], requiredTags: ['financeiro'] },
+        { icon: FileText, label: "Relatórios", path: "/financeiro/relatorios", roles: ['admin'], requiredTags: ['financeiro'] },
       ]
     },
     { 
@@ -119,14 +121,55 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
     },
   ];
   
+  // Filter menu items based on user role and required tags
   const menuItems = allMenuItems.filter(item => {
-    if (!item.roles) return false;
-    return userRole && item.roles.includes(userRole);
+    // Check if user has the appropriate role
+    if (!item.roles || !userRole || !item.roles.includes(userRole)) {
+      // Allow admin access to everything
+      if (!isAdmin) {
+        return false;
+      }
+    }
+    
+    // Check if menu item has required tags
+    if (item.requiredTags && item.requiredTags.includes('financeiro')) {
+      return hasFinanceiroAccess;
+    }
+    
+    return true;
   });
   
   const isActive = (path: string) => location.pathname === path;
 
   const renderMenu = (item: MenuItem) => {
+    // Filter submenu items based on user role and required tags
+    if (item.submenu) {
+      const filteredSubmenu = item.submenu.filter(subItem => {
+        // Check if user has appropriate role
+        if (!subItem.roles || !userRole || !subItem.roles.includes(userRole)) {
+          // Allow admin access to everything
+          if (!isAdmin) {
+            return false;
+          }
+        }
+        
+        // Check if submenu item has required tags
+        if (subItem.requiredTags && subItem.requiredTags.includes('financeiro')) {
+          return hasFinanceiroAccess;
+        }
+        
+        return true;
+      });
+      
+      // Don't render the header if it has no valid submenu items
+      if (filteredSubmenu.length === 0) {
+        return null;
+      }
+      
+      // Update the item with filtered submenu
+      item = { ...item, submenu: filteredSubmenu };
+    }
+    
     if (item.header) {
       return (
         <SidebarSubmenu

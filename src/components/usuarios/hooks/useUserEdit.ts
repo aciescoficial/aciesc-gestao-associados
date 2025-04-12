@@ -22,7 +22,8 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
         .update({
           name: selectedUser.name,
           role: mapToDbRole(selectedUser.role),
-          tags: selectedUser.tags || []
+          tags: selectedUser.tags || [],
+          email: selectedUser.email // Also update email in profiles for consistency
         })
         .eq('id', selectedUser.id);
 

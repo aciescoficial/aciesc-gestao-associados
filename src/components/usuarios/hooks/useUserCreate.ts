@@ -27,7 +27,8 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
         user_metadata: {
           name: newUser.name,
           role: mapToDbRole(newUser.role as UserRole),
-          tags: newUser.tags
+          tags: newUser.tags,
+          active: true
         }
       });
 
@@ -40,7 +41,8 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           .update({
             name: newUser.name,
             role: mapToDbRole(newUser.role as UserRole),
-            tags: newUser.tags || []
+            tags: newUser.tags || [],
+            email: newUser.email // Add email to profiles table for easier access
           })
           .eq('id', authData.user.id);
 

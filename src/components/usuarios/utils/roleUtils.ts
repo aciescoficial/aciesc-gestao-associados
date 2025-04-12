@@ -97,3 +97,20 @@ export const getTagBadgeColor = (tag: UserTag): string => {
       return 'bg-gray-100 text-gray-800 border-gray-200';
   }
 };
+
+// Check if user has a specific tag
+export const hasTag = (userTags: UserTag[] | undefined, tag: UserTag): boolean => {
+  return userTags ? userTags.includes(tag) : false;
+};
+
+// Check if user has admin privileges (either admin role or administrador tag)
+export const isAdminOrFinanceiro = (userRole: UserRole | null, userTags: UserTag[] | undefined): boolean => {
+  if (userRole === 'admin') return true;
+  return hasTag(userTags, 'administrador') || hasTag(userTags, 'financeiro');
+};
+
+// Check if user has access to financeiro
+export const hasFinanceiroAccess = (userRole: UserRole | null, userTags: UserTag[] | undefined): boolean => {
+  if (userRole === 'admin') return true;
+  return hasTag(userTags, 'financeiro');
+};

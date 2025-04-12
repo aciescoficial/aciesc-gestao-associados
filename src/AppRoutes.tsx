@@ -3,14 +3,13 @@ import React, { lazy, Suspense } from "react";
 import { Route, Routes, Outlet, Navigate } from "react-router-dom";
 import RouteComponents from "./pages/RouteComponents";
 import { ProtectedRoute, AdminRoute } from "./pages/AuthRoutes";
+import { FinanceiroRoutes } from "./pages/routes/FinanceiroRoutes";
 import PluginLayout from "./components/PluginLayout";
 import LoginPage from "./components/auth/LoginPage";
 import NotFound from "./pages/NotFound";
 
 // Página de configurações
 const ConfiguracoesPage = lazy(() => import("./components/configuracoes/ConfiguracoesPage"));
-// Página de relatórios financeiros
-const FinanceiroRelatoriosPage = lazy(() => import("./components/financeiro/FinanceiroRelatoriosPage"));
 // Formulário de interesse
 const FormularioInteressePage = lazy(() => import("./components/associado/FormularioInteressePage"));
 // Página de aprovação de interesse
@@ -79,26 +78,8 @@ const AppRoutes: React.FC = () => {
             </ProtectedRoute>
           } />
 
-          <Route path="/financeiro" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <RouteComponents.FinanceiroResumoPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/financeiro/associados" element={
-            <AdminRoute>
-              <RouteComponents.AssociadosPage />
-            </AdminRoute>
-          } />
-          <Route path="/financeiro/integracao" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <RouteComponents.IntegracaoFinanceira />
-            </ProtectedRoute>
-          } />
-          <Route path="/financeiro/relatorios" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <FinanceiroRelatoriosPage />
-            </ProtectedRoute>
-          } />
+          {/* Include Financeiro routes */}
+          {FinanceiroRoutes}
 
           {/* Mensagens for all users */}
           <Route path="/mensagens" element={<RouteComponents.MensagensPage />} />

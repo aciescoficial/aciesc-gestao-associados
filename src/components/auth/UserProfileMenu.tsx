@@ -35,7 +35,10 @@ const UserProfileMenu = () => {
           .eq('id', user.id)
           .single();
           
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching user profile:', error);
+          return;
+        }
         
         if (data) {
           setUserName(data.name || '');

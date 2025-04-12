@@ -39,7 +39,7 @@ export const useUserFetch = () => {
       const mappedUsers: User[] = profiles.map(profile => ({
         id: profile.id,
         name: profile.name || '',
-        email: profile.email || '',  // This might need additional fetching if not stored in profiles
+        email: profile.email || '',  
         role: mapFromDbRole(profile.role),
         tags: profile.tags || [],
         active: profile.active !== false, // Default to true if not specified
