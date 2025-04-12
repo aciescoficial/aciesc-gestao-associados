@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import ImportPreview from './import/ImportPreview';
 import ImportInstructions from './import/ImportInstructions';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
+import { logOperation } from '@/components/audit/auditLogService';
 
 interface ImportExportEmpresasProps {
   onImportSuccess: () => void;

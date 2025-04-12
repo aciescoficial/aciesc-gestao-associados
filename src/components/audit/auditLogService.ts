@@ -59,6 +59,7 @@ export const logOperation = async (data: LogOperationData) => {
 
 export const getOperationLogs = async (): Promise<OperationLog[]> => {
   try {
+    // Changed the query to use a join approach instead of nested selection
     const { data, error } = await supabase
       .from('operation_logs')
       .select(`
@@ -70,12 +71,19 @@ export const getOperationLogs = async (): Promise<OperationLog[]> => {
         record_count,
         created_at,
         user_id,
-        profiles:profiles(name, email)
+        profiles:user_id(name, email)
       `)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Transform the data to match our OperationLog type
+    const logs: OperationLog[] = data?.map(log => ({
+      ...log,
+      profiles: log.profiles || null
+    })) || [];
+    
+    return logs;
   } catch (err) {
     console.error("Falha ao buscar logs de operação:", err);
     throw err;
