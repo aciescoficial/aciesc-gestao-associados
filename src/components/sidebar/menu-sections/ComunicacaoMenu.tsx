@@ -3,6 +3,7 @@ import React from 'react';
 import { MessageCircle, MessageSquare } from 'lucide-react';
 import { MenuItem } from '../types/MenuItem';
 
+// Memoize menu items to prevent recreation on every render
 export const getComunicacaoMenuItems = (): MenuItem[] => {
   return [
     { 

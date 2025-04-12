@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAuth } from '../auth/AuthProvider';
 import { useSidebarState } from '@/hooks/use-sidebar-state';
 import SidebarMenuItem from './SidebarMenuItem';
@@ -8,19 +8,21 @@ import { MenuItem, SidebarMenuItemsProps } from './types/MenuItem';
 import { getAllMenuItems } from './menu-sections';
 import { filterMenuItemsByRoleAndTags, filterSubmenuItemsByRoleAndTags } from './utils/menuFilters';
 
-const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
+const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = React.memo(({ location }) => {
   const { userRole, userTags, isAdmin, hasFinanceiroAccess } = useAuth();
   const { toggleMenu, isMenuExpanded } = useSidebarState();
   
-  // Get all menu items and filter them based on user role and tags
-  const allMenuItems = getAllMenuItems();
-  const menuItems = filterMenuItemsByRoleAndTags(
-    allMenuItems, 
-    userRole, 
-    userTags, 
-    isAdmin, 
-    hasFinanceiroAccess
-  );
+  // Get all menu items and filter them based on user role and tags - memoized to prevent unnecessary filtering
+  const menuItems = useMemo(() => {
+    const allMenuItems = getAllMenuItems();
+    return filterMenuItemsByRoleAndTags(
+      allMenuItems, 
+      userRole, 
+      userTags, 
+      isAdmin, 
+      hasFinanceiroAccess
+    );
+  }, [userRole, userTags, isAdmin, hasFinanceiroAccess]);
   
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
@@ -75,6 +77,9 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
       {menuItems.map(renderMenu)}
     </>
   );
-};
+});
+
+// Add display name for React DevTools
+SidebarMenuItems.displayName = 'SidebarMenuItems';
 
 export default SidebarMenuItems;

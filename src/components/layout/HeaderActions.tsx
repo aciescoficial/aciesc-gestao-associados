@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MessageSquare, HelpCircle } from 'lucide-react';
 import UserProfileMenu from '../auth/UserProfileMenu';
 import {
@@ -16,18 +16,19 @@ import {
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import NotificationsDropdown from '../notifications/NotificationsDropdown';
+import { Link } from 'react-router-dom';
 
 const HeaderActions: React.FC = () => {
   const isMobile = useIsMobile();
   const [unreadMessages, setUnreadMessages] = useState(3);
 
-  // Mock messages data
-  const recentMessages = [
+  // Mock messages data - memoized to prevent unnecessary re-renders
+  const recentMessages = useMemo(() => [
     { id: 1, title: 'Pagamento confirmado', preview: 'Seu pagamento foi processado com sucesso', date: '2 horas atrás', read: false },
     { id: 2, title: 'Promoção especial', preview: 'Confira nossos novos descontos exclusivos', date: 'Ontem', read: false },
     { id: 3, title: 'Lembrete de reunião', preview: 'Reunião amanhã às 15:00', date: '2 dias atrás', read: true },
     { id: 4, title: 'Atualização de sistema', preview: 'Nova versão disponível do sistema', date: '3 dias atrás', read: true },
-  ];
+  ], []);
 
   return (
     <div className="flex items-center gap-2">
@@ -65,9 +66,11 @@ const HeaderActions: React.FC = () => {
                   ))}
                 </div>
                 <div className="p-2 border-t text-center">
-                  <Button variant="link" size="sm" className="w-full">
-                    Ver todas as mensagens
-                  </Button>
+                  <Link to="/mensagens">
+                    <Button variant="link" size="sm" className="w-full">
+                      Ver todas as mensagens
+                    </Button>
+                  </Link>
                 </div>
               </PopoverContent>
             </Popover>

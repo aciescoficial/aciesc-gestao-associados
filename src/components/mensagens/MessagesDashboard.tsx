@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -72,16 +72,28 @@ const MessagesDashboard: React.FC = () => {
   const [filter, setFilter] = useState<MessageStatus>('all');
   const [messages, setMessages] = useState<Message[]>(mockMessages);
 
-  // Filter messages based on the selected tab
-  const filteredMessages = messages.filter(message => {
-    if (filter === 'unread') return !message.read;
-    if (filter === 'read') return message.read;
-    return true;
-  });
+  // Memoized filtered messages to prevent unnecessary recalculations
+  const filteredMessages = useMemo(() => {
+    if (filter === 'all') return messages;
+    return messages.filter(message => 
+      filter === 'unread' ? !message.read : message.read
+    );
+  }, [filter, messages]);
+
+  // Memoized count values
+  const unreadCount = useMemo(() => 
+    messages.filter(m => !m.read).length, 
+    [messages]
+  );
+  
+  const readCount = useMemo(() => 
+    messages.filter(m => m.read).length, 
+    [messages]
+  );
 
   // Mark message as read
   const markAsRead = (id: string) => {
-    setMessages(messages.map(message => 
+    setMessages(prevMessages => prevMessages.map(message => 
       message.id === id ? { ...message, read: true } : message
     ));
   };
@@ -98,6 +110,34 @@ const MessagesDashboard: React.FC = () => {
     }
   };
 
+  const renderMessageCard = (message: Message) => (
+    <Card key={message.id} className={`p-4 hover:bg-gray-50 ${!message.read ? 'border-l-4 border-l-blue-500' : ''}`}>
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">{message.title}</h3>
+            {!message.read && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
+            {getPriorityBadge(message.priority)}
+          </div>
+          <p className="text-sm text-gray-500 mt-1">De: {message.sender} • {message.date}</p>
+          <p className="mt-3">{message.content}</p>
+        </div>
+        <div className="ml-4 flex flex-col gap-2">
+          {!message.read && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => markAsRead(message.id)}
+            >
+              Marcar como lida
+            </Button>
+          )}
+          <Button variant="ghost" size="sm">Ver detalhes</Button>
+        </div>
+      </div>
+    </Card>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -110,105 +150,23 @@ const MessagesDashboard: React.FC = () => {
             Todas ({messages.length})
           </TabsTrigger>
           <TabsTrigger value="unread" onClick={() => setFilter('unread')}>
-            Não Lidas ({messages.filter(m => !m.read).length})
+            Não Lidas ({unreadCount})
           </TabsTrigger>
           <TabsTrigger value="read" onClick={() => setFilter('read')}>
-            Lidas ({messages.filter(m => m.read).length})
+            Lidas ({readCount})
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent value={filter} className="space-y-4">
           {filteredMessages.length > 0 ? (
-            filteredMessages.map(message => (
-              <Card key={message.id} className={`p-4 hover:bg-gray-50 ${!message.read ? 'border-l-4 border-l-blue-500' : ''}`}>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold">{message.title}</h3>
-                      {!message.read && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
-                      {getPriorityBadge(message.priority)}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">De: {message.sender} • {message.date}</p>
-                    <p className="mt-3">{message.content}</p>
-                  </div>
-                  <div className="ml-4 flex flex-col gap-2">
-                    {!message.read && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => markAsRead(message.id)}
-                      >
-                        Marcar como lida
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="sm">Ver detalhes</Button>
-                  </div>
-                </div>
-              </Card>
-            ))
+            filteredMessages.map(renderMessageCard)
           ) : (
             <div className="text-center p-8 border rounded-md bg-gray-50">
-              <p className="text-gray-500">Nenhuma mensagem encontrada</p>
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="unread" className="space-y-4">
-          {filteredMessages.length > 0 ? (
-            filteredMessages.map(message => (
-              <Card key={message.id} className="p-4 hover:bg-gray-50 border-l-4 border-l-blue-500">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold">{message.title}</h3>
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      {getPriorityBadge(message.priority)}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">De: {message.sender} • {message.date}</p>
-                    <p className="mt-3">{message.content}</p>
-                  </div>
-                  <div className="ml-4 flex flex-col gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => markAsRead(message.id)}
-                    >
-                      Marcar como lida
-                    </Button>
-                    <Button variant="ghost" size="sm">Ver detalhes</Button>
-                  </div>
-                </div>
-              </Card>
-            ))
-          ) : (
-            <div className="text-center p-8 border rounded-md bg-gray-50">
-              <p className="text-gray-500">Nenhuma mensagem não lida</p>
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="read" className="space-y-4">
-          {filteredMessages.length > 0 ? (
-            filteredMessages.map(message => (
-              <Card key={message.id} className="p-4 hover:bg-gray-50">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold">{message.title}</h3>
-                      {getPriorityBadge(message.priority)}
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">De: {message.sender} • {message.date}</p>
-                    <p className="mt-3">{message.content}</p>
-                  </div>
-                  <div className="ml-4">
-                    <Button variant="ghost" size="sm">Ver detalhes</Button>
-                  </div>
-                </div>
-              </Card>
-            ))
-          ) : (
-            <div className="text-center p-8 border rounded-md bg-gray-50">
-              <p className="text-gray-500">Nenhuma mensagem lida</p>
+              <p className="text-gray-500">
+                {filter === 'all' && 'Nenhuma mensagem encontrada'}
+                {filter === 'unread' && 'Nenhuma mensagem não lida'}
+                {filter === 'read' && 'Nenhuma mensagem lida'}
+              </p>
             </div>
           )}
         </TabsContent>
