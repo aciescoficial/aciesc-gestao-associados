@@ -1,181 +1,351 @@
 
 import React, { useEffect, useState } from 'react';
-import { Inbox, Building, User, MapPin, Phone, Link, Instagram } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Download, Search, Calendar, Building, User, Phone, Mail, ExternalLink, MoreHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from '@/components/ui/input';
 
-// This would come from a database in a real implementation
+// Mock data for testing
 const mockSugestoes = [
   {
     id: '1',
-    nome_empresa: 'Café & Tal',
-    cidade: 'São José',
-    estado: 'SC',
+    nome: 'Café & Tal',
+    email: 'contato@cafetal.com.br',
     telefone: '(48) 99999-8888',
-    instagram: '@cafeetaloficial',
-    site: 'www.cafetal.com.br',
     contato: 'Ana Silva',
-    motivo: 'Ótimo café, ambiente aconchegante. Seria um ótimo espaço para networking entre associados.',
-    produtos: 'Cafés especiais, doces artesanais, sanduíches naturais',
-    status: 'pendente',
-    data_sugestao: '2025-04-05T10:30:00Z'
+    empresa: 'Café & Tal',
+    status: 'novo',
+    data_criacao: '2025-04-01T10:30:00Z'
   },
   {
     id: '2',
-    nome_empresa: 'Tech Solutions',
-    cidade: 'Florianópolis',
-    estado: 'SC',
+    nome: 'Tech Solutions',
+    email: 'info@techsolutions.com.br',
     telefone: '(48) 98765-4321',
-    instagram: '@techsolutionsfln',
-    site: 'www.techsolutions.com.br',
     contato: 'Roberto Mendes',
-    motivo: 'Empresa de tecnologia que oferece serviços de desenvolvimento web e aplicativos.',
-    produtos: 'Desenvolvimento de software, consultoria em TI, serviços em nuvem',
-    status: 'aprovada',
-    data_sugestao: '2025-03-28T14:15:00Z'
+    empresa: 'Tech Solutions',
+    status: 'cancelado',
+    data_criacao: '2025-03-28T14:15:00Z'
   },
   {
     id: '3',
-    nome_empresa: 'Moda Express',
-    cidade: 'Biguaçu',
-    estado: 'SC',
+    nome: 'Moda Express',
+    email: 'contato@modaexpress.com.br',
     telefone: '(48) 99988-7766',
-    instagram: '@modaexpressbig',
-    site: 'www.modaexpress.com.br',
     contato: 'Carla Rodrigues',
-    motivo: 'Loja com ótimos descontos e variedade de produtos. Seria um benefício para os associados.',
-    produtos: 'Roupas, calçados, acessórios',
-    status: 'rejeitada',
-    data_sugestao: '2025-04-01T09:45:00Z'
+    empresa: 'Moda Express',
+    status: 'em_progresso',
+    data_criacao: '2025-03-15T09:45:00Z'
+  },
+  {
+    id: '4',
+    nome: 'Fitness Center',
+    email: 'contato@fitnesscenter.com.br',
+    telefone: '(48) 97777-6666',
+    contato: 'Paulo Oliveira',
+    empresa: 'Fitness Center',
+    status: 'frio',
+    data_criacao: '2025-03-10T16:20:00Z'
+  },
+  {
+    id: '5',
+    nome: 'Bella Casa Decorações',
+    email: 'vendas@bellacasa.com.br',
+    telefone: '(48) 96666-5555',
+    contato: 'Márcia Santos',
+    empresa: 'Bella Casa',
+    status: 'ganho',
+    data_criacao: '2025-03-05T11:30:00Z'
+  },
+  {
+    id: '6',
+    nome: 'DataTech Soluções',
+    email: 'contato@datatech.com.br',
+    telefone: '(48) 95555-4444',
+    contato: 'Felipe Costa',
+    empresa: 'DataTech',
+    status: 'novo',
+    data_criacao: '2025-03-01T08:15:00Z'
   }
 ];
 
+interface SugestaoEmpresa {
+  id: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  contato: string;
+  empresa: string;
+  status: string;
+  data_criacao: string;
+}
+
 const EmpresaSugestoes: React.FC = () => {
-  const [sugestoes, setSugestoes] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState('todas');
-  
+  const [sugestoes, setSugestoes] = useState<SugestaoEmpresa[]>([]);
+  const [filteredSugestoes, setFilteredSugestoes] = useState<SugestaoEmpresa[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const itemsPerPage = 5;
+
   useEffect(() => {
-    // In a real implementation, this would fetch from a database
+    // In a real scenario, fetch data from an API
     setSugestoes(mockSugestoes);
+    setFilteredSugestoes(mockSugestoes);
   }, []);
-  
-  const getFilteredSugestoes = () => {
-    if (activeTab === 'todas') return sugestoes;
-    return sugestoes.filter(s => s.status === activeTab);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = sugestoes.filter(
+        (sugestao) =>
+          sugestao.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          sugestao.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          sugestao.empresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          sugestao.contato.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredSugestoes(filtered);
+      setCurrentPage(1);
+    } else {
+      setFilteredSugestoes(sugestoes);
+    }
+  }, [searchTerm, sugestoes]);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
-  
+
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pendente':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pendente</Badge>;
-      case 'aprovada':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Aprovada</Badge>;
-      case 'rejeitada':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Rejeitada</Badge>;
+      case 'novo':
+        return <Badge className="bg-blue-500 hover:bg-blue-600">Novo</Badge>;
+      case 'em_progresso':
+        return <Badge className="bg-yellow-500 hover:bg-yellow-600">Em progresso</Badge>;
+      case 'ganho':
+        return <Badge className="bg-green-500 hover:bg-green-600">Aprovado</Badge>;
+      case 'cancelado':
+        return <Badge className="bg-red-500 hover:bg-red-600">Cancelado</Badge>;
+      case 'frio':
+        return <Badge className="bg-gray-500 hover:bg-gray-600">Frio</Badge>;
       default:
-        return <Badge variant="outline">Desconhecido</Badge>;
+        return <Badge>Desconhecido</Badge>;
     }
   };
-  
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR', { 
-      day: '2-digit', 
-      month: '2-digit', 
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    });
+    }).format(date);
   };
-  
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredSugestoes.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredSugestoes.length / itemsPerPage);
+
+  const paginationItems = [];
+  for (let i = 1; i <= totalPages; i++) {
+    paginationItems.push(
+      <PaginationItem key={i}>
+        <PaginationLink 
+          isActive={i === currentPage} 
+          onClick={() => setCurrentPage(i)}
+        >
+          {i}
+        </PaginationLink>
+      </PaginationItem>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="wp-header flex items-center gap-2">
-        <Inbox className="h-6 w-6" />
-        Sugestões de Empresas
-      </h1>
-      
-      <div className="wp-card">
-        <Tabs defaultValue="todas" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="todas">Todas</TabsTrigger>
-            <TabsTrigger value="pendente">Pendentes</TabsTrigger>
-            <TabsTrigger value="aprovada">Aprovadas</TabsTrigger>
-            <TabsTrigger value="rejeitada">Rejeitadas</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value={activeTab} className="space-y-4">
-            {getFilteredSugestoes().length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Inbox className="mx-auto h-12 w-12 opacity-30 mb-2" />
-                <p>Nenhuma sugestão {activeTab !== 'todas' ? `com status "${activeTab}"` : ''} encontrada.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {getFilteredSugestoes().map((sugestao) => (
-                  <Card key={sugestao.id} className="shadow-sm hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg">{sugestao.nome_empresa}</CardTitle>
-                        {getStatusBadge(sugestao.status)}
-                      </div>
-                      <CardDescription className="flex items-center gap-1 text-sm">
-                        <MapPin size={14} />
-                        {sugestao.cidade}/{sugestao.estado}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-2 space-y-3">
-                      <div>
-                        <h4 className="text-sm font-semibold mb-1">Dados do Contato</h4>
-                        <div className="text-sm grid grid-cols-1 gap-1">
-                          <div className="flex items-center gap-2">
-                            <User size={14} />
-                            <span>{sugestao.contato}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Phone size={14} />
-                            <span>{sugestao.telefone}</span>
-                          </div>
-                          
-                          {sugestao.instagram && (
-                            <div className="flex items-center gap-2">
-                              <Instagram size={14} />
-                              <span>{sugestao.instagram}</span>
-                            </div>
-                          )}
-                          
-                          {sugestao.site && (
-                            <div className="flex items-center gap-2">
-                              <Link size={14} />
-                              <span>{sugestao.site}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h4 className="text-sm font-semibold mb-1">Motivo</h4>
-                        <p className="text-sm text-gray-600">{sugestao.motivo}</p>
-                      </div>
-                      
-                      <div>
-                        <h4 className="text-sm font-semibold mb-1">Produtos/Serviços</h4>
-                        <p className="text-sm text-gray-600">{sugestao.produtos}</p>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="pt-0">
-                      <p className="text-xs text-gray-500">
-                        Sugestão recebida em: {formatDate(sugestao.data_sugestao)}
-                      </p>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+      <div className="flex justify-between items-center">
+        <h1 className="wp-header">{filteredSugestoes.length} Sugestões de Empresas</h1>
       </div>
+
+      <div className="flex flex-col lg:flex-row gap-4 items-center justify-between mb-4">
+        <div className="flex space-x-3">
+          <Button className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="mr-2 h-4 w-4" />
+            Criar Sugestão
+          </Button>
+          <Button variant="outline">
+            <Download className="mr-2 h-4 w-4" />
+            Exportar
+          </Button>
+        </div>
+        <div className="flex w-full lg:w-auto space-x-3">
+          <div className="relative w-full lg:w-80">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Buscar por nome, email, empresa..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={handleSearch}
+            />
+          </div>
+          <div className="relative w-full lg:w-64">
+            <Calendar className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              type="date"
+              className="pl-8"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[40px]">
+                    <input type="checkbox" className="rounded" />
+                  </TableHead>
+                  <TableHead className="font-semibold">NOME</TableHead>
+                  <TableHead className="font-semibold">
+                    <div className="flex items-center gap-1">
+                      <Mail size={16} />
+                      EMAIL
+                    </div>
+                  </TableHead>
+                  <TableHead className="font-semibold">
+                    <div className="flex items-center gap-1">
+                      <Phone size={16} />
+                      TELEFONE
+                    </div>
+                  </TableHead>
+                  <TableHead className="font-semibold">
+                    <div className="flex items-center gap-1">
+                      <User size={16} />
+                      CONTATO
+                    </div>
+                  </TableHead>
+                  <TableHead className="font-semibold">
+                    <div className="flex items-center gap-1">
+                      <Building size={16} />
+                      EMPRESA
+                    </div>
+                  </TableHead>
+                  <TableHead className="font-semibold">DATA DE CRIAÇÃO</TableHead>
+                  <TableHead className="w-[60px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {currentItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8">
+                      Nenhuma sugestão de empresa encontrada.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  currentItems.map((sugestao) => (
+                    <TableRow key={sugestao.id} className="hover:bg-gray-50">
+                      <TableCell>
+                        <input type="checkbox" className="rounded" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <span className="text-blue-800 font-semibold">
+                              {sugestao.nome.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="font-medium text-blue-600">{sugestao.nome}</div>
+                            <div>{getStatusBadge(sugestao.status)}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{sugestao.email}</TableCell>
+                      <TableCell>{sugestao.telefone}</TableCell>
+                      <TableCell>{sugestao.contato}</TableCell>
+                      <TableCell>{sugestao.empresa}</TableCell>
+                      <TableCell>{formatDate(sugestao.data_criacao)}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0" aria-label="Opções">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-white">
+                            <DropdownMenuItem>
+                              <ExternalLink className="mr-2 h-4 w-4" />
+                              Ver detalhes
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Mail className="mr-2 h-4 w-4" />
+                              Enviar email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">
+                              <span className="mr-2">🗑️</span>
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {filteredSugestoes.length > 0 && (
+        <div className="flex justify-center mt-6">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              {paginationItems}
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 };
