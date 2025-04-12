@@ -10,7 +10,7 @@ import GeradorCarteirinha from '@/components/carteirinha/GeradorCarteirinha';
 import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
 import UserManagement from '@/components/usuarios/UserManagement';
 import PermissionPanel from '@/components/usuarios/PermissionPanel';
-import ProfilePage from '@/components/auth/ProfilePage';
+import ProfilePage from '@/components/auth/profile/ProfilePage';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import MensagensPage from '@/components/mensagens/MensagensPage';
