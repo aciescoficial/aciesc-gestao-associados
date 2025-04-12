@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getOperationLogs, OperationLog } from './auditLogService';
@@ -28,8 +27,8 @@ export const OperationLogs: React.FC = () => {
       
       try {
         setLoading(true);
-        const { logs } = await getOperationLogs({});
-        setLogs(logs);
+        const result = await getOperationLogs({});
+        setLogs(result.logs);
       } catch (error) {
         console.error('Erro ao buscar logs:', error);
         toast({

@@ -22,7 +22,7 @@ export interface OperationLog {
   userId: string | null;
   userName: string | null;
   createdAt: string;
-  profiles?: { name: string | null };
+  profiles?: { name: string | null } | null;
 }
 
 /**
@@ -107,7 +107,7 @@ export async function getOperationLogs(options: {
     if (error) throw error;
 
     // Format data for display
-    const formattedLogs = data?.map(log => ({
+    const formattedLogs: OperationLog[] = data?.map(log => ({
       id: log.id,
       eventType: log.event_type,
       entityType: log.entity_type,
@@ -118,7 +118,7 @@ export async function getOperationLogs(options: {
       userName: log.profiles?.name || 'Unknown',
       userId: log.user_id,
       created_at: log.created_at,
-      profiles: log.profiles
+      profiles: log.profiles ? { name: log.profiles.name } : null
     }));
 
     return { logs: formattedLogs || [], count: formattedLogs?.length || 0 };

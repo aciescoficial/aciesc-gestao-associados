@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { UserRole, User } from '../types';
 import { supabase, handleSupabaseError } from '@/integrations/supabase/client';
