@@ -27,6 +27,7 @@ export interface ExtendedDatabase extends OriginalDatabase {
           pagamento_data: string | null;
           created_at: string | null;
           updated_at: string | null;
+          payment_proof_url: string | null;
         };
         Insert: {
           id?: string;
@@ -45,6 +46,7 @@ export interface ExtendedDatabase extends OriginalDatabase {
           pagamento_data?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
+          payment_proof_url?: string | null;
         };
         Update: {
           id?: string;
@@ -63,6 +65,7 @@ export interface ExtendedDatabase extends OriginalDatabase {
           pagamento_data?: string | null;
           created_at?: string | null;
           updated_at?: string | null;
+          payment_proof_url?: string | null;
         };
         Relationships: [];
       };

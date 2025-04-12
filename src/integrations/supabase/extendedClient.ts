@@ -32,3 +32,36 @@ export async function ensureStorageBucketExists(bucketName: string, isPublic: bo
     return false;
   }
 }
+
+// Helper function to check if a user has admin role and can delete records
+export async function checkAdminPermission(): Promise<boolean> {
+  try {
+    const { data: isAdmin, error } = await supabase.rpc('has_role', {
+      user_id: (await supabase.auth.getUser()).data.user?.id,
+      role_to_check: 'admin'
+    });
+    
+    if (error) throw error;
+    return !!isAdmin;
+  } catch (error) {
+    console.error("Error checking admin permission:", error);
+    return false;
+  }
+}
+
+// Function to secure delete operations for associates and companies
+export async function secureDelete(tableName: string, id: string): Promise<boolean> {
+  const isAdmin = await checkAdminPermission();
+  
+  if (!isAdmin) {
+    throw new Error("Apenas administradores podem excluir registros");
+  }
+  
+  const { error } = await supabase
+    .from(tableName)
+    .delete()
+    .eq('id', id);
+    
+  if (error) throw error;
+  return true;
+}
