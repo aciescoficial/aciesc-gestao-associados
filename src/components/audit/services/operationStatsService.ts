@@ -55,13 +55,16 @@ export async function getOperationStats(): Promise<OperationStats> {
     
     if (usersError) throw usersError;
     
-    // Process the data to get user activity counts
+    // Process the data to get user activity counts with null checks
     const userCounts = userData ? 
       Array.from(
         userData.reduce((acc, curr) => {
           const count = (acc.get(curr.user_id) || 0) + 1;
-          const userName = curr.profiles && typeof curr.profiles === 'object' && curr.profiles.name ? 
-            curr.profiles.name : 'Unknown';
+          // Safely extract user name with proper null checks
+          let userName = 'Unknown';
+          if (curr.profiles !== null && typeof curr.profiles === 'object') {
+            userName = curr.profiles.name || 'Unknown';
+          }
           
           acc.set(curr.user_id, {
             count,

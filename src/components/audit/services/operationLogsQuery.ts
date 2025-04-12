@@ -45,21 +45,26 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
     if (error) throw error;
 
     // Format data for display
-    const formattedLogs: OperationLog[] = data?.map(log => ({
-      id: log.id,
-      eventType: log.event_type,
-      entityType: log.entity_type,
-      details: log.details,
-      recordCount: log.record_count,
-      format: log.format,
-      createdAt: new Date(log.created_at).toLocaleString(),
-      userName: log.profiles && typeof log.profiles === 'object' ? 
-        (log.profiles.name || 'Unknown') : 'Unknown',
-      userId: log.user_id,
-      created_at: log.created_at,
-      profiles: log.profiles && typeof log.profiles === 'object' ? 
-        { name: log.profiles.name } : null
-    })) || [];
+    const formattedLogs: OperationLog[] = data?.map(log => {
+      // Safely extract user name with proper null checks
+      const profileName = log.profiles && typeof log.profiles === 'object' ? 
+        (log.profiles.name || 'Unknown') : 'Unknown';
+      
+      return {
+        id: log.id,
+        eventType: log.event_type,
+        entityType: log.entity_type,
+        details: log.details,
+        recordCount: log.record_count,
+        format: log.format,
+        createdAt: new Date(log.created_at).toLocaleString(),
+        userName: profileName,
+        userId: log.user_id,
+        created_at: log.created_at,
+        profiles: log.profiles && typeof log.profiles === 'object' ? 
+          { name: log.profiles.name } : null
+      };
+    }) || [];
 
     return { logs: formattedLogs || [], count: formattedLogs?.length || 0 };
   } catch (error) {
