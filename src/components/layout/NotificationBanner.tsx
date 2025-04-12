@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Bell, Calendar, AlertTriangle, Link } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -17,7 +17,8 @@ interface NotificationBannerProps {
   messages?: NotificationMessage[];
 }
 
-const NotificationBanner: React.FC<NotificationBannerProps> = ({ messages = [] }) => {
+// Using memo to prevent unnecessary re-renders
+const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages = [] }) => {
   // Se não houver mensagens, não renderiza o banner
   if (messages.length === 0) {
     return null;
@@ -77,6 +78,9 @@ const NotificationBanner: React.FC<NotificationBannerProps> = ({ messages = [] }
       )}
     </div>
   );
-};
+});
+
+// Add display name for memo component
+NotificationBanner.displayName = 'NotificationBanner';
 
 export default NotificationBanner;
