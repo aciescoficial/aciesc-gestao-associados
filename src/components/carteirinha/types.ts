@@ -29,11 +29,17 @@ export interface CardSettings {
   primaryColor: string;
   secondaryColor: string;
   textColor: string;
-  logoPosition: 'left' | 'center' | 'right';
-  photoSize: 'small' | 'medium' | 'large';
+  logoPosition: 'top' | 'bottom';
+  photoPosition: { x: number; y: number };
+  textPosition: { x: number; y: number };
   backgroundImage: string | null;
+  frontBackgroundImage?: string;
+  backBackgroundImage?: string;
+  defaultBackImage?: string;
   backgroundOpacity: number;
   showQrCode: boolean;
+  showCPF: boolean;
+  showCreci: boolean;
   showLogo: boolean;
   fontFamily: string;
   cardLayout: 'horizontal' | 'vertical';
@@ -51,6 +57,9 @@ export interface ConveniadoData {
   telefone: string;
   status: string;
   foto_url?: string;
+  foto?: string;
+  creci?: string;
+  validade?: string;
   tipo_associado?: string;
   data_associacao?: string;
 }
@@ -61,4 +70,7 @@ export const ACIESC_COLORS = {
   accent: '#f5a623',
   light: '#ffffff',
   dark: '#333333',
+  primaryGreen: '#00E676',
+  darkGreen: '#009688',
+  white: '#FFFFFF',
 };

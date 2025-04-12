@@ -17,14 +17,18 @@ const AssociadoInfoCard: React.FC<AssociadoInfoCardProps> = ({ selectedConveniad
         <span className="font-medium">CPF:</span>
         <span>{selectedConveniado.cpf}</span>
       </div>
-      <div className="flex justify-between border-b pb-2">
-        <span className="font-medium">CRECI:</span>
-        <span>{selectedConveniado.creci}</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="font-medium">Validade:</span>
-        <span>{selectedConveniado.validade}</span>
-      </div>
+      {selectedConveniado.creci && (
+        <div className="flex justify-between border-b pb-2">
+          <span className="font-medium">CRECI:</span>
+          <span>{selectedConveniado.creci}</span>
+        </div>
+      )}
+      {selectedConveniado.validade && (
+        <div className="flex justify-between">
+          <span className="font-medium">Validade:</span>
+          <span>{selectedConveniado.validade}</span>
+        </div>
+      )}
     </div>
   );
 };

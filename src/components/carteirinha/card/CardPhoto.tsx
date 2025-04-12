@@ -22,9 +22,9 @@ const CardPhoto: React.FC<CardPhotoProps> = ({
         top: `${photoPosition.y}%`,
         transform: 'translate(-50%, -50%)'
       }}>
-      {selectedConveniado?.foto ? (
+      {selectedConveniado?.foto_url ? (
         <img 
-          src={selectedConveniado.foto} 
+          src={selectedConveniado.foto_url} 
           alt={fullName} 
           className="w-full h-full object-cover"
         />
