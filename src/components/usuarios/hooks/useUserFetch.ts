@@ -30,6 +30,8 @@ export const useUserFetch = () => {
     setError(null);
 
     try {
+      console.log('Fetching users from database...');
+      
       // Fetch profiles with role information and join with associados and empresas
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -39,7 +41,17 @@ export const useUserFetch = () => {
           empresa:empresa_id(cnpj)
         `);
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
+      
+      console.log('Profiles fetched:', profiles?.length || 0);
+
+      if (!profiles) {
+        setUsers([]);
+        return;
+      }
 
       // Map profiles to User objects
       const mappedUsers: User[] = profiles.map(profile => {
@@ -64,6 +76,7 @@ export const useUserFetch = () => {
         };
       });
 
+      console.log('Mapped users:', mappedUsers.length);
       setUsers(mappedUsers);
     } catch (err) {
       console.error('Error fetching users:', err);
@@ -75,6 +88,7 @@ export const useUserFetch = () => {
 
   // Fetch users on component mount
   useEffect(() => {
+    console.log('useUserFetch hook mounted, fetching users...');
     fetchUsers();
   }, []);
 

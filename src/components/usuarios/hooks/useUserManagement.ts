@@ -15,6 +15,7 @@ export const useUserManagement = () => {
     users, 
     filteredUsers, 
     loading, 
+    error,
     searchTerm, 
     setSearchTerm,
     fetchUsers 
@@ -67,6 +68,7 @@ export const useUserManagement = () => {
   return {
     // User list state
     loading,
+    error,
     searchTerm,
     setSearchTerm,
     filteredUsers,
