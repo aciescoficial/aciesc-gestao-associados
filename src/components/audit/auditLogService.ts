@@ -84,13 +84,15 @@ export const getOperationLogs = async (): Promise<OperationLog[]> => {
       
       if (log.profiles && 
           typeof log.profiles === 'object' && 
-          !('error' in log.profiles) && 
-          log.profiles !== null) {
-        // Use type assertion to tell TypeScript that it's safe to access these properties
-        const profileData = log.profiles as { name: string; email: string; };
+          log.profiles !== null && 
+          !('error' in log.profiles)) {
+        // Now TypeScript knows log.profiles is not null at this point
+        const profilesObj = log.profiles as Record<string, any>;
+        
+        // Additional null checks for individual properties
         safeProfiles = {
-          name: profileData.name,
-          email: profileData.email
+          name: profilesObj.name || '',
+          email: profilesObj.email || ''
         };
       }
         
