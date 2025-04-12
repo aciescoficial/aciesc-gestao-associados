@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { getOperationLogs } from './auditLogService';
+import { getOperationLogs, OperationLog } from './auditLogService';
 import { format } from 'date-fns';
 import {
   Table,
@@ -15,21 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { DownloadCloud, UploadCloud } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { ptBR } from 'date-fns/locale';
-
-interface OperationLog {
-  id: string;
-  event_type: string;
-  entity_type: string;
-  format?: string;
-  details?: string;
-  record_count?: number;
-  created_at: string;
-  user_id: string;
-  profiles: {
-    name: string;
-    email: string;
-  } | null;
-}
 
 export const OperationLogs: React.FC = () => {
   const [logs, setLogs] = useState<OperationLog[]>([]);

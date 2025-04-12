@@ -270,6 +270,39 @@ export type Database = {
           },
         ]
       }
+      operation_logs: {
+        Row: {
+          created_at: string
+          details: string | null
+          entity_type: string
+          event_type: string
+          format: string | null
+          id: string
+          record_count: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          entity_type: string
+          event_type: string
+          format?: string | null
+          id?: string
+          record_count?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          entity_type?: string
+          event_type?: string
+          format?: string | null
+          id?: string
+          record_count?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

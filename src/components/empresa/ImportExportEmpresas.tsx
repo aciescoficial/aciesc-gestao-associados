@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,19 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
     handleFileSelect,
     handleExportEmpresas,
     handleConfirmImport
-  } = useImportExport({ onImportSuccess });
+  } = useImportExport({ 
+    onImportSuccess,
+    onExportSuccess: async (format, count) => {
+      // Log export operation
+      await logOperation({
+        eventType: 'export',
+        entityType: 'empresa',
+        format,
+        recordCount: count,
+        details: `Exportação de ${count} empresas em ${format.toUpperCase()}`
+      });
+    } 
+  });
   
   const { isAdmin } = useAuth();
   const { toast } = useToast();

@@ -153,6 +153,15 @@ const CadastroConveniado: React.FC = () => {
       setIsSubmitting(true);
       const count = await importConveniados(importData);
       
+      // Log the import operation
+      await logOperation({
+        eventType: 'import',
+        entityType: 'conveniado',
+        format: importFormat,
+        recordCount: count,
+        details: `Importação de ${count} conveniados em ${importFormat.toUpperCase()}`
+      });
+      
       toast({
         title: "Importação realizada com sucesso",
         description: `${count} conveniados foram importados.`,

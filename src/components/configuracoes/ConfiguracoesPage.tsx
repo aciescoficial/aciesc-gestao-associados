@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Map, Users } from 'lucide-react';
+import { Settings, Map, Users, ClipboardList } from 'lucide-react';
 import GoogleMapsConfig from './GoogleMapsConfig';
 import PermissionPanel from '../usuarios/PermissionPanel';
+import { AuditLogSettings } from './AuditLogSettings';
 
 const ConfiguracoesPage: React.FC = () => {
   return (
@@ -14,7 +15,7 @@ const ConfiguracoesPage: React.FC = () => {
       </h1>
       
       <Tabs defaultValue="geral" className="wp-card">
-        <TabsList className="grid grid-cols-3 mb-6">
+        <TabsList className="grid grid-cols-4 mb-6">
           <TabsTrigger value="geral" className="flex items-center gap-2">
             <Settings size={16} />
             Geral
@@ -26,6 +27,10 @@ const ConfiguracoesPage: React.FC = () => {
           <TabsTrigger value="permissoes" className="flex items-center gap-2">
             <Users size={16} />
             Permissões
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="flex items-center gap-2">
+            <ClipboardList size={16} />
+            Logs
           </TabsTrigger>
         </TabsList>
         
@@ -42,6 +47,10 @@ const ConfiguracoesPage: React.FC = () => {
         
         <TabsContent value="permissoes">
           <PermissionPanel />
+        </TabsContent>
+
+        <TabsContent value="logs">
+          <AuditLogSettings />
         </TabsContent>
       </Tabs>
     </div>

@@ -13,8 +13,32 @@ export interface LogOperationData {
   recordCount?: number;
 }
 
+export interface OperationLog {
+  id: string;
+  event_type: string;
+  entity_type: string;
+  format?: string;
+  details?: string;
+  record_count?: number;
+  created_at: string;
+  user_id: string;
+  profiles: {
+    name: string;
+    email: string;
+  } | null;
+}
+
 export const logOperation = async (data: LogOperationData) => {
   try {
+    // Get current user ID
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    
+    if (!userId) {
+      console.error("Falha ao registrar operação: Usuário não autenticado");
+      return;
+    }
+
     const { error } = await supabase
       .from('operation_logs')
       .insert({
@@ -23,7 +47,7 @@ export const logOperation = async (data: LogOperationData) => {
         format: data.format,
         details: data.details,
         record_count: data.recordCount,
-        user_id: supabase.auth.getUser().then(res => res.data.user?.id) // Get current user ID
+        user_id: userId
       });
 
     if (error) throw error;
@@ -33,7 +57,7 @@ export const logOperation = async (data: LogOperationData) => {
   }
 };
 
-export const getOperationLogs = async () => {
+export const getOperationLogs = async (): Promise<OperationLog[]> => {
   try {
     const { data, error } = await supabase
       .from('operation_logs')
@@ -51,7 +75,7 @@ export const getOperationLogs = async () => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return data || [];
   } catch (err) {
     console.error("Falha ao buscar logs de operação:", err);
     throw err;

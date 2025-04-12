@@ -1,18 +1,13 @@
-
-import { useState, useRef } from 'react';
-import Papa from 'papaparse';
+import React, { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from "@/integrations/supabase/client";
-import { validateEmpresaData } from './validationUtils';
-import { EmpresaData, ImportError } from './types';
 import { logOperation } from '../../audit/auditLogService';
-import { useAuth } from '@/components/auth/AuthProvider';
 
 interface UseImportExportProps {
   onImportSuccess: () => void;
+  onExportSuccess?: (format: 'csv' | 'json', count: number) => void;
 }
 
-export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
+export const useImportExport = ({ onImportSuccess, onExportSuccess }: UseImportExportProps) => {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -43,7 +38,6 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
       complete: (results) => {
         console.log("CSV parse results:", results);
         
-        // Process and validate the data
         const parsedData = results.data as Record<string, string>[];
         const { processedData, errors } = validateEmpresaData(parsedData);
         
@@ -63,7 +57,6 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
       }
     });
     
-    // Reset the file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -89,7 +82,6 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
       if (error) throw error;
       
       if (data && data.length > 0) {
-        // Create CSV
         const csv = Papa.unparse(data);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -101,7 +93,6 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
         link.click();
         document.body.removeChild(link);
         
-        // Log export operation
         await logOperation({
           eventType: 'export',
           entityType: 'empresa',
@@ -114,6 +105,10 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
           title: 'Exportação concluída',
           description: `${data.length} empresas foram exportadas com sucesso.`,
         });
+        
+        if (onExportSuccess) {
+          await onExportSuccess('csv', data.length);
+        }
       } else {
         toast({
           title: 'Sem dados para exportar',
@@ -145,31 +140,23 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
     setIsImporting(true);
     
     try {
-      // Remove any potential id from import data
       const dataToInsert = importData.map(({ id, ...item }) => ({
         ...item,
         created_at: new Date().toISOString()
       }));
       
-      // Using an explicit type cast to match the database structure
       const { data, error } = await supabase
         .from('empresas')
         .insert(dataToInsert as any[]);
       
       if (error) throw error;
       
-      // Log import operation
       await logOperation({
         eventType: 'import',
         entityType: 'empresa',
         format: 'csv',
         recordCount: importData.length,
-        details: `Importação de ${importData.length} empresas via CSV`
-      });
-      
-      toast({
-        title: 'Importação concluída',
-        description: `${importData.length} empresas foram importadas com sucesso.`,
+        details: `Importação de ${importData.length} empresas em CSV`
       });
       
       onImportSuccess();
