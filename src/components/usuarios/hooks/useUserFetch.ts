@@ -30,27 +30,39 @@ export const useUserFetch = () => {
     setError(null);
 
     try {
-      // Fetch profiles with role information
+      // Fetch profiles with role information and join with associados and empresas
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('*, associados:associado_id(cpf), empresas:empresa_id(cnpj)');
+        .select(`
+          *,
+          associado:associado_id(cpf),
+          empresa:empresa_id(cnpj)
+        `);
 
       if (profilesError) throw profilesError;
 
       // Map profiles to User objects
-      const mappedUsers: User[] = profiles.map(profile => ({
-        id: profile.id,
-        name: profile.name || '',
-        email: profile.email || '',  
-        role: mapFromDbRole(profile.role),
-        tags: profile.tags || [],
-        active: profile.active !== false, // Default to true if not specified
-        createdAt: new Date(profile.created_at),
-        associado_id: profile.associado_id || undefined,
-        associado_cpf: profile.associados?.cpf || undefined,
-        empresa_id: profile.empresa_id || undefined,
-        empresa_cnpj: profile.empresas?.cnpj || undefined
-      }));
+      const mappedUsers: User[] = profiles.map(profile => {
+        // Convert string[] to UserTag[] by filtering to only valid UserTag values
+        const validUserTags = Array.isArray(profile.tags) ? profile.tags.filter(tag => 
+          ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
+           'administrador', 'financeiro', 'proprietario_imobiliaria'].includes(tag)
+        ) as UserTag[] : [];
+        
+        return {
+          id: profile.id,
+          name: profile.name || '',
+          email: profile.email || '',  
+          role: mapFromDbRole(profile.role),
+          tags: validUserTags,
+          active: profile.active !== false, // Default to true if not specified
+          createdAt: new Date(profile.created_at),
+          associado_id: profile.associado_id || undefined,
+          associado_cpf: profile.associado?.cpf || undefined,
+          empresa_id: profile.empresa_id || undefined,
+          empresa_cnpj: profile.empresa?.cnpj || undefined
+        };
+      });
 
       setUsers(mappedUsers);
     } catch (err) {

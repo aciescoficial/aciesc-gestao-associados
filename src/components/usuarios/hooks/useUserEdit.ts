@@ -55,12 +55,14 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
 
     try {
       // Update the user's metadata and profile
+      const dbRole = mapToDbRole(selectedUser.role as UserRole);
+      
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           name: selectedUser.name,
           email: selectedUser.email,
-          role: mapToDbRole(selectedUser.role as UserRole),
+          role: dbRole,
           tags: selectedUser.tags || [],
           active: selectedUser.active,
           associado_id: selectedUser.associado_id,

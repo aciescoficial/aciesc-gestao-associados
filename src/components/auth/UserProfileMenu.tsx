@@ -43,7 +43,13 @@ const UserProfileMenu = () => {
         if (data) {
           setUserName(data.name || '');
           setAvatarUrl(data.avatar_url);
-          setUserTags(data.tags || []);
+          // Convert string[] to UserTag[] by filtering to only valid UserTag values
+          const validUserTags = Array.isArray(data.tags) ? data.tags.filter(tag => 
+            ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
+             'administrador', 'financeiro', 'proprietario_imobiliaria'].includes(tag)
+          ) as UserTag[] : [];
+          
+          setUserTags(validUserTags);
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);

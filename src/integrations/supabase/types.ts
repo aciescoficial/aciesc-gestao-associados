@@ -479,9 +479,11 @@ export type Database = {
       profiles: {
         Row: {
           active: boolean | null
+          associado_id: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
+          empresa_id: string | null
           id: string
           name: string | null
           phone: string | null
@@ -491,9 +493,11 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          associado_id?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          empresa_id?: string | null
           id: string
           name?: string | null
           phone?: string | null
@@ -503,9 +507,11 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          associado_id?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          empresa_id?: string | null
           id?: string
           name?: string | null
           phone?: string | null
@@ -513,7 +519,22 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_associado_id_fkey"
+            columns: ["associado_id"]
+            isOneToOne: false
+            referencedRelation: "associados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       signup_tokens: {
         Row: {

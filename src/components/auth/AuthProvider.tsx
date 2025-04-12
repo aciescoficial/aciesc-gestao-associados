@@ -134,7 +134,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
         
         setUserRole(userRoleValue);
-        setUserTags(profile.tags || []);
+        // Convert string[] to UserTag[] by filtering to only valid UserTag values
+        const validUserTags = Array.isArray(profile.tags) ? profile.tags.filter(tag => 
+          ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
+           'administrador', 'financeiro', 'proprietario_imobiliaria'].includes(tag)
+        ) as UserTag[] : [];
+        
+        setUserTags(validUserTags);
       }
     } catch (err) {
       console.error('Error fetching user role:', err);
