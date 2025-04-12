@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute } from '../AuthRoutes';
 import PluginLayout from '@/components/PluginLayout';
 import Dashboard from '@/components/Dashboard';
-import ProfilePage from '@/components/auth/ProfilePage';
+import { ProfilePage } from '@/components/auth';
 import MensagensPage from '@/components/mensagens/MensagensPage';
 import MessagesDashboard from '@/components/mensagens/MessagesDashboard';
 import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';

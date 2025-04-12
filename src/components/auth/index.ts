@@ -5,3 +5,6 @@ export { default as LoginPage } from './login/LoginPage';
 // Re-export AuthProvider
 export { AuthProvider } from './AuthProvider';
 export { useAuth } from './hooks/useAuthContext';
+
+// Re-export ProfilePage from the new location
+export { default as ProfilePage } from './profile/ProfilePage';
