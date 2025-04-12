@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { SidebarHeader, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { Menu } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const SidebarHeaderContent: React.FC = () => {
   const { state } = useSidebar();
@@ -12,7 +12,12 @@ const SidebarHeaderContent: React.FC = () => {
       <div className="px-4 flex items-center justify-between">
         {!isCollapsed && <h1 className="text-xl font-bold text-white">ACIESC</h1>}
         <SidebarTrigger className="text-white hover:text-gray-200">
-          <Menu className="h-5 w-5" />
+          {isCollapsed ? (
+            <ChevronRight className="h-5 w-5" />
+          ) : (
+            <ChevronLeft className="h-5 w-5" />
+          )}
+          <span className="sr-only">Toggle Sidebar</span>
         </SidebarTrigger>
       </div>
     </SidebarHeader>
