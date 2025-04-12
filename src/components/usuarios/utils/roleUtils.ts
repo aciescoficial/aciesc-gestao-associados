@@ -1,4 +1,3 @@
-
 import { UserRole, UserTag } from '../types';
 
 // Original database role types 
@@ -73,6 +72,8 @@ export const getUserTags = (): { id: UserTag; name: string }[] => {
     { id: 'administrador', name: 'Administrador' },
     { id: 'financeiro', name: 'Financeiro' },
     { id: 'proprietario_imobiliaria', name: 'Proprietário de Imobiliária' },
+    { id: 'imobiliaria', name: 'Imobiliária' },
+    { id: 'aciesc', name: 'ACIESC' },
   ];
 };
 
@@ -93,6 +94,10 @@ export const getTagBadgeColor = (tag: UserTag): string => {
       return 'bg-indigo-100 text-indigo-800 border-indigo-200';
     case 'proprietario_imobiliaria':
       return 'bg-orange-100 text-orange-800 border-orange-200';
+    case 'imobiliaria':
+      return 'bg-amber-100 text-amber-800 border-amber-200';
+    case 'aciesc':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200';
   }

@@ -46,7 +46,7 @@ export const useUserFetch = () => {
         // Convert string[] to UserTag[] by filtering to only valid UserTag values
         const validUserTags = Array.isArray(profile.tags) ? profile.tags.filter(tag => 
           ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
-           'administrador', 'financeiro', 'proprietario_imobiliaria'].includes(tag)
+           'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc'].includes(tag)
         ) as UserTag[] : [];
         
         return {

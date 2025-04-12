@@ -1,4 +1,3 @@
-
 export type UserRole = "user" | "admin" | "empresa";
 
 export type UserTag = 
@@ -8,7 +7,9 @@ export type UserTag =
   | "diretoria_aciesc" 
   | "administrador" 
   | "financeiro" 
-  | "proprietario_imobiliaria";
+  | "proprietario_imobiliaria"
+  | "imobiliaria"
+  | "aciesc";
 
 export interface UserProfile {
   id: string;
