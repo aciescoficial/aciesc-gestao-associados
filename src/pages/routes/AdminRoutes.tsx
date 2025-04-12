@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from '../AuthRoutes';
@@ -10,6 +9,7 @@ import PesquisaAssociado from '@/components/PesquisaAssociado';
 import AprovacoesPendentes from '@/components/AprovacoesPendentes';
 import CadastroEmpresa from '@/components/CadastroEmpresa';
 import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
+import EmpresaSugestoes from '@/components/empresa/EmpresaSugestoes';
 import GeradorCarteirinha from '@/components/carteirinha/GeradorCarteirinha';
 import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
 import UserManagement from '@/components/usuarios/UserManagement';
@@ -102,6 +102,14 @@ export const AdminRoutes = [
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
         <EmpresasPesquisa />
+      </LayoutWrapper>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="empresas-sugestoes" path="/empresas/sugestoes" element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <LayoutWrapper>
+        <EmpresaSugestoes />
       </LayoutWrapper>
     </ProtectedRoute>
   } />,

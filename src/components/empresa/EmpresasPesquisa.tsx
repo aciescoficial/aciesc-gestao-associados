@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Map, MapPin, Navigation, Locate, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -31,7 +30,6 @@ interface EmpresaData {
   cep: string;
 }
 
-// Componente que redireciona para a página de configuração quando não há chave da API
 const ApiKeyRedirect: React.FC = () => {
   return (
     <div className="wp-card p-4 mb-4">
@@ -44,14 +42,12 @@ const ApiKeyRedirect: React.FC = () => {
   );
 };
 
-// Estilo do mapa
 const mapContainerStyle = {
   width: '100%',
   height: '500px',
   borderRadius: '0.5rem',
 };
 
-// Opções do mapa
 const defaultMapOptions = {
   disableDefaultUI: false,
   zoomControl: true,
@@ -64,7 +60,7 @@ const EmpresasPesquisa: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'nome' | 'cnpj' | 'nicho' | 'cidade' | 'cidade_nicho' | 'mapa'>('mapa');
   const [cidadeFilter, setCidadeFilter] = useState('');
-  const [nichoFilter, setNichoFilter] = useState('');
+  const [nichoFilter, setNichoFilter] = useState<string>('');
   const [cidades, setCidades] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<EmpresaData[]>([]);
@@ -73,13 +69,11 @@ const EmpresasPesquisa: React.FC = () => {
   const { toast } = useToast();
   const { apiKey, isLoading: isLoadingApiKey } = useGoogleMapsApi();
   
-  // Carrega a API do Google Maps
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: apiKey || '',
     libraries: ['places'],
   });
 
-  // Fetch distinct cities on component mount
   useEffect(() => {
     const fetchCidades = async () => {
       try {
@@ -90,7 +84,6 @@ const EmpresasPesquisa: React.FC = () => {
         
         if (error) throw error;
         
-        // Get unique cities
         const uniqueCidades = [...new Set(data.map(item => item.cidade))];
         setCidades(uniqueCidades);
       } catch (error) {
@@ -101,14 +94,12 @@ const EmpresasPesquisa: React.FC = () => {
     fetchCidades();
   }, []);
   
-  // Inicializar a localização atual
   useEffect(() => {
     if (searchType === 'mapa' && !currentLocation) {
       getCurrentLocation();
     }
   }, [searchType]);
 
-  // Get user's current location
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast({
@@ -124,7 +115,6 @@ const EmpresasPesquisa: React.FC = () => {
         const { latitude, longitude } = position.coords;
         setCurrentLocation({ lat: latitude, lng: longitude });
         
-        // Search for companies near the location
         searchNearbyCompanies(latitude, longitude);
       },
       (error) => {
@@ -138,31 +128,24 @@ const EmpresasPesquisa: React.FC = () => {
     );
   };
 
-  // Search for companies near a location
   const searchNearbyCompanies = async (latitude: number, longitude: number, radius: number = 10) => {
     setIsSearching(true);
     
     try {
-      // Here we would normally use a geospatial query
-      // For this example, we'll fetch all companies and filter by distance
       const { data, error } = await supabase
         .from('empresas')
         .select('*');
       
       if (error) throw error;
       
-      // For demo purposes, we'll simulate geolocation data
-      // In a real app, you would have actual lat/lng fields in your database
       const nearbyCompanies = data.map(company => ({
         ...company,
-        // This is simulated data - in a real app these would come from the database
         latitude: latitude + (Math.random() - 0.5) * 0.05,
         longitude: longitude + (Math.random() - 0.5) * 0.05
       })) as EmpresaData[];
       
       setResults(nearbyCompanies);
       
-      // If no results, show notification
       if (nearbyCompanies.length === 0) {
         toast({
           title: "Nenhuma empresa encontrada",
@@ -219,7 +202,6 @@ const EmpresasPesquisa: React.FC = () => {
     setIsSearching(true);
     
     try {
-      // Search in Supabase based on search criteria
       let query = supabase
         .from('empresas')
         .select('*');
@@ -229,7 +211,6 @@ const EmpresasPesquisa: React.FC = () => {
       } else if (searchType === 'cnpj') {
         query = query.ilike('cnpj', `%${searchTerm}%`);
       } else if (searchType === 'nicho') {
-        // We'll search for any nicho that contains the search term
         query = query.ilike('nicho', `%${searchTerm}%`);
       } else if (searchType === 'cidade') {
         query = query.ilike('cidade', `%${searchTerm}%`);
@@ -239,7 +220,6 @@ const EmpresasPesquisa: React.FC = () => {
       
       if (error) throw error;
       
-      // Log the search operation
       await logOperation({
         eventType: 'export',
         entityType: 'empresa',
@@ -248,8 +228,6 @@ const EmpresasPesquisa: React.FC = () => {
       });
       
       if (data && data.length > 0) {
-        // Add simulated geo coordinates for map view
-        // In a real implementation, these would come from the database
         const companiesWithCoords = data.map(company => ({
           ...company,
           latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
@@ -275,7 +253,6 @@ const EmpresasPesquisa: React.FC = () => {
     }
   };
 
-  // New function to search by city and niche
   const searchByCityAndNiche = async () => {
     setIsSearching(true);
     
@@ -284,20 +261,21 @@ const EmpresasPesquisa: React.FC = () => {
         .from('empresas')
         .select('*');
       
-      // Apply filters if they are set
       if (cidadeFilter) {
         query = query.eq('cidade', cidadeFilter);
       }
       
       if (nichoFilter) {
-        query = query.eq('nicho', nichoFilter);
+        const isValidNicho = nichoOptions.includes(nichoFilter);
+        if (isValidNicho) {
+          query = query.eq('nicho', nichoFilter);
+        }
       }
       
       const { data, error } = await query;
       
       if (error) throw error;
       
-      // Log the search operation
       await logOperation({
         eventType: 'export',
         entityType: 'empresa',
@@ -306,7 +284,6 @@ const EmpresasPesquisa: React.FC = () => {
       });
       
       if (data && data.length > 0) {
-        // Add simulated geo coordinates for map view
         const companiesWithCoords = data.map(company => ({
           ...company,
           latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
@@ -345,7 +322,6 @@ const EmpresasPesquisa: React.FC = () => {
     }
   };
 
-  // Função para localizar uma empresa no mapa
   const locateEmpresa = useCallback((empresa: EmpresaData) => {
     if (!isLoaded || !empresa.latitude || !empresa.longitude) return;
     
@@ -353,7 +329,6 @@ const EmpresasPesquisa: React.FC = () => {
     setCurrentLocation({ lat: empresa.latitude, lng: empresa.longitude });
   }, [isLoaded]);
 
-  // Renderiza o mapa
   const renderMap = () => {
     if (loadError) {
       return (
@@ -375,10 +350,9 @@ const EmpresasPesquisa: React.FC = () => {
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         zoom={12}
-        center={currentLocation || { lat: -15.7801, lng: -47.9292 }} // Brasília como padrão
+        center={currentLocation || { lat: -15.7801, lng: -47.9292 }}
         options={defaultMapOptions}
       >
-        {/* Marcador para a localização atual */}
         {currentLocation && (
           <Marker
             position={currentLocation}
@@ -389,7 +363,6 @@ const EmpresasPesquisa: React.FC = () => {
           />
         )}
         
-        {/* Marcadores para as empresas */}
         {results.map((empresa) => (
           <Marker
             key={empresa.id}
@@ -401,7 +374,6 @@ const EmpresasPesquisa: React.FC = () => {
           />
         ))}
         
-        {/* Janela de informações para a empresa selecionada */}
         {selectedEmpresa && (
           <InfoWindow
             position={{ 
@@ -433,7 +405,6 @@ const EmpresasPesquisa: React.FC = () => {
         GeoDirectório de Empresas Conveniadas
       </h1>
       
-      {/* Exibir redirecionamento para configuração se não houver chave da API */}
       {searchType === 'mapa' && !apiKey && !isLoadingApiKey && (
         <ApiKeyRedirect />
       )}
@@ -486,7 +457,6 @@ const EmpresasPesquisa: React.FC = () => {
         </form>
       </div>
       
-      {/* Map View - Agora usando Google Maps */}
       {apiKey && (
         <div className="wp-card">
           <h2 className="wp-subheader mb-4 flex items-center gap-2">

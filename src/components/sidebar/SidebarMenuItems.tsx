@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
@@ -21,7 +20,8 @@ import {
   UserCheck,
   BarChart,
   MessageSquare,
-  ClipboardList
+  ClipboardList,
+  Inbox
 } from 'lucide-react';
 
 interface MenuItem {
@@ -70,6 +70,7 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
       submenu: [
         { icon: Building, label: "Cadastrar", path: "/empresas/cadastro", roles: ['admin'] },
         { icon: Search, label: "Pesquisar", path: "/empresas/pesquisa", roles: ['admin'] },
+        { icon: Inbox, label: "Sugestões", path: "/empresas/sugestoes", roles: ['admin'] },
       ]
     },
     { 
@@ -89,7 +90,6 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
         { icon: Settings, label: "Configurações", path: "/configuracoes", roles: ['admin'] },
       ]
     },
-    // Associado specific menu items
     { 
       header: "Área do Associado", 
       roles: ['user'],
@@ -100,7 +100,6 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
         { icon: Building, label: "Empresas Conveniadas", path: "/empresas-conveniadas", roles: ['user'] },
       ]
     },
-    // Empresa specific menu items
     { 
       header: "Área da Empresa", 
       roles: ['empresa'],
@@ -108,7 +107,6 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
         { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['empresa'] },
       ]
     },
-    // Mensagens for all users
     { 
       header: "Comunicação", 
       roles: ['admin', 'user', 'empresa'],
@@ -118,7 +116,6 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
     },
   ];
   
-  // Filter menu items based on user role
   const menuItems = allMenuItems.filter(item => {
     if (!item.roles) return false;
     return userRole && item.roles.includes(userRole);

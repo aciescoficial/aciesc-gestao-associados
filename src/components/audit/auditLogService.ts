@@ -91,8 +91,8 @@ export const getOperationLogs = async (): Promise<OperationLog[]> => {
         
         // Add null checks for individual properties
         safeProfiles = {
-          name: profilesObj && profilesObj.name ? profilesObj.name : '',
-          email: profilesObj && profilesObj.email ? profilesObj.email : ''
+          name: profilesObj && profilesObj.name ? String(profilesObj.name) : '',
+          email: profilesObj && profilesObj.email ? String(profilesObj.email) : ''
         };
       }
         
