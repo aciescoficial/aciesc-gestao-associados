@@ -536,6 +536,33 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          created_at: string | null
+          enabled_menus: string[]
+          enabled_permissions: string[]
+          id: string
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          enabled_menus?: string[]
+          enabled_permissions?: string[]
+          id?: string
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          enabled_menus?: string[]
+          enabled_permissions?: string[]
+          id?: string
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       signup_tokens: {
         Row: {
           associado_interesse_id: string

@@ -66,6 +66,16 @@ export const generateDefaultPermissions = (): Record<UserRole, MenuPermission[]>
   };
 };
 
+// Define the shape of a permission entry in the database
+interface RolePermissionData {
+  id?: string;
+  role: string;
+  enabled_menus: string[];
+  enabled_permissions: string[];
+  created_at?: string;
+  updated_at?: string;
+}
+
 // Save permissions to Supabase
 export const savePermissions = async (
   role: UserRole, 
@@ -73,10 +83,10 @@ export const savePermissions = async (
 ): Promise<{ error: any | null }> => {
   try {
     // Convert permissions to a simpler format for storage
-    const permissionsData = {
+    const permissionsData: RolePermissionData = {
       role,
-      enabledMenus: permissions.filter(menu => menu.enabled).map(menu => menu.id),
-      enabledPermissions: permissions.flatMap(menu => 
+      enabled_menus: permissions.filter(menu => menu.enabled).map(menu => menu.id),
+      enabled_permissions: permissions.flatMap(menu => 
         menu.subPermissions
           .filter(perm => perm.enabled)
           .map(perm => perm.id)
@@ -129,14 +139,14 @@ export const fetchPermissionsFromDB = async (): Promise<{ data: Record<UserRole,
     const defaultMenus = getDefaultMenus();
     const permissionsMap: Record<UserRole, MenuPermission[]> = {} as Record<UserRole, MenuPermission[]>;
 
-    data.forEach(roleData => {
+    data.forEach((roleData: RolePermissionData) => {
       const role = roleData.role as UserRole;
       permissionsMap[role] = defaultMenus.map(menu => ({
         ...menu,
-        enabled: roleData.enabledMenus.includes(menu.id),
+        enabled: roleData.enabled_menus.includes(menu.id),
         subPermissions: menu.subPermissions.map(perm => ({
           ...perm,
-          enabled: roleData.enabledPermissions.includes(perm.id)
+          enabled: roleData.enabled_permissions.includes(perm.id)
         }))
       }));
     });

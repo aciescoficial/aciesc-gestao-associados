@@ -24,6 +24,9 @@ const MenuPermissionItem: React.FC<MenuPermissionItemProps> = ({
   const permKey = `${role}-${menu.id}`;
   const isLoading = saveLoading[permKey] || false;
   
+  // Make sure subPermissions is an array before attempting to map over it
+  const safeSubPermissions = Array.isArray(menu.subPermissions) ? menu.subPermissions : [];
+  
   return (
     <div key={`${role}-${menu.id}`} className="py-4 border-b last:border-b-0">
       <div className="flex items-center justify-between mb-2">
@@ -43,7 +46,7 @@ const MenuPermissionItem: React.FC<MenuPermissionItemProps> = ({
       </div>
       
       <div className="ml-10 space-y-2">
-        {menu.subPermissions && menu.subPermissions.map((subPerm) => {
+        {safeSubPermissions.map((subPerm) => {
           const subPermKey = `${role}-${menu.id}-${subPerm.id}`;
           const isSubLoading = saveLoading[subPermKey] || false;
           

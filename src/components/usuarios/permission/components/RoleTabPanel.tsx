@@ -27,6 +27,9 @@ const RoleTabPanel: React.FC<RoleTabPanelProps> = ({
   toggleSubPermission,
   onSave
 }) => {
+  // Make sure menuPermissions is an array before attempting to map over it
+  const safeMenuPermissions = Array.isArray(menuPermissions) ? menuPermissions : [];
+  
   return (
     <div>
       {isAdmin && (
@@ -35,7 +38,7 @@ const RoleTabPanel: React.FC<RoleTabPanelProps> = ({
         </div>
       )}
       <div className="space-y-1">
-        {menuPermissions && menuPermissions.map((menu) => (
+        {safeMenuPermissions.map((menu) => (
           <MenuPermissionItem
             key={`${role}-${menu.id}`}
             role={role}
