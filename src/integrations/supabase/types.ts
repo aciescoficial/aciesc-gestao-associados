@@ -9,6 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      associado_interesse: {
+        Row: {
+          celular: string
+          cidade: string
+          cpf: string
+          created_at: string | null
+          creci: string | null
+          email: string
+          estado: string
+          id: string
+          motivo_interesse: string | null
+          nome: string
+          pagamento_confirmado: boolean | null
+          pagamento_data: string | null
+          pagamento_url: string | null
+          sobrenome: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          celular: string
+          cidade: string
+          cpf: string
+          created_at?: string | null
+          creci?: string | null
+          email: string
+          estado: string
+          id?: string
+          motivo_interesse?: string | null
+          nome: string
+          pagamento_confirmado?: boolean | null
+          pagamento_data?: string | null
+          pagamento_url?: string | null
+          sobrenome: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          celular?: string
+          cidade?: string
+          cpf?: string
+          created_at?: string | null
+          creci?: string | null
+          email?: string
+          estado?: string
+          id?: string
+          motivo_interesse?: string | null
+          nome?: string
+          pagamento_confirmado?: boolean | null
+          pagamento_data?: string | null
+          pagamento_url?: string | null
+          sobrenome?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       associados: {
         Row: {
           bairro: string | null
@@ -138,6 +195,63 @@ export type Database = {
           title?: string
           updated_at?: string
           value?: number
+        }
+        Relationships: []
+      }
+      email_logs: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          recipient: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          recipient: string
+          status: string
+          subject: string
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          recipient?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          assunto: string
+          codigo: string
+          corpo: string
+          created_at: string | null
+          id: string
+          nome: string
+          updated_at: string | null
+        }
+        Insert: {
+          assunto: string
+          codigo: string
+          corpo: string
+          created_at?: string | null
+          id?: string
+          nome: string
+          updated_at?: string | null
+        }
+        Update: {
+          assunto?: string
+          codigo?: string
+          corpo?: string
+          created_at?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -332,6 +446,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      signup_tokens: {
+        Row: {
+          associado_interesse_id: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          token: string
+          used: boolean | null
+        }
+        Insert: {
+          associado_interesse_id: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          token: string
+          used?: boolean | null
+        }
+        Update: {
+          associado_interesse_id?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          token?: string
+          used?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signup_tokens_associado_interesse_id_fkey"
+            columns: ["associado_interesse_id"]
+            isOneToOne: false
+            referencedRelation: "associado_interesse"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_config: {
         Row: {

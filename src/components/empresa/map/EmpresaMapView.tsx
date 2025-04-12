@@ -1,49 +1,20 @@
 
 import React from 'react';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { MapPin, Navigation } from 'lucide-react';
-import { GoogleMap, useLoadScript, Marker, InfoWindow } from '@react-google-maps/api';
-import { Button } from "@/components/ui/button";
-
-interface EmpresaData {
-  id: string;
-  razao_social: string;
-  nome_fantasia: string;
-  cnpj: string;
-  responsavel: string;
-  telefone: string;
-  email: string;
-  cidade: string;
-  nicho: string;
-  status: string;
-  latitude?: number;
-  longitude?: number;
-  endereco: string;
-  cep: string;
-}
+import { EmpresaData } from '../EmpresasPesquisa';
 
 interface EmpresaMapViewProps {
   apiKey: string;
   results: EmpresaData[];
   currentLocation: { lat: number; lng: number } | null;
-  setCurrentLocation: (location: { lat: number; lng: number }) => void;
+  setCurrentLocation: React.Dispatch<React.SetStateAction<{ lat: number; lng: number } | null>>;
   selectedEmpresa: EmpresaData | null;
-  setSelectedEmpresa: (empresa: EmpresaData | null) => void;
+  setSelectedEmpresa: React.Dispatch<React.SetStateAction<EmpresaData | null>>;
   getCurrentLocation: () => void;
 }
-
-const mapContainerStyle = {
-  width: '100%',
-  height: '500px',
-  borderRadius: '0.5rem',
-};
-
-const defaultMapOptions = {
-  disableDefaultUI: false,
-  zoomControl: true,
-  mapTypeControl: true,
-  streetViewControl: false,
-  fullscreenControl: true,
-};
 
 const EmpresaMapView: React.FC<EmpresaMapViewProps> = ({
   apiKey,
@@ -54,103 +25,122 @@ const EmpresaMapView: React.FC<EmpresaMapViewProps> = ({
   setSelectedEmpresa,
   getCurrentLocation
 }) => {
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: apiKey || '',
-    libraries: ['places'],
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: apiKey
   });
 
-  if (loadError) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-        Erro ao carregar o mapa do Google Maps. Verifique sua chave da API.
-      </div>
-    );
-  }
+  const mapStyles = {
+    height: '500px',
+    width: '100%'
+  };
 
-  if (!isLoaded) {
-    return (
-      <div className="flex justify-center items-center h-[500px] bg-gray-50 border border-gray-200 rounded-lg">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  const defaultCenter = {
+    lat: -15.7801,  // Roughly center of Brazil
+    lng: -47.9292
+  };
+
+  const handleMapClick = (e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      setCurrentLocation({
+        lat: e.latLng.lat(),
+        lng: e.latLng.lng()
+      });
+    }
+  };
+
+  const handleMarkerClick = (empresa: EmpresaData) => {
+    setSelectedEmpresa(empresa);
+  };
 
   return (
-    <div className="wp-card">
-      <h2 className="wp-subheader mb-4 flex items-center gap-2">
-        <MapPin className="h-5 w-5" />
-        GeoDirectório de Empresas
-        {currentLocation && (
-          <span className="text-sm text-gray-500 font-normal ml-4">
-            Lat: {currentLocation.lat.toFixed(5)}, Lng: {currentLocation.lng.toFixed(5)}
-          </span>
-        )}
-      </h2>
-      
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        zoom={12}
-        center={currentLocation || { lat: -15.7801, lng: -47.9292 }}
-        options={defaultMapOptions}
-      >
-        {currentLocation && (
-          <Marker
-            position={currentLocation}
-            icon={{
-              url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-              scaledSize: new google.maps.Size(50, 50)
-            }}
-          />
-        )}
-        
-        {results.map((empresa) => (
-          <Marker
-            key={empresa.id}
-            position={{ 
-              lat: empresa.latitude || -15.7801, 
-              lng: empresa.longitude || -47.9292 
-            }}
-            onClick={() => setSelectedEmpresa(empresa)}
-          />
-        ))}
-        
-        {selectedEmpresa && (
-          <InfoWindow
-            position={{ 
-              lat: selectedEmpresa.latitude || -15.7801, 
-              lng: selectedEmpresa.longitude || -47.9292
-            }}
-            onCloseClick={() => setSelectedEmpresa(null)}
+    <Card>
+      <CardContent className="p-4 space-y-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-medium">Mapa de Empresas</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={getCurrentLocation}
+            className="flex items-center gap-1"
           >
-            <div className="p-2 max-w-xs">
-              <h3 className="font-bold text-base">{selectedEmpresa.nome_fantasia}</h3>
-              <p className="text-sm my-1">{selectedEmpresa.nicho}</p>
-              <p className="text-sm">{selectedEmpresa.endereco}, {selectedEmpresa.cidade}</p>
-              <div className="mt-2">
-                <a href={`tel:${selectedEmpresa.telefone}`} className="text-blue-500 hover:underline text-sm">
-                  {selectedEmpresa.telefone}
-                </a>
-              </div>
-            </div>
-          </InfoWindow>
+            <Navigation size={14} />
+            Minha Localização
+          </Button>
+        </div>
+
+        {isLoaded ? (
+          <GoogleMap
+            mapContainerStyle={mapStyles}
+            center={currentLocation || defaultCenter}
+            zoom={13}
+            onClick={handleMapClick}
+            options={{
+              fullscreenControl: false,
+              streetViewControl: false
+            }}
+          >
+            {currentLocation && (
+              <Marker
+                position={currentLocation}
+                icon={{
+                  url: `data:image/svg+xml,${encodeURIComponent(
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>'
+                  )}`,
+                  scaledSize: new window.google.maps.Size(30, 30),
+                  anchor: new window.google.maps.Point(15, 15)
+                }}
+              />
+            )}
+
+            {results.map((empresa) => (
+              empresa.latitude && empresa.longitude ? (
+                <Marker
+                  key={empresa.id}
+                  position={{ lat: empresa.latitude, lng: empresa.longitude }}
+                  onClick={() => handleMarkerClick(empresa)}
+                  icon={{
+                    url: `data:image/svg+xml,${encodeURIComponent(
+                      '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c026d3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>'
+                    )}`,
+                    scaledSize: new window.google.maps.Size(30, 30),
+                    anchor: new window.google.maps.Point(15, 30)
+                  }}
+                />
+              ) : null
+            ))}
+
+            {selectedEmpresa && selectedEmpresa.latitude && selectedEmpresa.longitude && (
+              <InfoWindow
+                position={{ lat: selectedEmpresa.latitude, lng: selectedEmpresa.longitude }}
+                onCloseClick={() => setSelectedEmpresa(null)}
+              >
+                <div className="p-2 max-w-[300px]">
+                  <h3 className="font-medium text-base">{selectedEmpresa.nome_fantasia}</h3>
+                  <p className="text-sm text-gray-600">{selectedEmpresa.endereco}</p>
+                  <p className="text-sm text-gray-600">{selectedEmpresa.cidade}</p>
+                  <div className="flex items-center gap-1 text-sm mt-1">
+                    <MapPin size={14} />
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${selectedEmpresa.latitude},${selectedEmpresa.longitude}`} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      Como chegar
+                    </a>
+                  </div>
+                </div>
+              </InfoWindow>
+            )}
+          </GoogleMap>
+        ) : (
+          <div className="h-[500px] flex items-center justify-center bg-gray-100">
+            Carregando mapa...
+          </div>
         )}
-      </GoogleMap>
-      
-      <div className="flex items-center justify-between mt-3">
-        <p className="text-sm text-gray-500">
-          Clique nos marcadores para ver detalhes das empresas.
-        </p>
-        <Button
-          onClick={getCurrentLocation}
-          variant="outline"
-          className="text-sm px-4 py-1 flex items-center gap-2"
-          disabled={!apiKey}
-        >
-          <Navigation size={14} />
-          Atualizar minha localização
-        </Button>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

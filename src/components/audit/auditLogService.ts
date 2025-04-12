@@ -1,110 +1,168 @@
 
-import { supabase } from "@/integrations/supabase/client";
+// Fix for the nullable profile property - auditLogService.ts
+import { supabase } from '@/integrations/supabase/client';
 
-export type LogEventType = 'import' | 'export';
-export type LogEntityType = 'associado' | 'conveniado' | 'empresa';
-export type LogFormatType = 'csv' | 'xml' | 'json';
-
-export interface LogOperationData {
-  eventType: LogEventType;
-  entityType: LogEntityType;
-  format?: LogFormatType;
+interface LogOperationParams {
+  eventType: string;
+  entityType: string;
   details?: string;
   recordCount?: number;
-}
-
-export interface OperationLog {
-  id: string;
-  event_type: string;
-  entity_type: string;
   format?: string;
-  details?: string;
-  record_count?: number;
-  created_at: string;
-  user_id: string;
-  profiles: {
-    name: string;
-    email: string;
-  } | null;
 }
 
-export const logOperation = async (data: LogOperationData) => {
+/**
+ * Logs an operation in the database for audit purposes
+ * @param params Operation parameters to log
+ */
+export async function logOperation(params: LogOperationParams): Promise<void> {
   try {
-    // Get current user ID
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData?.user?.id;
+    const { eventType, entityType, details, recordCount, format } = params;
     
-    if (!userId) {
-      console.error("Falha ao registrar operação: Usuário não autenticado");
-      return;
-    }
-
-    const { error } = await supabase
+    // Get current user
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData?.session?.user?.id;
+    
+    // Log the operation
+    await supabase
       .from('operation_logs')
       .insert({
-        event_type: data.eventType,
-        entity_type: data.entityType,
-        format: data.format,
-        details: data.details,
-        record_count: data.recordCount,
-        user_id: userId
+        user_id: userId,
+        event_type: eventType,
+        entity_type: entityType,
+        details: details || null,
+        record_count: recordCount || null,
+        format: format || null,
       });
-
-    if (error) throw error;
-  } catch (err) {
-    console.error("Falha ao registrar operação:", err);
-    // Log silently fails but doesn't break the main operation
+    
+    console.log('Operation logged successfully:', { eventType, entityType });
+  } catch (error) {
+    console.error('Failed to log operation:', error);
+    // Don't throw - we don't want to interrupt the main flow if logging fails
   }
-};
+}
 
-export const getOperationLogs = async (): Promise<OperationLog[]> => {
+/**
+ * Get operation logs with optional filtering
+ */
+export async function getOperationLogs(options: {
+  limit?: number;
+  offset?: number;
+  user_id?: string;
+  entity_type?: string;
+  event_type?: string;
+  startDate?: string;
+  endDate?: string;
+}) {
   try {
-    // Modify the query to fetch user profiles
-    const { data, error } = await supabase
+    const {
+      limit = 100,
+      offset = 0,
+      user_id,
+      entity_type,
+      event_type,
+      startDate,
+      endDate,
+    } = options;
+
+    let query = supabase
       .from('operation_logs')
       .select(`
-        id,
-        event_type,
-        entity_type,
-        format,
-        details,
-        record_count,
-        created_at,
+        id, 
+        event_type, 
+        entity_type, 
+        details, 
+        record_count, 
+        format, 
+        created_at, 
         user_id,
-        profiles:profiles(name, email)
+        profiles:user_id (name)
       `)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // Apply filters if provided
+    if (user_id) query = query.eq('user_id', user_id);
+    if (entity_type) query = query.eq('entity_type', entity_type);
+    if (event_type) query = query.eq('event_type', event_type);
+    if (startDate) query = query.gte('created_at', startDate);
+    if (endDate) query = query.lte('created_at', endDate);
+
+    const { data, error, count } = await query;
 
     if (error) throw error;
-    
-    // Transform and validate the data
-    const logs: OperationLog[] = data?.map(log => {
-      // Handle the case where profiles might be null
-      let safeProfiles = null;
-      
-      if (log.profiles && 
-          typeof log.profiles === 'object' && 
-          log.profiles !== null && 
-          !('error' in log.profiles)) {
-        // Use a proper type assertion
-        const profilesObj = log.profiles as Record<string, any>;
-        
-        // Add null checks for individual properties
-        safeProfiles = {
-          name: profilesObj.name ? String(profilesObj.name) : '',
-          email: profilesObj.email ? String(profilesObj.email) : ''
-        };
-      }
-        
-      return {
-        ...log,
-        profiles: safeProfiles
-      };
-    }) || [];
-    
-    return logs;
-  } catch (err) {
-    console.error("Falha ao buscar logs de operação:", err);
-    throw err;
+
+    // Format data for display
+    const formattedLogs = data?.map(log => ({
+      id: log.id,
+      eventType: log.event_type,
+      entityType: log.entity_type,
+      details: log.details,
+      recordCount: log.record_count,
+      format: log.format,
+      createdAt: new Date(log.created_at).toLocaleString(),
+      userName: log.profiles?.name || 'Unknown',
+      userId: log.user_id
+    }));
+
+    return { logs: formattedLogs || [], count };
+  } catch (error) {
+    console.error('Error fetching operation logs:', error);
+    throw error;
   }
-};
+}
+
+/**
+ * Get statistics about operations
+ */
+export async function getOperationStats() {
+  try {
+    // Get count of operations by type in the last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { data: statsByType, error: statsError } = await supabase
+      .from('operation_logs')
+      .select('event_type, count(*)')
+      .gte('created_at', thirtyDaysAgo.toISOString())
+      .group('event_type');
+    
+    if (statsError) throw statsError;
+    
+    // Get count of operations by entity in the last 30 days
+    const { data: statsByEntity, error: entityError } = await supabase
+      .from('operation_logs')
+      .select('entity_type, count(*)')
+      .gte('created_at', thirtyDaysAgo.toISOString())
+      .group('entity_type');
+    
+    if (entityError) throw entityError;
+    
+    // Get most active users
+    const { data: activeUsers, error: usersError } = await supabase
+      .from('operation_logs')
+      .select(`
+        user_id,
+        profiles:user_id (name),
+        count
+      `)
+      .gte('created_at', thirtyDaysAgo.toISOString())
+      .group('user_id, profiles:user_id (name)')
+      .order('count', { ascending: false })
+      .limit(5);
+    
+    if (usersError) throw usersError;
+    
+    return {
+      byType: statsByType || [],
+      byEntity: statsByEntity || [],
+      activeUsers: activeUsers ? activeUsers.map(user => ({
+        id: user.user_id,
+        name: user.profiles?.name || 'Unknown',
+        count: user.count
+      })) : []
+    };
+  } catch (error) {
+    console.error('Error fetching operation stats:', error);
+    throw error;
+  }
+}

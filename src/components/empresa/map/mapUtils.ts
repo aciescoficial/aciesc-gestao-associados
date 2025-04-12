@@ -1,43 +1,71 @@
 
-/**
- * Generate simulated geolocation data for entities that don't have real coordinates
- * In a real implementation, these coordinates would come from the database
- */
-export const generateSimulatedLocation = (
-  baseLatitude: number,
-  baseLongitude: number,
-  randomFactor = 0.05
-) => {
-  return {
-    latitude: baseLatitude + (Math.random() - 0.5) * randomFactor,
-    longitude: baseLongitude + (Math.random() - 0.5) * randomFactor
-  };
-};
+import { EmpresaData } from "../EmpresasPesquisa";
 
 /**
- * Calculate distance between two coordinates in kilometers using the Haversine formula
+ * Calculate distance between two points using Haversine formula
  */
-export const calculateDistance = (
+export function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number
-): number => {
-  const R = 6371; // Radius of the earth in km
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
+): number {
+  const R = 6371; // Earth radius in kilometers
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c; // Distance in km
-  return distance;
-};
+  const d = R * c; // Distance in km
+  return d;
+}
+
+function toRad(value: number): number {
+  return (value * Math.PI) / 180;
+}
 
 /**
- * Convert degrees to radians
+ * Sort empresas by distance to a reference point
  */
-const deg2rad = (deg: number): number => {
-  return deg * (Math.PI / 180);
-};
+export function sortByDistance(
+  empresas: EmpresaData[],
+  referenceLat: number,
+  referenceLng: number
+): EmpresaData[] {
+  return [...empresas].sort((a, b) => {
+    if (!a.latitude || !a.longitude) return 1;
+    if (!b.latitude || !b.longitude) return -1;
+    
+    const distA = calculateDistance(referenceLat, referenceLng, a.latitude, a.longitude);
+    const distB = calculateDistance(referenceLat, referenceLng, b.latitude, b.longitude);
+    
+    return distA - distB;
+  });
+}
+
+/**
+ * Get formatted distance string
+ */
+export function getDistanceText(
+  empresa: EmpresaData,
+  referenceLat: number | undefined,
+  referenceLng: number | undefined
+): string {
+  if (!empresa.latitude || !empresa.longitude || !referenceLat || !referenceLng) {
+    return 'N/A';
+  }
+  
+  const distance = calculateDistance(
+    referenceLat,
+    referenceLng,
+    empresa.latitude,
+    empresa.longitude
+  );
+  
+  if (distance < 1) {
+    return `${(distance * 1000).toFixed(0)} m`;
+  }
+  
+  return `${distance.toFixed(1)} km`;
+}

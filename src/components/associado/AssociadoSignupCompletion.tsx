@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 
 const formSchema = z.object({
   password: z.string()
@@ -61,13 +60,14 @@ const AssociadoSignupCompletion: React.FC = () => {
         }
         
         // Validate token
-        const { data, error } = await supabase
+        const { data, error } = await extendedSupabase
           .from("signup_tokens")
           .select(`
             token,
             expires_at,
             associado_interesse_id,
-            associado_interesse (
+            used,
+            associado_interesse:associado_interesse_id (
               id,
               nome,
               sobrenome,
@@ -129,7 +129,7 @@ const AssociadoSignupCompletion: React.FC = () => {
     setSubmitting(true);
     try {
       // Create auth account
-      const { error: signupError } = await supabase.auth.signUp({
+      const { error: signupError } = await extendedSupabase.auth.signUp({
         email: signupData.email,
         password: data.password,
         options: {
@@ -142,20 +142,22 @@ const AssociadoSignupCompletion: React.FC = () => {
       if (signupError) throw signupError;
       
       // Create associado record
-      const { error: associadoError } = await supabase
+      const { error: associadoError } = await extendedSupabase
         .from("associados")
         .insert({
           nome: signupData.nome,
           sobrenome: signupData.sobrenome,
           email: signupData.email,
           cpf: signupData.cpf,
+          cidade: 'Pendente atualização',
+          telefone: 'Pendente atualização',
           status: 'ativo'
         });
         
       if (associadoError) throw associadoError;
       
       // Mark token as used
-      await supabase
+      await extendedSupabase
         .from("signup_tokens")
         .update({ used: true })
         .eq("token", token);

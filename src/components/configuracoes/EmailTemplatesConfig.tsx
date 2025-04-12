@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Save } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 
 interface EmailTemplate {
   id: string;
@@ -63,7 +62,7 @@ const EmailTemplatesConfig: React.FC = () => {
     const fetchTemplates = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data, error } = await extendedSupabase
           .from('email_templates')
           .select('*')
           .order('nome');
@@ -95,7 +94,7 @@ const EmailTemplatesConfig: React.FC = () => {
   const initializeDefaultTemplates = async () => {
     try {
       // Inserir templates padrão
-      const { data, error } = await supabase
+      const { data, error } = await extendedSupabase
         .from('email_templates')
         .insert(defaultTemplates)
         .select();
@@ -119,7 +118,7 @@ const EmailTemplatesConfig: React.FC = () => {
   const handleSave = async (template: EmailTemplate) => {
     setSaving(template.id);
     try {
-      const { error } = await supabase
+      const { error } = await extendedSupabase
         .from('email_templates')
         .update({
           assunto: template.assunto,

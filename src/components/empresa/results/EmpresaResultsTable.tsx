@@ -1,27 +1,9 @@
 
 import React from 'react';
-import { Check, X, MapPin } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Database } from '@/integrations/supabase/types';
-
-type StatusType = Database['public']['Enums']['status_type'];
-
-interface EmpresaData {
-  id: string;
-  razao_social: string;
-  nome_fantasia: string;
-  cnpj: string;
-  responsavel: string;
-  telefone: string;
-  email: string;
-  cidade: string;
-  nicho: string;
-  status: StatusType;
-  latitude?: number;
-  longitude?: number;
-  endereco: string;
-  cep: string;
-}
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Phone, MapPin, ExternalLink } from 'lucide-react';
+import { EmpresaData } from '../EmpresasPesquisa';
 
 interface EmpresaResultsTableProps {
   results: EmpresaData[];
@@ -34,69 +16,86 @@ const EmpresaResultsTable: React.FC<EmpresaResultsTableProps> = ({
   locateEmpresa,
   isMapEnabled
 }) => {
-  const getStatusBadge = (status: StatusType) => {
-    switch (status) {
-      case 'ativo':
-        return <span className="wp-badge-success flex items-center gap-1"><Check size={14} />Ativo</span>;
-      case 'pendente':
-        return <span className="wp-badge-warning">Pendente</span>;
-      case 'inativo':
-        return <span className="wp-badge-error flex items-center gap-1"><X size={14} />Inativo</span>;
-      default:
-        return <span className="wp-badge">{status}</span>;
-    }
-  };
-
   if (results.length === 0) {
     return null;
   }
 
   return (
-    <div className="wp-card">
-      <h2 className="wp-subheader">Resultados da Busca</h2>
-      <div className="overflow-x-auto">
-        <table className="wp-table">
-          <thead>
-            <tr>
-              <th>Nome Fantasia</th>
-              <th>Razão Social</th>
-              <th>CNPJ</th>
-              <th>Nicho</th>
-              <th>Cidade</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((item) => (
-              <tr key={item.id}>
-                <td>{item.nome_fantasia}</td>
-                <td>{item.razao_social}</td>
-                <td>{item.cnpj}</td>
-                <td>{item.nicho}</td>
-                <td>{item.cidade}</td>
-                <td>{getStatusBadge(item.status)}</td>
-                <td>
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1"
-                      onClick={() => locateEmpresa(item)}
-                      disabled={!isMapEnabled}
-                    >
-                      <MapPin size={12} />
-                      Localizar
-                    </Button>
-                    <Button size="sm">Editar</Button>
-                  </div>
-                </td>
+    <Card>
+      <CardContent className="p-4">
+        <h2 className="text-lg font-medium mb-4">Resultados da Busca ({results.length})</h2>
+        
+        <div className="overflow-x-auto">
+          <table className="wp-table">
+            <thead>
+              <tr>
+                <th>Empresa</th>
+                <th>Cidade</th>
+                <th>Nicho</th>
+                <th>Telefone</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+            </thead>
+            <tbody>
+              {results.map((empresa) => (
+                <tr key={empresa.id}>
+                  <td>
+                    <div>
+                      <div className="font-medium">{empresa.nome_fantasia}</div>
+                      <div className="text-xs text-gray-500">{empresa.razao_social}</div>
+                    </div>
+                  </td>
+                  <td>{empresa.cidade}</td>
+                  <td>
+                    <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                      {empresa.nicho}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="flex items-center gap-1 text-sm">
+                      <Phone size={14} className="text-gray-500" />
+                      <a 
+                        href={`tel:${empresa.telefone}`} 
+                        className="hover:underline"
+                      >
+                        {empresa.telefone}
+                      </a>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="flex space-x-2">
+                      {isMapEnabled && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => locateEmpresa(empresa)}
+                          title="Ver no mapa"
+                        >
+                          <MapPin size={14} className="mr-1" />
+                          Mapa
+                        </Button>
+                      )}
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        asChild
+                        title="Ver mais detalhes"
+                      >
+                        <a href={`/empresas/${empresa.id}`} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink size={14} className="mr-1" />
+                          Detalhes
+                        </a>
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Check, X, FileText, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { generatePaymentLink } from '../financeiro/services/asaasService';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 
 interface InteresseData {
   id: string;
@@ -39,7 +38,7 @@ const AprovacaoInteresse: React.FC = () => {
     const fetchInteressados = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data, error } = await extendedSupabase
           .from('associado_interesse')
           .select('*')
           .order('created_at', { ascending: false });
@@ -48,7 +47,7 @@ const AprovacaoInteresse: React.FC = () => {
         setInteressados(data || []);
         
         // Buscar tipos de associação
-        const { data: tiposData, error: tiposError } = await supabase
+        const { data: tiposData, error: tiposError } = await extendedSupabase
           .from('association_types')
           .select('*')
           .eq('active', true);
@@ -79,7 +78,7 @@ const AprovacaoInteresse: React.FC = () => {
   const handleRejeitar = async (id: string) => {
     setProcessando(id);
     try {
-      const { error } = await supabase
+      const { error } = await extendedSupabase
         .from('associado_interesse')
         .update({ status: 'rejeitado' })
         .eq('id', id);
@@ -124,7 +123,7 @@ const AprovacaoInteresse: React.FC = () => {
       const paymentUrl = await generatePaymentLink(tipoAssociacao);
       
       // Atualizar registro de interesse
-      const { error } = await supabase
+      const { error } = await extendedSupabase
         .from('associado_interesse')
         .update({ 
           status: 'aprovado',
@@ -144,7 +143,7 @@ const AprovacaoInteresse: React.FC = () => {
       // Fechar diálogo
       setDialogOpen(false);
       
-      // Enviar e-mail (será implementado com um edge function)
+      // Enviar e-mail com o link de pagamento
       await enviarEmailAprovacao(selectedInteresse.email, selectedInteresse.nome, paymentUrl);
       
       toast({
@@ -164,12 +163,38 @@ const AprovacaoInteresse: React.FC = () => {
     }
   };
   
-  // Função que será implementada com um edge function posteriormente
   const enviarEmailAprovacao = async (email: string, nome: string, linkPagamento: string) => {
-    // Simulação - será substituída pela chamada ao edge function
-    console.log(`Enviando email para ${email} com link de pagamento: ${linkPagamento}`);
-    // A implementação real usará o edge function com um template configurável
-    return true;
+    try {
+      const response = await fetch(`${window.location.origin}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: email,
+          template_id: 'aprovacao_interesse',
+          template_data: {
+            nome: nome,
+            link_pagamento: linkPagamento
+          }
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao enviar email');
+      }
+      
+      return true;
+    } catch (error: any) {
+      console.error('Erro ao enviar email:', error);
+      toast({
+        title: 'Alerta',
+        description: 'O link foi gerado, mas houve um erro ao enviar o email. Verifique as configurações de email.',
+        variant: 'warning'
+      });
+      return false;
+    }
   };
   
   const formatarData = (dataStr: string) => {

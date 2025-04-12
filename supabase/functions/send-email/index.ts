@@ -11,6 +11,8 @@ interface EmailRequest {
   to: string;
   subject: string;
   body: string;
+  template_id?: string;
+  template_data?: Record<string, any>;
 }
 
 serve(async (req) => {
@@ -26,22 +28,53 @@ serve(async (req) => {
     );
 
     const body = await req.json() as EmailRequest;
-    const { to, subject, body: emailBody } = body;
+    let { to, subject, body: emailBody, template_id, template_data } = body;
 
     // Validate input
-    if (!to || !subject || !emailBody) {
-      throw new Error("Missing required fields: to, subject, body");
+    if (!to) {
+      throw new Error("Missing required field: to");
+    }
+
+    console.log(`Processing email to ${to}`);
+
+    // If template_id is provided, fetch template and replace placeholders
+    if (template_id) {
+      console.log(`Using template: ${template_id}`);
+      
+      const { data: template, error: templateError } = await supabaseClient
+        .from('email_templates')
+        .select('*')
+        .eq('codigo', template_id)
+        .single();
+        
+      if (templateError || !template) {
+        throw new Error(`Template not found: ${templateError?.message || template_id}`);
+      }
+      
+      // Use template subject and body
+      subject = template.assunto;
+      emailBody = template.corpo;
+      
+      // Replace placeholders in template if template_data is provided
+      if (template_data) {
+        for (const [key, value] of Object.entries(template_data)) {
+          const placeholder = `{${key}}`;
+          emailBody = emailBody.replaceAll(placeholder, value);
+          subject = subject.replaceAll(placeholder, value);
+        }
+      }
+    }
+    
+    // Validate after potential template processing
+    if (!subject || !emailBody) {
+      throw new Error("Missing required fields: subject, body");
     }
 
     console.log(`Sending email to ${to}`);
     console.log(`Subject: ${subject}`);
     console.log(`Body: ${emailBody}`);
 
-    // Placeholder for email sending functionality
-    // In a real implementation, you would connect to an email service
-    // like SendGrid, AWS SES, or similar
-
-    // For now, just log the email and store in a table for demo purposes
+    // Log the email in the database
     const { error } = await supabaseClient
       .from("email_logs")
       .insert({

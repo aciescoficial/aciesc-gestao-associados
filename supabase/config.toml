@@ -1,8 +1,32 @@
 
+# project_id should always be first!
 project_id = "wpcstzjczfgbfwgzwktf"
 
-[functions.asaas-integration]
-verify_jwt = true
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
 
-[functions.gohighlevel-integration]
-verify_jwt = true
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+
+[auth]
+enabled = true
+
+[realtime]
+enabled = true
+
+[edge_functions]
+[edge_functions.send-email]
+verify_jwt = false

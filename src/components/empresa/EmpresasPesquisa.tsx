@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Map } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -14,10 +13,10 @@ import EmpresaMapView from './map/EmpresaMapView';
 import EmpresaResultsTable from './results/EmpresaResultsTable';
 import ApiKeyRedirect from './map/ApiKeyRedirect';
 
-type NichoType = Database['public']['Enums']['nicho_type'];
-type StatusType = Database['public']['Enums']['status_type'];
+export type NichoType = Database['public']['Enums']['nicho_type'];
+export type StatusType = Database['public']['Enums']['status_type'];
 
-interface EmpresaData {
+export interface EmpresaData {
   id: string;
   razao_social: string;
   nome_fantasia: string;
@@ -239,8 +238,6 @@ const EmpresasPesquisa: React.FC = () => {
       }
       
       if (nichoFilter) {
-        // Fix the TypeScript error by ensuring the nicho filter is of the correct type
-        // We check if the nicho is a valid value from the NichoType enum
         query = query.eq('nicho', nichoFilter as NichoType);
       }
       
