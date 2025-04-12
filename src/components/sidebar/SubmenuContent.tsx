@@ -27,16 +27,18 @@ const SubmenuContent: React.FC<SubmenuContentProps> = ({
   }
 
   return (
-    <SidebarGroupContent className="bg-aciesc-dark bg-opacity-30">
+    <SidebarGroupContent className="absolute left-full top-0 mt-0 ml-1 bg-aciesc-dark bg-opacity-95 rounded-md py-2 px-2 min-w-[200px] z-50 shadow-lg">
       <SidebarMenu>
         {submenu.map((subItem, index) => (
-          <SidebarMenuItem
-            key={index}
-            icon={subItem.icon}
-            label={subItem.label}
-            path={subItem.path}
-            isActive={isActive(subItem.path!)}
-          />
+          <div key={index} className="py-1">
+            <a 
+              href={subItem.path} 
+              className={`flex items-center px-3 py-2 text-white hover:bg-aciesc-primary rounded-md ${isActive(subItem.path!) ? 'bg-aciesc-primary' : ''}`}
+            >
+              {subItem.icon && <subItem.icon className="h-4 w-4 mr-2" />}
+              <span>{subItem.label}</span>
+            </a>
+          </div>
         ))}
       </SidebarMenu>
     </SidebarGroupContent>

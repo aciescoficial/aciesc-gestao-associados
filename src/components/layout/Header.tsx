@@ -14,7 +14,7 @@ const Header: React.FC = () => {
   return (
     <>
       <NotificationBanner />
-      <header className="bg-aciesc-primary text-white py-3 px-4 flex justify-between items-center shadow-sm">
+      <header className="bg-aciesc-primary text-white py-2 px-3 flex justify-between items-center shadow-sm h-14">
         <div className="flex items-center">
           <SidebarTrigger className="text-white mr-3 hover:text-gray-200" />
           <div className="flex items-center">
