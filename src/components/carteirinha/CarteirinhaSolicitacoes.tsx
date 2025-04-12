@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSolicitacoes } from './hooks/useSolicitacoes';
-import SolicitacoesSearch from './components/SolicitacoesSearch';
-import SolicitacoesTable from './components/SolicitacoesTable';
-import SolicitacoesPagination from './components/SolicitacoesPagination';
+import { SolicitacoesSearch } from './components/SolicitacoesSearch';
+import { SolicitacoesTable } from './components/SolicitacoesTable';
+import { SolicitacoesPagination } from './components/SolicitacoesPagination';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -13,7 +12,7 @@ import {
   CheckCircle, 
   AlertTriangle
 } from 'lucide-react';
-import SolicitacaoEditDialog from './components/SolicitacaoEditDialog';
+import { SolicitacaoEditDialog } from './components/SolicitacaoEditDialog';
 import { verifyCarteirinhaPayment } from './services/carteirinhaService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -60,7 +59,6 @@ const CarteirinhaSolicitacoes: React.FC = () => {
     }
   };
 
-  // Function to check payment status for pending items
   const checkPendingPayments = async () => {
     const pendingPaymentSolicitacoes = solicitacoes.filter(s => s.status === 'pendente_pagamento');
     
@@ -74,9 +72,8 @@ const CarteirinhaSolicitacoes: React.FC = () => {
             description: `Pagamento da solicitação #${solicitacao.id.substring(0, 8)} foi confirmado.`,
           });
           
-          // Refresh list after payments are checked
           fetchSolicitacoes();
-          break; // Exit loop after first change to avoid multiple refreshes
+          break;
         }
       } catch (error) {
         console.error(`Erro ao verificar pagamento para solicitação ${solicitacao.id}:`, error);
@@ -84,14 +81,13 @@ const CarteirinhaSolicitacoes: React.FC = () => {
     }
   };
 
-  // Check pending payments on initial load and every 60 seconds
   useEffect(() => {
     if (solicitacoes.some(s => s.status === 'pendente_pagamento')) {
       checkPendingPayments();
       
       const interval = setInterval(() => {
         checkPendingPayments();
-      }, 60000); // Check every minute
+      }, 60000);
       
       return () => clearInterval(interval);
     }
@@ -247,10 +243,9 @@ const CarteirinhaSolicitacoes: React.FC = () => {
 
       {selectedSolicitacao && (
         <SolicitacaoEditDialog 
-          isOpen={isEditDialogOpen}
-          onClose={handleEditClose}
           solicitacao={selectedSolicitacao}
-          onStatusUpdate={handleStatusUpdate}
+          onUpdate={updateSolicitacao}
+          onSuccess={fetchSolicitacoes}
         />
       )}
     </div>

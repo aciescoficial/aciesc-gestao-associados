@@ -11,24 +11,26 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Mail } from 'lucide-react';
+import { CreditCard, Mail, Pencil } from 'lucide-react';
 import { StatusBadge, TrackingInfo } from './StatusBadge';
 import { SolicitacaoEditDialog } from './SolicitacaoEditDialog';
 
 interface SolicitacoesTableProps {
   solicitacoes: CarteirinhaSolicitacao[];
   isLoading: boolean;
-  statusFilter: string;
-  onUpdate: (id: string, data: Partial<CarteirinhaSolicitacao>) => Promise<boolean>;
-  onRefresh: () => void;
+  onEdit?: (solicitacao: CarteirinhaSolicitacao) => void;
+  statusFilter?: string;
+  onUpdate?: (id: string, data: Partial<CarteirinhaSolicitacao>) => Promise<boolean>;
+  onRefresh?: () => void;
 }
 
 export const SolicitacoesTable: React.FC<SolicitacoesTableProps> = ({
   solicitacoes,
   isLoading,
-  statusFilter,
+  onEdit,
+  statusFilter = '',
   onUpdate,
-  onRefresh,
+  onRefresh = () => {},
 }) => {
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
@@ -88,11 +90,18 @@ export const SolicitacoesTable: React.FC<SolicitacoesTableProps> = ({
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex space-x-1 justify-end">
-                    <SolicitacaoEditDialog 
-                      solicitacao={solicitacao} 
-                      onUpdate={onUpdate}
-                      onSuccess={onRefresh}
-                    />
+                    {onUpdate && onRefresh ? (
+                      <SolicitacaoEditDialog 
+                        solicitacao={solicitacao} 
+                        onUpdate={onUpdate}
+                        onSuccess={onRefresh}
+                      />
+                    ) : (
+                      <Button variant="ghost" size="icon" onClick={() => onEdit && onEdit(solicitacao)}>
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Editar Solicitação</span>
+                      </Button>
+                    )}
                     
                     <Button variant="ghost" size="icon">
                       <Mail className="h-4 w-4" />

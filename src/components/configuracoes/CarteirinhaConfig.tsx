@@ -11,6 +11,7 @@ import { getCarteirinhaConfig, updateCarteirinhaConfig } from '@/components/cart
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
 
 const CarteirinhaConfig = () => {
   const [isLoading, setIsLoading] = useState(false);
