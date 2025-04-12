@@ -64,13 +64,10 @@ export async function getOperationStats(): Promise<OperationStats> {
           // Safely extract user name with proper null checks
           let userName = 'Unknown';
           
-          // Ensure profiles is not null before trying to access its properties
-          if (curr.profiles !== null) {
-            // Now TypeScript knows profiles isn't null, but we still need to check if it's an object
-            // with the expected structure and if the name property exists
-            if (typeof curr.profiles === 'object') {
-              userName = curr.profiles.name || 'Unknown';
-            }
+          // Use the proper null check with type guard
+          if (curr.profiles !== null && typeof curr.profiles === 'object') {
+            // Use optional chaining to safely access the name property
+            userName = curr.profiles?.name || 'Unknown';
           }
           
           acc.set(curr.user_id, {

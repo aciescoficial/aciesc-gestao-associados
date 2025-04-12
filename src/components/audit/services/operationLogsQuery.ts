@@ -52,8 +52,10 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
       
       // Check if profiles exists and is an object
       if (log.profiles !== null && typeof log.profiles === 'object') {
-        profileName = log.profiles.name || 'Unknown';
-        profileData = { name: log.profiles.name };
+        // Use optional chaining to safely access the name property
+        const name = log.profiles?.name;
+        profileName = name || 'Unknown';
+        profileData = { name: name || null };
       }
       
       return {
