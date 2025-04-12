@@ -2,6 +2,7 @@
 import { supabase, handleSupabaseError } from "@/integrations/supabase/client";
 import { AssociadoFormData, ImportAssociadoData, StatusType } from './types';
 import { useToast } from '@/hooks/use-toast';
+import { logOperation } from '@/components/audit/auditLogService';
 
 export const saveAssociado = async (data: AssociadoFormData) => {
   try {
@@ -41,6 +42,14 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       console.error("Supabase error details:", error);
       throw error;
     }
+    
+    // Log the manual creation of an associate
+    await logOperation({
+      eventType: 'create',
+      entityType: 'associado',
+      details: `Associado ${data.nome} ${data.sobrenome} (CPF: ${data.cpf}) cadastrado manualmente`,
+      recordCount: 1
+    });
     
     return associadoResult;
   } catch (error) {
