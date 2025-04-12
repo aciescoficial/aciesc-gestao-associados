@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export type ConveniadoStatus = 'ativo' | 'pendente' | 'inativo';
 
-interface Conveniado {
+export interface Conveniado {
   id: string;
   nome: string;
   sobrenome: string;
@@ -39,18 +39,16 @@ export const useConveniadoSearch = () => {
   const fetchCidades = async () => {
     try {
       const { data, error } = await supabase
-        .from('conveniados')
+        .from('associados')
         .select('cidade')
         .order('cidade');
       
       if (error) throw error;
       
-      const conveniadosData = data as { cidade: string }[];
-      const uniqueCidades = Array.from(new Set(conveniadosData.map(item => item.cidade)))
-        .filter(city => city) // Filter out null/undefined
-        .sort();
-      
-      setCidades(uniqueCidades);
+      // Cast data to the expected type with type assertion
+      const associadosData = data as { cidade: string }[];
+      const uniqueCidades = Array.from(new Set(associadosData.map(item => item.cidade) || []));
+      setCidades(uniqueCidades.filter(Boolean).sort());
     } catch (error) {
       console.error('Error fetching cities:', error);
     }
@@ -60,7 +58,7 @@ export const useConveniadoSearch = () => {
     setLoading(true);
     
     try {
-      let query = supabase.from('conveniados').select('*', { count: 'exact' });
+      let query = supabase.from('associados').select('*', { count: 'exact' });
       
       // Apply search term filter if provided
       if (searchTerm.trim()) {
@@ -93,7 +91,23 @@ export const useConveniadoSearch = () => {
       
       if (error) throw error;
       
-      setConveniados((data || []) as Conveniado[]);
+      // Map the retrieved data to the Conveniado interface
+      const conveniados = (data || []).map(item => ({
+        id: item.id,
+        nome: item.nome,
+        sobrenome: item.sobrenome,
+        cpf: item.cpf,
+        email: item.email,
+        telefone: item.telefone,
+        creci: item.creci,
+        cidade: item.cidade,
+        status: item.status as ConveniadoStatus,
+        placa_principal: item.placa_principal,
+        placa_secundaria: item.placa_secundaria,
+        created_at: item.created_at
+      }));
+      
+      setConveniados(conveniados);
       setTotalCount(count || 0);
     } catch (error) {
       console.error('Error fetching conveniados:', error);
