@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import type { EnderecoFormValues } from './EnderecoEntregaForm';
+import type { EnderecoFormValues } from './endereco-form/schema';
 import { useCarteirinhaData } from './hooks/useCarteirinhaData';
 import { useCarteirinhaSubmit } from './hooks/useCarteirinhaSubmit';
 import { useEndereco } from './hooks/useEndereco';
