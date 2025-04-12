@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export function useAdminPermission() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, userRole, userTags } = useAuth();
   const { toast } = useToast();
 
   const checkAdminPermission = (): boolean => {
@@ -18,5 +18,23 @@ export function useAdminPermission() {
     return true;
   };
 
-  return { isAdmin, checkAdminPermission };
+  const checkFinanceiroPermission = (): boolean => {
+    if (!isAdmin && !userTags.includes('financeiro')) {
+      toast({
+        title: "Permissão negada",
+        description: "Você não tem permissão para acessar recursos financeiros.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  return { 
+    isAdmin,
+    userRole, 
+    checkAdminPermission,
+    checkFinanceiroPermission,
+    hasFinanceiroAccess: isAdmin || userTags.includes('financeiro')
+  };
 }

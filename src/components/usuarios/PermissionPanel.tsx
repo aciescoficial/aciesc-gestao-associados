@@ -5,7 +5,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Permission, UserRole } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Settings, Wrench, Play, BookOpen, Calendar, Award, Users, Contact, MessageSquare, LayoutDashboard, Filter, DollarSign, Building, CreditCard, FileText, Shield, Image, Rocket } from 'lucide-react';
+import { 
+  Loader2, Settings, Wrench, Play, BookOpen, Calendar, Award, Users, 
+  Contact, MessageSquare, LayoutDashboard, Filter, DollarSign, Building, 
+  CreditCard, FileText, Shield, Image, Rocket, Database, Code
+} from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
@@ -77,7 +81,8 @@ const PermissionPanel: React.FC = () => {
           subPermissions: [
             { id: 'register_associado', description: 'Cadastrar associado', enabled: true },
             { id: 'search_associado', description: 'Pesquisar associado', enabled: true },
-            { id: 'list_associado', description: 'Listar associados', enabled: true }
+            { id: 'approve_associado', description: 'Aprovar interessados', enabled: true },
+            { id: 'generate_card', description: 'Gerar carteirinha', enabled: true }
           ]
         },
         {
@@ -88,7 +93,7 @@ const PermissionPanel: React.FC = () => {
           subPermissions: [
             { id: 'register_empresa', description: 'Cadastrar empresa', enabled: true },
             { id: 'search_empresa', description: 'Pesquisar empresa', enabled: true },
-            { id: 'pending_empresa', description: 'Aprovações pendentes', enabled: true }
+            { id: 'suggestions_empresa', description: 'Sugestões de empresas', enabled: true }
           ]
         },
         {
@@ -109,7 +114,8 @@ const PermissionPanel: React.FC = () => {
           icon: <CreditCard size={16} />,
           enabled: true,
           subPermissions: [
-            { id: 'generate_card', description: 'Gerar carteirinha', enabled: true }
+            { id: 'generate_card', description: 'Gerar carteirinha', enabled: true },
+            { id: 'request_card', description: 'Solicitar carteirinha', enabled: true }
           ]
         },
         {
@@ -128,28 +134,61 @@ const PermissionPanel: React.FC = () => {
           icon: <Settings size={16} />,
           enabled: true,
           subPermissions: [
-            { id: 'manage_settings', description: 'Gerenciar configurações', enabled: true }
+            { id: 'general_settings', description: 'Configurações gerais', enabled: true },
+            { id: 'admin_settings', description: 'Administração', enabled: true },
+            { id: 'api_settings', description: 'Integração API', enabled: true },
+            { id: 'system_settings', description: 'Sistema', enabled: true }
           ]
         },
+        {
+          id: 'area_associado',
+          name: 'Área do Associado',
+          icon: <Users size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'view_payments', description: 'Meus pagamentos', enabled: true },
+            { id: 'update_profile', description: 'Atualizar dados', enabled: true },
+            { id: 'view_companies', description: 'Empresas conveniadas', enabled: true }
+          ]
+        },
+        {
+          id: 'area_empresa',
+          name: 'Área da Empresa',
+          icon: <Building size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'update_company', description: 'Atualizar dados', enabled: true },
+            { id: 'search_members', description: 'Pesquisar associados', enabled: true }
+          ]
+        },
+        {
+          id: 'comunicacao',
+          name: 'Comunicação',
+          icon: <MessageSquare size={16} />,
+          enabled: true,
+          subPermissions: [
+            { id: 'send_messages', description: 'Enviar mensagens', enabled: true }
+          ]
+        }
       ];
 
       const adminPermissions = [...defaultMenus];
       
       const userPermissions = defaultMenus.map(menu => ({
         ...menu,
-        enabled: ['dashboard', 'mensagens'].includes(menu.id),
+        enabled: ['dashboard', 'area_associado', 'mensagens', 'comunicacao'].includes(menu.id),
         subPermissions: menu.subPermissions.map(perm => ({
           ...perm,
-          enabled: ['view_dashboard', 'view_messages'].includes(perm.id)
+          enabled: ['view_dashboard', 'view_messages', 'view_payments', 'update_profile', 'view_companies', 'send_messages'].includes(perm.id)
         }))
       }));
 
       const empresaPermissions = defaultMenus.map(menu => ({
         ...menu,
-        enabled: ['dashboard', 'mensagens'].includes(menu.id),
+        enabled: ['dashboard', 'area_empresa', 'mensagens', 'comunicacao'].includes(menu.id),
         subPermissions: menu.subPermissions.map(perm => ({
           ...perm,
-          enabled: ['view_dashboard', 'view_messages'].includes(perm.id)
+          enabled: ['view_dashboard', 'update_company', 'search_members', 'view_messages', 'send_messages'].includes(perm.id)
         }))
       }));
 
