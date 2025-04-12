@@ -43,36 +43,52 @@ export const useDashboardData = () => {
   const checkSystemStatus = async () => {
     try {
       // Create a controller to abort the request if it takes too long
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      const timeoutId = setTimeout(() => {
+        console.log('System status check timed out, using default values');
+        setSystemStatus({
+          asaas: { active: false, message: 'Verificação falhou (timeout)' },
+          stripe: { active: false, message: 'Verificação falhou (timeout)' },
+          emails: { active: false, message: 'Verificação falhou (timeout)' }
+        });
+      }, 3000);
       
       // Check Asaas integration status
-      const { data: asaasConfig } = await supabase
+      const { data: asaasConfig, error: asaasError } = await supabase
         .from('system_config')
         .select('value')
         .eq('key', 'ASAAS_API_KEY')
         .maybeSingle();
       
-      clearTimeout(timeoutId);
-      
-      const asaasActive = !!asaasConfig?.value;
+      if (asaasError) {
+        console.error('Error checking Asaas status:', asaasError);
+      }
       
       // Check Stripe integration status
-      const { data: stripeConfig } = await supabase
+      const { data: stripeConfig, error: stripeError } = await supabase
         .from('system_config')
         .select('value')
         .eq('key', 'STRIPE_SECRET_KEY')
         .maybeSingle();
       
-      const stripeActive = !!stripeConfig?.value;
+      if (stripeError) {
+        console.error('Error checking Stripe status:', stripeError);
+      }
       
       // Check GHL integration status for email functionality
-      const { data: ghlConfig } = await supabase
+      const { data: ghlConfig, error: ghlError } = await supabase
         .from('system_config')
         .select('value')
         .eq('key', 'GO_HIGH_LEVEL_API_KEY')
         .maybeSingle();
       
+      if (ghlError) {
+        console.error('Error checking GHL status:', ghlError);
+      }
+      
+      clearTimeout(timeoutId);
+      
+      const asaasActive = !!asaasConfig?.value;
+      const stripeActive = !!stripeConfig?.value;
       const ghlActive = !!ghlConfig?.value;
       
       setSystemStatus({
@@ -92,11 +108,11 @@ export const useDashboardData = () => {
       
     } catch (error) {
       console.error('Error checking system status:', error);
-      // If aborted due to timeout, set default values
+      // Set default values if there was an error
       setSystemStatus({
-        asaas: { active: false, message: 'Verificação falhou (timeout)' },
-        stripe: { active: false, message: 'Verificação falhou (timeout)' },
-        emails: { active: false, message: 'Verificação falhou (timeout)' }
+        asaas: { active: false, message: 'Verificação falhou' },
+        stripe: { active: false, message: 'Verificação falhou' },
+        emails: { active: false, message: 'Verificação falhou' }
       });
     }
   };
@@ -104,86 +120,99 @@ export const useDashboardData = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Create a controller to abort the request if it takes too long
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      // Set a timeout for the whole operation
+      const timeoutId = setTimeout(() => {
+        console.log('Dashboard data fetch timed out, showing default values');
+        setStats({
+          associados: 0,
+          empresas: 0,
+          pendentes: 0,
+          carteirasPendentes: 0
+        });
+        setRecentActivity([]);
+        setLoading(false);
+      }, 5000);
       
-      // Promise.allSettled to fetch all data concurrently
-      const [associadosResult, empresasResult, pendentesResult, carteirasResult, recentAssociadosResult, recentEmpresasResult] = 
-        await Promise.allSettled([
-          // Fetch associados count
-          supabase
-            .from('associados')
-            .select('*', { count: 'exact', head: true }),
-          
-          // Fetch empresas count
-          supabase
-            .from('empresas')
-            .select('*', { count: 'exact', head: true }),
-          
-          // Fetch pending approvals count
-          supabase
-            .from('associados')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'pendente'),
-          
-          // Fetch pending carteirinhas count
-          supabase
-            .from('carteirinha_solicitacoes')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'pendente_pagamento'),
-          
-          // Fetch recent associados
-          supabase
-            .from('associados')
-            .select('nome, sobrenome, status, created_at')
-            .order('created_at', { ascending: false })
-            .limit(3),
-          
-          // Fetch recent empresas
-          supabase
-            .from('empresas')
-            .select('nome_fantasia, status, created_at')
-            .order('created_at', { ascending: false })
-            .limit(3)
-        ]);
+      // Fetch data separately to handle potential failures gracefully
+      // Fetch associados count
+      const { count: associadosCount, error: associadosError } = await supabase
+        .from('associados')
+        .select('*', { count: 'exact', head: true });
       
-      // Clear the timeout
+      if (associadosError) {
+        console.error('Error fetching associados count:', associadosError);
+      }
+      
+      // Fetch empresas count
+      const { count: empresasCount, error: empresasError } = await supabase
+        .from('empresas')
+        .select('*', { count: 'exact', head: true });
+      
+      if (empresasError) {
+        console.error('Error fetching empresas count:', empresasError);
+      }
+      
+      // Fetch pending approvals count
+      const { count: pendentesCount, error: pendentesError } = await supabase
+        .from('associados')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pendente');
+      
+      if (pendentesError) {
+        console.error('Error fetching pendentes count:', pendentesError);
+      }
+      
+      // Fetch pending carteirinhas count
+      const { count: carteirasPendentesCount, error: carteirasError } = await supabase
+        .from('carteirinha_solicitacoes')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pendente_pagamento');
+      
+      if (carteirasError) {
+        console.error('Error fetching carteiras pendentes count:', carteirasError);
+      }
+      
+      // Fetch recent associados
+      const { data: recentAssociados, error: recentAssociadosError } = await supabase
+        .from('associados')
+        .select('nome, sobrenome, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(3);
+      
+      if (recentAssociadosError) {
+        console.error('Error fetching recent associados:', recentAssociadosError);
+      }
+      
+      // Fetch recent empresas
+      const { data: recentEmpresas, error: recentEmpresasError } = await supabase
+        .from('empresas')
+        .select('nome_fantasia, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(3);
+      
+      if (recentEmpresasError) {
+        console.error('Error fetching recent empresas:', recentEmpresasError);
+      }
+      
       clearTimeout(timeoutId);
       
-      // Process associados count
-      const associadosCount = associadosResult.status === 'fulfilled' ? associadosResult.value.count || 0 : 0;
-      
-      // Process empresas count
-      const empresasCount = empresasResult.status === 'fulfilled' ? empresasResult.value.count || 0 : 0;
-      
-      // Process pendentes count
-      const pendentesCount = pendentesResult.status === 'fulfilled' ? pendentesResult.value.count || 0 : 0;
-      
-      // Process carteiras pendentes count
-      const carteirasPendentesCount = carteirasResult.status === 'fulfilled' ? carteirasResult.value.count || 0 : 0;
-      
-      // Update stats
+      // Update stats with the fetched data or default to 0 if there was an error
       setStats({
-        associados: associadosCount,
-        empresas: empresasCount,
-        pendentes: pendentesCount,
-        carteirasPendentes: carteirasPendentesCount
+        associados: associadosCount || 0,
+        empresas: empresasCount || 0,
+        pendentes: pendentesCount || 0,
+        carteirasPendentes: carteirasPendentesCount || 0
       });
-      
-      // Process recent activity
-      const recentAssociados = recentAssociadosResult.status === 'fulfilled' ? recentAssociadosResult.value.data || [] : [];
-      const recentEmpresas = recentEmpresasResult.status === 'fulfilled' ? recentEmpresasResult.value.data || [] : [];
       
       // Combine and format recent activity
       const formattedActivity = [
-        ...recentAssociados.map(item => ({
+        ...(recentAssociados || []).map(item => ({
           type: 'associado' as const,
           name: `${item.nome} ${item.sobrenome}`,
           action: item.status === 'pendente' ? 'pendente' : 'cadastrado',
           date: new Date(item.created_at).toLocaleDateString()
         })),
-        ...recentEmpresas.map(item => ({
+        ...(recentEmpresas || []).map(item => ({
           type: 'empresa' as const,
           name: item.nome_fantasia,
           action: item.status === 'pendente' ? 'pendente' : 'conveniada',
@@ -194,15 +223,13 @@ export const useDashboardData = () => {
       
       setRecentActivity(formattedActivity);
       
-      // Check payment systems status in parallel
-      checkSystemStatus().catch(console.error);
+      // Check system status in parallel
+      checkSystemStatus().catch(error => {
+        console.error('Error in system status check:', error);
+      });
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      // If it's an abort error, set a specific message
-      if (error.name === 'AbortError') {
-        console.warn('Dashboard data fetch timed out');
-      }
     } finally {
       setLoading(false);
     }
@@ -210,6 +237,12 @@ export const useDashboardData = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    
+    // Set up an interval to refresh the data every 5 minutes
+    const intervalId = setInterval(fetchDashboardData, 300000);
+    
+    // Clean up on unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   return {
