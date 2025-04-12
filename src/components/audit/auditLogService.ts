@@ -115,11 +115,11 @@ export async function getOperationLogs(options: {
       recordCount: log.record_count,
       format: log.format,
       createdAt: new Date(log.created_at).toLocaleString(),
-      userName: log.profiles?.name || 'Unknown',
+      userName: log.profiles ? (log.profiles.name || 'Unknown') : 'Unknown',
       userId: log.user_id,
       created_at: log.created_at,
       profiles: log.profiles ? { name: log.profiles.name } : null
-    }));
+    })) || [];
 
     return { logs: formattedLogs || [], count: formattedLogs?.length || 0 };
   } catch (error) {
@@ -186,9 +186,12 @@ export async function getOperationStats() {
       Array.from(
         userData.reduce((acc, curr) => {
           const count = (acc.get(curr.user_id) || 0) + 1;
+          const userName = curr.profiles && curr.profiles.name ? 
+            curr.profiles.name : 'Unknown';
+          
           acc.set(curr.user_id, {
             count,
-            name: curr.profiles?.name || 'Unknown'
+            name: userName
           });
           return acc;
         }, new Map())

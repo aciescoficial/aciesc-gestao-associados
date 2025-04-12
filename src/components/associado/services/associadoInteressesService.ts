@@ -13,7 +13,13 @@ export async function getAssociadoInteresses(): Promise<AssociadoInteresse[]> {
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data || [];
+  
+  // Map the data to ensure it conforms to AssociadoInteresse type
+  // including the payment_proof_url property which was missing
+  return data?.map(item => ({
+    ...item,
+    payment_proof_url: item.payment_proof_url || null
+  })) || [];
 }
 
 /**
