@@ -60,7 +60,7 @@ export async function create_storage_bucket(
 }
 
 // Make the function names available for TypeScript to recognize in rpc calls
-type RpcFunctionNames = 'has_role' | 'get_user_role' | 'get_auth_users' | 'get_current_user_role' | 'create_storage_bucket';
+type RpcFunctionNames = 'has_role' | 'get_user_role' | 'get_auth_users' | 'get_current_user_role' | 'create_storage_bucket' | 'log_user_activity';
 
 declare module '@supabase/supabase-js' {
   interface SupabaseClient {
