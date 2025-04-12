@@ -9,6 +9,7 @@ interface ImportExportActionsProps {
   onExportCsv: () => void;
   onExportXml: () => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
+  isAdmin?: boolean;
 }
 
 export const ImportExportActions: React.FC<ImportExportActionsProps> = ({ 
@@ -16,8 +17,13 @@ export const ImportExportActions: React.FC<ImportExportActionsProps> = ({
   onFileChange,
   onExportCsv,
   onExportXml,
-  fileInputRef
+  fileInputRef,
+  isAdmin = false
 }) => {
+  if (!isAdmin) {
+    return null;
+  }
+  
   return (
     <div className="mt-5 flex justify-between items-center border-t pt-5">
       <div className="font-medium">Importar/Exportar Conveniados</div>

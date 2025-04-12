@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ConveniadoFormData, ImportConveniadoData, StatusType } from './types';
+import { logOperation } from '../audit/auditLogService';
 
 export const saveConveniado = async (data: ConveniadoFormData) => {
   const conveniadoData = {
@@ -29,7 +29,6 @@ export const saveConveniado = async (data: ConveniadoFormData) => {
     status: 'pendente' as StatusType
   };
   
-  // Using the associados table instead of conveniados since it's not in the database yet
   const { data: conveniadoResult, error } = await supabase
     .from('associados')
     .insert(conveniadoData)
@@ -86,7 +85,6 @@ export const importConveniados = async (data: ImportConveniadoData[]) => {
     status: 'pendente' as StatusType
   }));
   
-  // Using the associados table instead of conveniados since it's not in the database yet
   const { error } = await supabase
     .from('associados')
     .insert(conveniados);
@@ -95,16 +93,31 @@ export const importConveniados = async (data: ImportConveniadoData[]) => {
     throw error;
   }
   
+  await logOperation({
+    eventType: 'import',
+    entityType: 'conveniado',
+    format: 'csv',
+    recordCount: conveniados.length,
+    details: `Importação de ${conveniados.length} conveniados`
+  });
+  
   return conveniados.length;
 };
 
 export const exportConveniados = async () => {
-  // Using the associados table instead of conveniados since it's not in the database yet
   const { data: conveniados, error } = await supabase
     .from('associados')
     .select('*');
     
   if (error) throw error;
+  
+  await logOperation({
+    eventType: 'export',
+    entityType: 'conveniado',
+    format: 'csv',
+    recordCount: conveniados.length,
+    details: `Exportação de ${conveniados.length} conveniados`
+  });
   
   return conveniados;
 };

@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useImportExport } from './import/useImportExport';
 import ImportPreview from './import/ImportPreview';
 import ImportInstructions from './import/ImportInstructions';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { useToast } from '@/hooks/use-toast';
 
 interface ImportExportEmpresasProps {
   onImportSuccess: () => void;
@@ -24,6 +26,22 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
     handleExportEmpresas,
     handleConfirmImport
   } = useImportExport({ onImportSuccess });
+  
+  const { isAdmin } = useAuth();
+  const { toast } = useToast();
+  
+  // Se não for admin, não mostra opções de importação/exportação
+  if (!isAdmin) {
+    return (
+      <div className="space-y-6">
+        <div className="border rounded-lg p-6 bg-slate-50">
+          <p className="text-center text-gray-500">
+            Apenas administradores podem acessar as funcionalidades de importação e exportação.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

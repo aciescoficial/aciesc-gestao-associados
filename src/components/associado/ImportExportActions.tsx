@@ -9,6 +9,7 @@ interface ImportExportActionsProps {
   onExportCsv: () => void;
   onExportXml: () => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
+  isAdmin?: boolean;
 }
 
 export const ImportExportActions: React.FC<ImportExportActionsProps> = ({ 
@@ -16,7 +17,8 @@ export const ImportExportActions: React.FC<ImportExportActionsProps> = ({
   onFileChange,
   onExportCsv,
   onExportXml,
-  fileInputRef
+  fileInputRef,
+  isAdmin = false
 }) => {
   return (
     <div className="mt-5 flex justify-between items-center border-t pt-5">
@@ -29,31 +31,35 @@ export const ImportExportActions: React.FC<ImportExportActionsProps> = ({
           accept=".csv,.xml" 
           style={{ display: 'none' }}
         />
-        <Button 
-          className="flex gap-2 items-center"
-          onClick={onImportClick}
-        >
-          <FileUp size={16} />
-          Importar
-        </Button>
-        <div className="flex space-x-2">
+        {isAdmin && (
           <Button 
-            variant="outline" 
-            onClick={onExportCsv}
             className="flex gap-2 items-center"
+            onClick={onImportClick}
           >
-            <FileDown size={16} />
-            CSV
+            <FileUp size={16} />
+            Importar
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={onExportXml}
-            className="flex gap-2 items-center"
-          >
-            <FileDown size={16} />
-            XML
-          </Button>
-        </div>
+        )}
+        {isAdmin && (
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={onExportCsv}
+              className="flex gap-2 items-center"
+            >
+              <FileDown size={16} />
+              CSV
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={onExportXml}
+              className="flex gap-2 items-center"
+            >
+              <FileDown size={16} />
+              XML
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

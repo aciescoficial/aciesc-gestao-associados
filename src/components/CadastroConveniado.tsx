@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { ConveniadoFormData, ImportConveniadoData, ImportValidationData } from './conveniado/types';
 import { DadosPessoaisForm } from './conveniado/DadosPessoaisForm';
 import { ContatoForm } from './conveniado/ContatoForm';
@@ -24,6 +25,7 @@ import {
   generateXMLExport, 
   downloadFile 
 } from './conveniado/fileUtils';
+import { logOperation } from './audit/auditLogService';
 
 const CadastroConveniado: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +36,7 @@ const CadastroConveniado: React.FC = () => {
   const [importData, setImportData] = useState<ImportConveniadoData[]>([]);
   const [validationData, setValidationData] = useState<ImportValidationData[]>([]);
   const [importFormat, setImportFormat] = useState<'csv' | 'xml'>('csv');
+  const { isAdmin } = useAuth();
   
   const form = useForm<ConveniadoFormData>();
   const { handleSubmit, reset, setValue, watch } = form;
@@ -82,6 +85,15 @@ const CadastroConveniado: React.FC = () => {
   };
   
   const handleImportClick = () => {
+    if (!isAdmin) {
+      toast({
+        title: "Permissão negada",
+        description: "Apenas administradores podem importar dados.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
       fileInputRef.current.click();
@@ -89,6 +101,8 @@ const CadastroConveniado: React.FC = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isAdmin) return;
+    
     const file = e.target.files?.[0];
     if (file) {
       const fileReader = new FileReader();
@@ -126,6 +140,15 @@ const CadastroConveniado: React.FC = () => {
   };
 
   const handleImportConfirm = async () => {
+    if (!isAdmin) {
+      toast({
+        title: "Permissão negada",
+        description: "Apenas administradores podem importar dados.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       setIsSubmitting(true);
       const count = await importConveniados(importData);
@@ -149,6 +172,15 @@ const CadastroConveniado: React.FC = () => {
   };
 
   const handleExport = async (format: 'csv' | 'xml') => {
+    if (!isAdmin) {
+      toast({
+        title: "Permissão negada",
+        description: "Apenas administradores podem exportar dados.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const conveniados = await exportConveniados();
       let exportData;
@@ -160,6 +192,15 @@ const CadastroConveniado: React.FC = () => {
       }
       
       downloadFile(exportData.content, exportData.fileName, exportData.mimeType);
+      
+      // Log the export operation with the correct format
+      await logOperation({
+        eventType: 'export',
+        entityType: 'conveniado',
+        format,
+        recordCount: conveniados.length,
+        details: `Exportação de ${conveniados.length} conveniados em ${format.toUpperCase()}`
+      });
       
       toast({
         title: "Exportação realizada com sucesso",
@@ -221,6 +262,7 @@ const CadastroConveniado: React.FC = () => {
             onExportCsv={() => handleExport('csv')}
             onExportXml={() => handleExport('xml')}
             fileInputRef={fileInputRef}
+            isAdmin={isAdmin}
           />
           
           <div className="flex justify-end">

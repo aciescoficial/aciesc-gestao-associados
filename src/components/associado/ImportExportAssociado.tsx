@@ -1,10 +1,11 @@
-
 import React, { useRef, useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/components/auth/AuthProvider';
 import { ImportExportActions } from './ImportExportActions';
 import { ImportDialog } from './ImportDialog';
 import { ImportAssociadoData, ImportValidationData } from './types';
 import { importAssociados, exportAssociados } from './associadoService';
+import { logOperation } from '../audit/auditLogService';
 
 export const ImportExportAssociado: React.FC = () => {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -13,14 +14,26 @@ export const ImportExportAssociado: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   const handleImportClick = () => {
+    if (!isAdmin) {
+      toast({
+        title: "Permissão negada",
+        description: "Apenas administradores podem importar dados.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isAdmin) return;
+    
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -116,7 +129,6 @@ export const ImportExportAssociado: React.FC = () => {
     reader.readAsText(file);
   };
 
-  // Validate field data across all rows
   const validateField = (field: string, data: any[]): boolean => {
     // Required fields validation
     const requiredFields = ['Nome', 'Email', 'CPF', 'Cidade'];
@@ -128,7 +140,6 @@ export const ImportExportAssociado: React.FC = () => {
     return true;
   };
 
-  // Map CSV headers to our data model fields
   const mapFieldToTarget = (field: string): string => {
     const fieldMap: Record<string, string> = {
       'Nome': 'nome',
@@ -154,10 +165,21 @@ export const ImportExportAssociado: React.FC = () => {
   };
 
   const handleConfirmImport = async () => {
+    if (!isAdmin) return;
+    
     setIsSubmitting(true);
     
     try {
       const count = await importAssociados(importData);
+      
+      // Log the import operation
+      await logOperation({
+        eventType: 'import',
+        entityType: 'associado',
+        format: 'csv',
+        recordCount: count,
+        details: `Importação de ${count} associados`
+      });
       
       toast({
         title: "Importação concluída",
@@ -179,6 +201,15 @@ export const ImportExportAssociado: React.FC = () => {
   };
 
   const handleExportCsv = async () => {
+    if (!isAdmin) {
+      toast({
+        title: "Permissão negada",
+        description: "Apenas administradores podem exportar dados.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const associados = await exportAssociados();
       
@@ -224,6 +255,15 @@ export const ImportExportAssociado: React.FC = () => {
       
       downloadFile(csvContent, 'text/csv;charset=utf-8;', `associados_${new Date().toISOString().split('T')[0]}.csv`);
       
+      // Log the export operation
+      await logOperation({
+        eventType: 'export',
+        entityType: 'associado',
+        format: 'csv',
+        recordCount: associados.length,
+        details: `Exportação de ${associados.length} associados em CSV`
+      });
+      
     } catch (error) {
       console.error('Error exporting data:', error);
       toast({
@@ -234,19 +274,16 @@ export const ImportExportAssociado: React.FC = () => {
     }
   };
 
-  // Helper to format date from YYYY-MM-DD to DD/MM/YYYY
-  const formatDateForExport = (dateStr: string): string => {
-    if (!dateStr) return '';
-    
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('pt-BR');
-    } catch (error) {
-      return dateStr;
-    }
-  };
-
   const handleExportXml = async () => {
+    if (!isAdmin) {
+      toast({
+        title: "Permissão negada",
+        description: "Apenas administradores podem exportar dados.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const associados = await exportAssociados();
       
@@ -288,6 +325,15 @@ export const ImportExportAssociado: React.FC = () => {
       
       downloadFile(xml, 'application/xml;charset=utf-8;', `associados_${new Date().toISOString().split('T')[0]}.xml`);
       
+      // Log the export operation
+      await logOperation({
+        eventType: 'export',
+        entityType: 'associado',
+        format: 'xml',
+        recordCount: associados.length,
+        details: `Exportação de ${associados.length} associados em XML`
+      });
+      
     } catch (error) {
       console.error('Error exporting data:', error);
       toast({
@@ -297,8 +343,18 @@ export const ImportExportAssociado: React.FC = () => {
       });
     }
   };
-  
-  // Utility to handle file download
+
+  const formatDateForExport = (dateStr: string): string => {
+    if (!dateStr) return '';
+    
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      return dateStr;
+    }
+  };
+
   const downloadFile = (content: string, mimeType: string, filename: string): void => {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -319,6 +375,7 @@ export const ImportExportAssociado: React.FC = () => {
         onExportCsv={handleExportCsv}
         onExportXml={handleExportXml}
         fileInputRef={fileInputRef}
+        isAdmin={isAdmin}
       />
       
       <ImportDialog

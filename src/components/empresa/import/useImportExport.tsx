@@ -5,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
 import { validateEmpresaData } from './validationUtils';
 import { EmpresaData, ImportError } from './types';
+import { logOperation } from '../../audit/auditLogService';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 interface UseImportExportProps {
   onImportSuccess: () => void;
@@ -18,8 +20,18 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
   const [importErrors, setImportErrors] = useState<ImportError[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isAdmin) {
+      toast({
+        title: 'Permissão negada',
+        description: 'Apenas administradores podem importar dados.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     const file = event.target.files?.[0];
     if (!file) return;
     
@@ -58,6 +70,15 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
   };
 
   const handleExportEmpresas = async () => {
+    if (!isAdmin) {
+      toast({
+        title: 'Permissão negada',
+        description: 'Apenas administradores podem exportar dados.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setIsExporting(true);
     
     try {
@@ -79,6 +100,15 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        
+        // Log export operation
+        await logOperation({
+          eventType: 'export',
+          entityType: 'empresa',
+          format: 'csv',
+          recordCount: data.length,
+          details: `Exportação de ${data.length} empresas em CSV`
+        });
         
         toast({
           title: 'Exportação concluída',
@@ -103,6 +133,15 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
   };
 
   const handleConfirmImport = async () => {
+    if (!isAdmin) {
+      toast({
+        title: 'Permissão negada',
+        description: 'Apenas administradores podem importar dados.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setIsImporting(true);
     
     try {
@@ -118,6 +157,15 @@ export const useImportExport = ({ onImportSuccess }: UseImportExportProps) => {
         .insert(dataToInsert as any[]);
       
       if (error) throw error;
+      
+      // Log import operation
+      await logOperation({
+        eventType: 'import',
+        entityType: 'empresa',
+        format: 'csv',
+        recordCount: importData.length,
+        details: `Importação de ${importData.length} empresas via CSV`
+      });
       
       toast({
         title: 'Importação concluída',
