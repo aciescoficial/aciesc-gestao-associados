@@ -1,43 +1,10 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+
+import { useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { UserRole, UserTag } from '../usuarios/types';
-
-interface AuthContextType {
-  user: SupabaseUser | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<{
-    error: Error | null;
-    data: any;
-  }>;
-  signOut: () => Promise<void>;
-  signUp: (email: string, password: string, name: string, role: UserRole) => Promise<{
-    error: Error | null;
-    data: any;
-  }>;
-  resetPassword: (email: string) => Promise<{
-    error: Error | null;
-    data: any;
-  }>;
-  signInWithGoogle: () => Promise<{
-    error: Error | null;
-    data: any;
-  }>;
-  userRole: UserRole | null;
-  userTags: UserTag[];
-  isAdmin: boolean;
-  hasFinanceiroAccess: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+import { AuthContext } from './context/AuthContext';
+import { fetchUserRole, signIn, signInWithGoogle, signUp, resetPassword, signOut } from './services/authService';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -66,7 +33,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Set user if session exists
         if (session?.user) {
           setUser(session.user);
-          await fetchUserRole(session.user.id);
+          const { userRole, userTags } = await fetchUserRole(session.user.id);
+          setUserRole(userRole);
+          setUserTags(userTags);
         } else {
           setUser(null);
           setUserRole(null);
@@ -88,7 +57,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       async (event, session) => {
         if (session?.user) {
           setUser(session.user);
-          await fetchUserRole(session.user.id);
+          const { userRole, userTags } = await fetchUserRole(session.user.id);
+          setUserRole(userRole);
+          setUserTags(userTags);
         } else {
           setUser(null);
           setUserRole(null);
@@ -103,127 +74,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
   
-  // Fetch user role and tags from profiles table
-  const fetchUserRole = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('role, tags, email')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return;
-      }
-      
-      if (profile) {
-        let userRoleValue: UserRole;
-        
-        switch (profile.role) {
-          case 'admin':
-            userRoleValue = 'admin';
-            break;
-          case 'empresa':
-          case 'conveniado':
-            userRoleValue = 'empresa';
-            break;
-          case 'associado':
-          case 'user':
-          case 'diretoria':
-          default:
-            userRoleValue = 'user';
-            break;
-        }
-        
-        setUserRole(userRoleValue);
-        // Convert string[] to UserTag[] by filtering to only valid UserTag values
-        const validUserTags = Array.isArray(profile.tags) ? profile.tags.filter(tag => 
-          ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
-           'administrador', 'financeiro', 'proprietario_imobiliaria'].includes(tag)
-        ) as UserTag[] : [];
-        
-        setUserTags(validUserTags);
-      }
-    } catch (err) {
-      console.error('Error fetching user role:', err);
-    }
-  };
-  
-  const signIn = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      return { data, error };
-    } catch (err) {
-      console.error('Error signing in:', err);
-      return { data: null, error: err as Error };
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`,
-        }
-      });
-      
-      return { data, error };
-    } catch (err) {
-      console.error('Error signing in with Google:', err);
-      return { data: null, error: err as Error };
-    }
-  };
-
-  const signUp = async (email: string, password: string, name: string, role: UserRole) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            role
-          }
-        }
-      });
-      
-      return { data, error };
-    } catch (err) {
-      console.error('Error signing up:', err);
-      return { data: null, error: err as Error };
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password',
-      });
-      
-      return { data, error };
-    } catch (err) {
-      console.error('Error resetting password:', err);
-      return { data: null, error: err as Error };
-    }
-  };
-  
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      setUserRole(null);
-      setUserTags([]);
-    } catch (err) {
-      console.error('Error signing out:', err);
-    }
-  };
-
   // Check if user has admin privileges
   const isAdmin = userRole === 'admin' || userTags.includes('administrador');
   
@@ -248,3 +98,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     </AuthContext.Provider>
   );
 };
+
+// Re-export the useAuth hook
+export { useAuth } from './hooks/useAuthContext';
