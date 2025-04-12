@@ -141,7 +141,7 @@ export const useTwoFactorAuth = (userId: string) => {
       if (error) throw error;
       
       setBackupCodes(newBackupCodes);
-      return newBackupCodes;
+      return; // Return void instead of newBackupCodes
     } catch (error) {
       throw error;
     }
