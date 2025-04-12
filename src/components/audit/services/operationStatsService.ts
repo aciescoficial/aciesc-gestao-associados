@@ -66,8 +66,9 @@ export async function getOperationStats(): Promise<OperationStats> {
           
           // Use the proper null check with type guard
           if (curr.profiles !== null && typeof curr.profiles === 'object') {
-            // Use optional chaining to safely access the name property
-            userName = curr.profiles?.name || 'Unknown';
+            // Use optional chaining with type assertion for safety
+            const profileObj = curr.profiles as { name?: string | null };
+            userName = profileObj?.name || 'Unknown';
           }
           
           acc.set(curr.user_id, {

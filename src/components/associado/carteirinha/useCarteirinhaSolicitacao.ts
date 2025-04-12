@@ -6,9 +6,15 @@ import type { EnderecoFormValues } from './EnderecoEntregaForm';
 
 interface UseCarteirinhaSolicitacaoProps {
   navigateToPayment: (url: string) => void;
+  entregaMethod?: 'retirada' | 'entrega';
+  retiradaLocation?: 'grafica' | 'aciesc';
 }
 
-export const useCarteirinhaSolicitacao = ({ navigateToPayment }: UseCarteirinhaSolicitacaoProps) => {
+export const useCarteirinhaSolicitacao = ({ 
+  navigateToPayment, 
+  entregaMethod = 'entrega',
+  retiradaLocation = 'grafica'
+}: UseCarteirinhaSolicitacaoProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [taxaEntrega, setTaxaEntrega] = useState(15.00); // Valor padrão
@@ -76,8 +82,20 @@ export const useCarteirinhaSolicitacao = ({ navigateToPayment }: UseCarteirinhaS
         throw new Error("Dados do usuário não encontrados");
       }
       
-      // Montar o endereço formatado
-      const enderecoCompleto = `${data.endereco}, ${data.numero}, ${data.bairro}, ${data.cidade}-${data.estado}, ${data.cep}`;
+      // Valor a ser cobrado (0 se for retirada pessoalmente)
+      const valorCobrado = entregaMethod === 'entrega' ? taxaEntrega : 0;
+      
+      // Montar o endereço formatado (para entrega) ou local de retirada
+      let enderecoCompleto = '';
+      let tipoEntrega = '';
+      
+      if (entregaMethod === 'entrega') {
+        enderecoCompleto = `${data.endereco}, ${data.numero}, ${data.bairro}, ${data.cidade}-${data.estado}, ${data.cep}`;
+        tipoEntrega = 'entrega';
+      } else {
+        enderecoCompleto = retiradaLocation === 'grafica' ? 'Retirada na Gráfica Parceira' : 'Retirada na sede da ACIESC';
+        tipoEntrega = `retirada_${retiradaLocation}`;
+      }
       
       // Contorna o erro de tipo usando type assertion
       const supabaseAny = supabase as any;
@@ -87,55 +105,67 @@ export const useCarteirinhaSolicitacao = ({ navigateToPayment }: UseCarteirinhaS
         .from('carteirinha_solicitacoes')
         .insert({
           associado_id: userData.id,
-          nome: data.nome,
-          sobrenome: data.sobrenome,
+          nome: data.nome || userData.nome,
+          sobrenome: data.sobrenome || userData.sobrenome,
           endereco_entrega: enderecoCompleto,
-          complemento: data.complemento,
-          valor: taxaEntrega,
-          status: 'pendente_pagamento',
-          email: userData.email
+          complemento: entregaMethod === 'entrega' ? data.complemento : null,
+          valor: valorCobrado,
+          status: valorCobrado > 0 ? 'pendente_pagamento' : 'aguardando_producao',
+          email: userData.email,
+          tipo_entrega: tipoEntrega
         })
         .select('id')
         .single();
       
       if (error) throw error;
       
-      // Agora iniciamos o processo de pagamento
-      if (paymentGateway === 'asaas') {
-        // Chama a função de pagamento do Asaas
-        const { data: paymentData, error: paymentError } = await supabase.functions.invoke('asaas-payment', {
-          body: {
-            customer: {
-              name: `${data.nome} ${data.sobrenome}`,
-              email: userData?.email,
-              cpfCnpj: userData?.cpf
-            },
-            value: taxaEntrega,
-            description: `Taxa de entrega de carteirinha - Solicitação #${solicitacao.id}`,
-            solicitacaoId: solicitacao.id
-          }
-        });
-        
-        if (paymentError) throw paymentError;
-        
-        // Redirecionamos para a URL de pagamento
-        navigateToPayment(paymentData.invoiceUrl);
+      // Se há taxa a pagar, inicia o processo de pagamento
+      if (valorCobrado > 0) {
+        if (paymentGateway === 'asaas') {
+          // Chama a função de pagamento do Asaas
+          const { data: paymentData, error: paymentError } = await supabase.functions.invoke('asaas-payment', {
+            body: {
+              customer: {
+                name: `${userData.nome} ${userData.sobrenome}`,
+                email: userData?.email,
+                cpfCnpj: userData?.cpf
+              },
+              value: valorCobrado,
+              description: `Taxa de carteirinha - Solicitação #${solicitacao.id}`,
+              solicitacaoId: solicitacao.id
+            }
+          });
+          
+          if (paymentError) throw paymentError;
+          
+          // Redirecionamos para a URL de pagamento
+          navigateToPayment(paymentData.invoiceUrl);
+        } else {
+          // Chama a função de pagamento do Stripe
+          const { data: paymentData, error: paymentError } = await supabase.functions.invoke('stripe-payment', {
+            body: {
+              customerId: userData?.id,
+              customerEmail: userData?.email,
+              amount: valorCobrado * 100, // Stripe recebe valores em centavos
+              description: `Taxa de carteirinha - Solicitação #${solicitacao.id}`,
+              solicitacaoId: solicitacao.id
+            }
+          });
+          
+          if (paymentError) throw paymentError;
+          
+          // Redirecionamos para a URL de checkout do Stripe
+          navigateToPayment(paymentData.url);
+        }
       } else {
-        // Chama a função de pagamento do Stripe
-        const { data: paymentData, error: paymentError } = await supabase.functions.invoke('stripe-payment', {
-          body: {
-            customerId: userData?.id,
-            customerEmail: userData?.email,
-            amount: taxaEntrega * 100, // Stripe recebe valores em centavos
-            description: `Taxa de entrega de carteirinha - Solicitação #${solicitacao.id}`,
-            solicitacaoId: solicitacao.id
-          }
+        // Sem taxa, redirecionamos para página de sucesso
+        toast({
+          title: "Solicitação enviada",
+          description: "Sua carteirinha foi solicitada com sucesso e está em produção.",
         });
         
-        if (paymentError) throw paymentError;
-        
-        // Redirecionamos para a URL de checkout do Stripe
-        navigateToPayment(paymentData.url);
+        // Redirecionamos para página de sucesso
+        navigateToPayment('/pagamento-sucesso?status=gratuito');
       }
     } catch (error: any) {
       console.error('Erro ao solicitar carteirinha:', error);

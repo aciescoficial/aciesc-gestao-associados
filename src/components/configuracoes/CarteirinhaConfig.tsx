@@ -6,14 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CreditCard, BadgePercent, Truck } from 'lucide-react';
+import { CreditCard, BadgePercent, Truck, MapPin, Store } from 'lucide-react';
 import { getCarteirinhaConfig, updateCarteirinhaConfig } from '@/components/carteirinha/services/carteirinhaService';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 
 const CarteirinhaConfig = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [carteirinhaFee, setCarteirinhaFee] = useState<number>(15.00);
   const [paymentGateway, setPaymentGateway] = useState<'asaas' | 'stripe'>('asaas');
+  const [graficaEndereco, setGraficaEndereco] = useState<string>('Rua das Impressões, 123');
+  const [aciescEndereco, setAciescEndereco] = useState<string>('Avenida Principal, 456');
+  const [permiteRetirada, setPermiteRetirada] = useState<boolean>(true);
+  const [permiteEntrega, setPermiteEntrega] = useState<boolean>(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -23,6 +29,29 @@ const CarteirinhaConfig = () => {
         const config = await getCarteirinhaConfig();
         setCarteirinhaFee(config.fee);
         setPaymentGateway(config.paymentGateway);
+        
+        // Load additional pickup location settings
+        const { data: configData } = await supabase
+          .from('system_config')
+          .select('*')
+          .in('key', [
+            'GRAFICA_ENDERECO',
+            'ACIESC_ENDERECO',
+            'PERMITE_RETIRADA',
+            'PERMITE_ENTREGA'
+          ]);
+          
+        if (configData) {
+          const graficaConfig = configData.find(item => item.key === 'GRAFICA_ENDERECO');
+          const aciescConfig = configData.find(item => item.key === 'ACIESC_ENDERECO');
+          const permiteRetiradaConfig = configData.find(item => item.key === 'PERMITE_RETIRADA');
+          const permiteEntregaConfig = configData.find(item => item.key === 'PERMITE_ENTREGA');
+          
+          if (graficaConfig) setGraficaEndereco(graficaConfig.value);
+          if (aciescConfig) setAciescEndereco(aciescConfig.value);
+          if (permiteRetiradaConfig) setPermiteRetirada(permiteRetiradaConfig.value === 'true');
+          if (permiteEntregaConfig) setPermiteEntrega(permiteEntregaConfig.value === 'true');
+        }
       } catch (error) {
         console.error('Erro ao carregar configurações:', error);
         toast({
@@ -45,6 +74,18 @@ const CarteirinhaConfig = () => {
         fee: carteirinhaFee,
         paymentGateway
       });
+      
+      // Save additional pickup location settings
+      const { error } = await supabase
+        .from('system_config')
+        .upsert([
+          { key: 'GRAFICA_ENDERECO', value: graficaEndereco },
+          { key: 'ACIESC_ENDERECO', value: aciescEndereco },
+          { key: 'PERMITE_RETIRADA', value: permiteRetirada.toString() },
+          { key: 'PERMITE_ENTREGA', value: permiteEntrega.toString() }
+        ]);
+      
+      if (error) throw error;
       
       toast({
         title: "Configurações salvas",
@@ -79,6 +120,9 @@ const CarteirinhaConfig = () => {
           </TabsTrigger>
           <TabsTrigger value="entrega" className="flex items-center gap-1">
             <Truck className="h-4 w-4" /> Configurações de Entrega
+          </TabsTrigger>
+          <TabsTrigger value="retirada" className="flex items-center gap-1">
+            <Store className="h-4 w-4" /> Pontos de Retirada
           </TabsTrigger>
         </TabsList>
         
@@ -135,13 +179,83 @@ const CarteirinhaConfig = () => {
         
         <TabsContent value="entrega" className="pt-4">
           <Card>
-            <CardContent className="pt-6">
-              <div className="p-4 text-center">
-                <p className="text-muted-foreground">
-                  Configurações de entrega serão implementadas em breve.
-                </p>
+            <CardHeader>
+              <CardTitle>Configurações de Entrega</CardTitle>
+              <CardDescription>Configure as opções de entrega das carteirinhas</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="permite-entrega">Permitir entrega no endereço</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Quando ativado, os associados poderão optar por receber a carteirinha em seu endereço
+                  </p>
+                </div>
+                <Switch
+                  id="permite-entrega"
+                  checked={permiteEntrega}
+                  onCheckedChange={setPermiteEntrega}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="permite-retirada">Permitir retirada pessoal</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Quando ativado, os associados poderão optar por retirar a carteirinha pessoalmente
+                  </p>
+                </div>
+                <Switch
+                  id="permite-retirada"
+                  checked={permiteRetirada}
+                  onCheckedChange={setPermiteRetirada}
+                />
               </div>
             </CardContent>
+            <CardFooter>
+              <Button onClick={saveConfig} disabled={isLoading}>
+                {isLoading ? 'Salvando...' : 'Salvar Configurações'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="retirada" className="pt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pontos de Retirada</CardTitle>
+              <CardDescription>Configure os endereços dos pontos de retirada das carteirinhas</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="grafica-endereco" className="flex items-center gap-2">
+                  <Store className="h-4 w-4" /> Endereço da Gráfica Parceira
+                </Label>
+                <Textarea
+                  id="grafica-endereco"
+                  value={graficaEndereco}
+                  onChange={(e) => setGraficaEndereco(e.target.value)}
+                  placeholder="Informe o endereço completo da gráfica"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="aciesc-endereco" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" /> Endereço da ACIESC
+                </Label>
+                <Textarea
+                  id="aciesc-endereco"
+                  value={aciescEndereco}
+                  onChange={(e) => setAciescEndereco(e.target.value)}
+                  placeholder="Informe o endereço completo da sede da ACIESC"
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={saveConfig} disabled={isLoading}>
+                {isLoading ? 'Salvando...' : 'Salvar Pontos de Retirada'}
+              </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
