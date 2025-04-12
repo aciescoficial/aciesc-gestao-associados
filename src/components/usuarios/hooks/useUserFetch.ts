@@ -1,8 +1,9 @@
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserRole, UserTag } from '../types';
 import { mapFromDbRole } from '../utils/roleUtils';
+import { toast } from '@/components/ui/use-toast';
 
 export const useUserFetch = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -24,10 +25,21 @@ export const useUserFetch = () => {
     );
   }, [users, searchTerm]);
 
-  // Fetch all users from the database
-  const fetchUsers = async () => {
+  // Fetch all users from the database with improved timeout handling
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    // Set a timeout to ensure we don't hang indefinitely
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setError(new Error('A busca de usuários demorou muito tempo. Por favor, tente novamente.'));
+      toast({
+        title: "Erro de timeout",
+        description: "A busca de usuários excedeu o tempo limite. Por favor, tente novamente.",
+        variant: "destructive"
+      });
+    }, 8000); // 8 seconds timeout
 
     try {
       console.log('Fetching users from database...');
@@ -55,6 +67,9 @@ export const useUserFetch = () => {
           empresa:empresa_id(cnpj)
         `);
 
+      // Clear the timeout since we got a response
+      clearTimeout(timeoutId);
+
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
         throw profilesError;
@@ -64,6 +79,7 @@ export const useUserFetch = () => {
 
       if (!profiles) {
         setUsers([]);
+        setLoading(false);
         return;
       }
 
@@ -103,15 +119,17 @@ export const useUserFetch = () => {
       console.error('Error fetching users:', err);
       setError(err instanceof Error ? err : new Error('Unknown error occurred'));
     } finally {
+      // Clear the timeout just in case (if it hasn't fired yet)
+      clearTimeout(timeoutId);
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch users on component mount
   useEffect(() => {
     console.log('useUserFetch hook mounted, fetching users...');
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   return {
     users,

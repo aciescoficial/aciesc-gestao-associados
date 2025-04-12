@@ -10,7 +10,7 @@ export interface DashboardStats {
 }
 
 /**
- * Fetches statistics data for the dashboard
+ * Fetches statistics data for the dashboard with improved timeout handling
  * @param retries Number of retry attempts
  */
 export const fetchDashboardStats = async (retries = 1): Promise<DashboardStats> => {
@@ -23,12 +23,12 @@ export const fetchDashboardStats = async (retries = 1): Promise<DashboardStats> 
       carteirasPendentes: 0
     };
     
-    // Use Promise.race with a timeout
+    // Use a shorter timeout to improve responsiveness (1500ms instead of 2000ms)
     const timeoutPromise = new Promise<DashboardStats>((resolve) => {
       setTimeout(() => {
         console.log('Stats query timed out, using default values');
         resolve(defaultStats);
-      }, 2000);
+      }, 1500);
     });
     
     // Create the actual data fetching promise

@@ -1,5 +1,5 @@
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /**
  * Custom hook for handling timeouts with improved error handling
@@ -8,6 +8,16 @@ import { useCallback, useRef } from 'react';
  */
 export const useTimeout = <T>(ms: number, fallbackValue: T) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Clean up timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const withTimeout = useCallback(
     async (promise: Promise<T>): Promise<T> => {
