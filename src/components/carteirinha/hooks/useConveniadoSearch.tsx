@@ -47,9 +47,12 @@ export const useConveniadoSearch = () => {
           nome: associado.nome || '',
           sobrenome: associado.sobrenome || '',
           cpf: associado.cpf || '',
+          email: associado.email || '',
+          telefone: associado.telefone || '',
+          status: associado.status || 'pendente',
           creci: associado.creci || '',
           validade: associado.validade ? new Date(associado.validade).toLocaleDateString() : 'N/A',
-          foto: undefined // Will be updated if there is a profile image
+          foto_url: undefined // Will be updated if there is a profile image
         });
         
         // If there is an ID, fetch the associate's photo from the related profile
@@ -64,9 +67,12 @@ export const useConveniadoSearch = () => {
           nome: associado.nome || '',
           sobrenome: associado.sobrenome || '',
           cpf: associado.cpf || '',
+          email: associado.email || '',
+          telefone: associado.telefone || '',
+          status: associado.status || 'pendente',
           creci: associado.creci || '',
           validade: associado.validade ? new Date(associado.validade).toLocaleDateString() : 'N/A',
-          foto: undefined // Will be updated if there is a profile image
+          foto_url: undefined // Will be updated if there is a profile image
         });
         
         // If there is an ID, fetch the associate's photo from the related profile
@@ -110,7 +116,7 @@ export const useConveniadoSearch = () => {
           if (!prev) return null;
           return {
             ...prev,
-            foto: profileData.avatar_url
+            foto_url: profileData.avatar_url
           };
         });
       }
