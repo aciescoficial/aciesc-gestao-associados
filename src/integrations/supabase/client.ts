@@ -27,9 +27,12 @@ export const supabase = createClient<Database>(
         'x-application-name': 'aciesc-app'
       },
       fetch: (url, options) => {
-        // Custom fetch logic with timeout to prevent hanging requests
+        // Reduced timeout from 30s to 15s for faster error detection
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+        const timeoutId = setTimeout(() => {
+          console.log('Supabase request timeout, aborting request to:', url);
+          controller.abort('Request timeout');
+        }, 15000); // 15s timeout, reduced from 30s
         
         return fetch(url, {
           ...options,
@@ -39,6 +42,7 @@ export const supabase = createClient<Database>(
           return response;
         }).catch(error => {
           clearTimeout(timeoutId);
+          console.error('Supabase request error:', error);
           throw error;
         });
       }
@@ -49,6 +53,10 @@ export const supabase = createClient<Database>(
 // Helper function to handle Supabase errors
 export const handleSupabaseError = (error: any): string => {
   console.error('Supabase error:', error);
+  
+  if (error?.code === 'ETIMEOUT' || error?.code === 'ETIMEDOUT' || error?.message?.includes('timeout')) {
+    return 'A conexão com o banco de dados excedeu o tempo limite. Por favor, tente novamente.';
+  }
   
   if (error?.code === '42501') {
     return 'Permissão negada para esta operação. Por favor, verifique suas credenciais ou entre em contato com o administrador.';
@@ -62,5 +70,35 @@ export const handleSupabaseError = (error: any): string => {
     return 'Erro de recursão no banco de dados. Por favor, entre em contato com o administrador.';
   }
   
+  if (error?.code === 'ABORT_ERR' || error?.name === 'AbortError') {
+    return 'A solicitação foi cancelada devido ao tempo limite. Por favor, verifique sua conexão e tente novamente.';
+  }
+  
+  if (error?.code === 'ECONNREFUSED') {
+    return 'Não foi possível conectar ao servidor. Por favor, verifique sua conexão com a internet.';
+  }
+  
   return error?.message || 'Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.';
+};
+
+// New helper function to check database connectivity
+export const checkDatabaseConnectivity = async (): Promise<boolean> => {
+  try {
+    // Simple and quick query to test connectivity
+    const { data, error } = await supabase.from('system_config')
+      .select('key')
+      .limit(1)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Database connectivity check failed:', error);
+      return false;
+    }
+    
+    console.log('Database connectivity check successful');
+    return true;
+  } catch (error) {
+    console.error('Database connectivity check exception:', error);
+    return false;
+  }
 };

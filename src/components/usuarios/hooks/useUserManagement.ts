@@ -19,7 +19,8 @@ export const useUserManagement = () => {
     error,
     searchTerm, 
     setSearchTerm,
-    fetchUsers 
+    fetchUsers,
+    connectionStatus 
   } = useUserFetch();
 
   const handleUserCreated = async (newUser: User) => {
@@ -73,6 +74,7 @@ export const useUserManagement = () => {
     searchTerm,
     setSearchTerm,
     filteredUsers,
+    connectionStatus,
     
     // Add user dialog state
     isAddUserDialogOpen,

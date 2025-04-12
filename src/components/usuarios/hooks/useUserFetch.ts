@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, checkDatabaseConnectivity } from '@/integrations/supabase/client';
 import { User, UserRole, UserTag } from '../types';
 import { mapFromDbRole } from '../utils/roleUtils';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,6 +10,7 @@ export const useUserFetch = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [connectionStatus, setConnectionStatus] = useState<boolean | null>(null);
   const { toast } = useToast();
 
   // Filter users based on search term
@@ -26,12 +27,41 @@ export const useUserFetch = () => {
     );
   }, [users, searchTerm]);
 
+  // Check database connectivity first
+  const checkConnection = useCallback(async () => {
+    try {
+      const isConnected = await checkDatabaseConnectivity();
+      setConnectionStatus(isConnected);
+      
+      if (!isConnected) {
+        setError(new Error('Não foi possível conectar ao banco de dados. Verifique sua conexão com a internet.'));
+        setLoading(false);
+        toast({
+          title: "Erro de conexão",
+          description: "Não foi possível conectar ao banco de dados. Verifique sua conexão com a internet.",
+          variant: "destructive"
+        });
+      }
+      
+      return isConnected;
+    } catch (err) {
+      setConnectionStatus(false);
+      setError(err instanceof Error ? err : new Error('Erro ao verificar a conexão'));
+      setLoading(false);
+      return false;
+    }
+  }, [toast]);
+
   // Fetch all users from the database with improved timeout handling
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    // Set a timeout to ensure we don't hang indefinitely - shorten to 5 seconds
+    // Check connectivity first
+    const isConnected = await checkConnection();
+    if (!isConnected) return;
+
+    // Set a timeout to ensure we don't hang indefinitely - reduced to 3 seconds for faster feedback
     const timeoutId = setTimeout(() => {
       setLoading(false);
       setError(new Error('A busca de usuários demorou muito tempo. Por favor, tente novamente.'));
@@ -40,7 +70,7 @@ export const useUserFetch = () => {
         description: "A busca de usuários excedeu o tempo limite. Por favor, tente novamente.",
         variant: "destructive"
       });
-    }, 5000); // 5 seconds timeout
+    }, 3000); // 3 seconds timeout (reduced from 5 seconds)
 
     try {
       console.log('Fetching users from database...');
@@ -78,6 +108,8 @@ export const useUserFetch = () => {
         if (!authError && authUsersData) {
           authUsers = authUsersData;
           console.log('Auth users fetched via RPC:', authUsers.length);
+        } else {
+          console.warn('Could not fetch auth users via RPC:', authError);
         }
       } catch (err) {
         console.warn('Error in RPC call for auth users (continuing with profiles only):', err);
@@ -118,18 +150,34 @@ export const useUserFetch = () => {
     } catch (err) {
       console.error('Error fetching users:', err);
       setError(err instanceof Error ? err : new Error('Unknown error occurred'));
+      
+      // Show a more specific error message to the user
+      toast({
+        title: "Erro ao carregar usuários",
+        description: err instanceof Error ? err.message : "Ocorreu um erro desconhecido ao carregar usuários.",
+        variant: "destructive"
+      });
     } finally {
       // Clear the timeout just in case (if it hasn't fired yet)
       clearTimeout(timeoutId);
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, checkConnection]);
 
   // Fetch users on component mount
   useEffect(() => {
     console.log('useUserFetch hook mounted, fetching users...');
     fetchUsers();
-  }, [fetchUsers]);
+    
+    // Create an interval to refresh connection status
+    const intervalId = setInterval(() => {
+      checkConnection();
+    }, 30000); // Check every 30 seconds
+    
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [fetchUsers, checkConnection]);
 
   return {
     users,
@@ -138,6 +186,7 @@ export const useUserFetch = () => {
     searchTerm,
     setSearchTerm,
     filteredUsers,
-    fetchUsers
+    fetchUsers,
+    connectionStatus
   };
 };
