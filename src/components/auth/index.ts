@@ -10,4 +10,4 @@ export { useAuth } from './hooks/useAuthContext';
 export { default as ProfilePage } from './profile/ProfilePage';
 
 // Re-export TwoFactorAuth from the new location
-export { TwoFactorAuth } from './two-factor/TwoFactorAuth';
+export { TwoFactorAuth } from './two-factor';

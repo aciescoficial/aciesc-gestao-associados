@@ -3,11 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { ShieldCheck } from 'lucide-react';
-
-interface TwoFactorEnabledProps {
-  onShowBackupCodes: () => void;
-  onDisable: () => void;
-}
+import { TwoFactorEnabledProps } from '../types';
 
 export const TwoFactorEnabled = ({ onShowBackupCodes, onDisable }: TwoFactorEnabledProps) => {
   const { toast } = useToast();

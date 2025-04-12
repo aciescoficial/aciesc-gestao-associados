@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from "@/components/ui/use-toast";
@@ -11,7 +10,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { Separator } from "@/components/ui/separator";
-import { TwoFactorAuth } from '../two-factor/TwoFactorAuth';
+import { TwoFactorAuth } from '../two-factor';
 
 interface SecurityTabProps {
   userId: string;

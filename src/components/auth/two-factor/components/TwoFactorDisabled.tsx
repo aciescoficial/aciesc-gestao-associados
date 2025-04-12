@@ -1,10 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { ShieldAlert, QrCode } from 'lucide-react';
-
-interface TwoFactorDisabledProps {
-  onSetup: () => void;
-}
+import { TwoFactorDisabledProps } from '../types';
 
 export const TwoFactorDisabled = ({ onSetup }: TwoFactorDisabledProps) => {
   return (

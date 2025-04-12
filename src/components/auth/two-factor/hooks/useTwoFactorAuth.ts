@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
-import { generateSecret, generateQrCodeUrl, generateBackupCodes } from '../utils/generateTotpData';
+import { generateSecret, generateQrCodeUrl, generateBackupCodes } from '../utils/totpUtils';
 
 export const useTwoFactorAuth = (userId: string) => {
   const [isEnabled, setIsEnabled] = useState(false);

@@ -4,12 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Copy, RefreshCw } from 'lucide-react';
-
-interface BackupCodesProps {
-  backupCodes: string[];
-  onRegenerate: () => Promise<string[]>;
-  onBack: () => void;
-}
+import { BackupCodesProps } from '../types';
 
 export const BackupCodes = ({ backupCodes, onRegenerate, onBack }: BackupCodesProps) => {
   const { toast } = useToast();

@@ -1,6 +1,10 @@
 
 import * as OTPAuth from 'otpauth';
 
+/**
+ * Generates a random secret for TOTP authentication
+ * @returns A base32 encoded secret string
+ */
 export const generateSecret = (): string => {
   // Generate a random secret for TOTP
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -11,6 +15,10 @@ export const generateSecret = (): string => {
   return result;
 };
 
+/**
+ * Generates backup codes for 2FA recovery
+ * @returns An array of 10 backup codes
+ */
 export const generateBackupCodes = (): string[] => {
   const codes = [];
   for (let i = 0; i < 10; i++) {
@@ -23,6 +31,12 @@ export const generateBackupCodes = (): string[] => {
   return codes;
 };
 
+/**
+ * Generates a QR code URL for TOTP setup
+ * @param secret TOTP secret
+ * @param email User email
+ * @returns URL for QR code image
+ */
 export const generateQrCodeUrl = (secret: string, email: string): string => {
   const totp = new OTPAuth.TOTP({
     issuer: 'ACIESC',
@@ -36,6 +50,12 @@ export const generateQrCodeUrl = (secret: string, email: string): string => {
   return `https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=${encodeURIComponent(totp.toString())}`;
 };
 
+/**
+ * Verifies a TOTP token
+ * @param secret TOTP secret
+ * @param token Token to verify
+ * @returns Whether the token is valid
+ */
 export const verifyTotp = (secret: string, token: string): boolean => {
   const totp = new OTPAuth.TOTP({
     issuer: 'ACIESC',

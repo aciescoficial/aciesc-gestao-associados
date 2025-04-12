@@ -4,14 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/components/ui/use-toast";
-import { verifyTotp } from '../utils/generateTotpData';
-
-interface TwoFactorSetupProps {
-  secret: string;
-  qrCodeUrl: string;
-  onVerify: (code: string) => Promise<string[]>;
-  onCancel: () => void;
-}
+import { verifyTotp } from '../utils/totpUtils';
+import { TwoFactorSetupProps } from '../types';
 
 export const TwoFactorSetup = ({ secret, qrCodeUrl, onVerify, onCancel }: TwoFactorSetupProps) => {
   const [verificationCode, setVerificationCode] = useState('');
