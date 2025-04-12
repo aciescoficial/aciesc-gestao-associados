@@ -15,7 +15,9 @@ export const supabase = createClient<Database>(
   {
     auth: {
       persistSession: true,
-      autoRefreshToken: true
+      autoRefreshToken: true,
+      // Setting up Google OAuth needs to be done in Supabase dashboard
+      // The client config is handled automatically by Supabase
     },
     db: {
       schema: 'public'

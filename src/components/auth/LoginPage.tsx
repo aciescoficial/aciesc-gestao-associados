@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useAuth } from './AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,11 +9,23 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/components/ui/use-toast";
 import { Navigate, Link } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, EyeOff, Key } from "lucide-react";
+import { Eye, EyeOff, Key, Mail } from "lucide-react";
 import { UserRole } from '@/components/usuarios/types';
 
+// Declare global Google reCAPTCHA
+declare global {
+  interface Window {
+    grecaptcha: {
+      ready: (callback: () => void) => void;
+      execute: (siteKey: string, options: { action: string }) => Promise<string>;
+      render: (container: string | HTMLElement, parameters: any) => number;
+    };
+    onRecaptchaLoad: () => void;
+  }
+}
+
 const LoginPage = () => {
-  const { signIn, signUp, user, resetPassword } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user, resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -21,12 +34,61 @@ const LoginPage = () => {
   const [organizationType, setOrganizationType] = useState<UserRole>('user');
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
   const { toast } = useToast();
 
   // Redirect if already logged in
   if (user) {
     return <Navigate to="/" />;
   }
+
+  useEffect(() => {
+    // Initialize reCAPTCHA when component mounts
+    const loadRecaptcha = () => {
+      if (window.grecaptcha) {
+        window.onRecaptchaLoad = () => {
+          setRecaptchaLoaded(true);
+          
+          // Render reCAPTCHA in the container
+          const loginRecaptchaContainer = document.getElementById('login-recaptcha');
+          const registerRecaptchaContainer = document.getElementById('register-recaptcha');
+          
+          if (loginRecaptchaContainer) {
+            window.grecaptcha.render(loginRecaptchaContainer, {
+              'sitekey': '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', // Use your actual site key here
+              'size': 'normal',
+              'callback': (token: string) => setRecaptchaToken(token)
+            });
+          }
+          
+          if (registerRecaptchaContainer) {
+            window.grecaptcha.render(registerRecaptchaContainer, {
+              'sitekey': '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', // Use your actual site key here
+              'size': 'normal',
+              'callback': (token: string) => setRecaptchaToken(token)
+            });
+          }
+        };
+      }
+    };
+
+    // Load reCAPTCHA script
+    if (!window.grecaptcha) {
+      const script = document.createElement('script');
+      script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    } else {
+      loadRecaptcha();
+    }
+
+    return () => {
+      // Cleanup if needed
+      window.onRecaptchaLoad = () => {};
+    };
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +105,22 @@ const LoginPage = () => {
     }
     
     setIsLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    
+    const { error } = await signInWithGoogle();
+    
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao entrar com Google",
+        description: error.message,
+      });
+      setIsLoading(false);
+    }
+    // No need to set isLoading to false on success as user will be redirected
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -211,17 +289,43 @@ const LoginPage = () => {
                       </div>
                     </div>
                     
-                    <div className="border border-gray-200 rounded p-2 bg-gray-50 flex justify-center items-center h-[78px]">
-                      <div className="text-sm text-gray-500">reCAPTCHA será carregado aqui</div>
+                    <div id="login-recaptcha" className="flex justify-center">
+                      {!recaptchaLoaded && (
+                        <div className="border border-gray-200 rounded p-2 bg-gray-50 flex justify-center items-center h-[78px] w-full">
+                          <div className="text-sm text-gray-500">reCAPTCHA será carregado aqui</div>
+                        </div>
+                      )}
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Entrando..." : "Entrar"}
-                    </Button>
+                    <div className="space-y-4">
+                      <Button 
+                        type="submit" 
+                        className="w-full"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Entrando..." : "Entrar"}
+                      </Button>
+
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white px-2 text-muted-foreground">Ou continue com</span>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleGoogleSignIn}
+                        disabled={isLoading}
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        Google
+                      </Button>
+                    </div>
                   </form>
                 </CardContent>
                 <CardFooter className="flex justify-center">
@@ -306,17 +410,43 @@ const LoginPage = () => {
                       </Select>
                     </div>
                     
-                    <div className="border border-gray-200 rounded p-2 bg-gray-50 flex justify-center items-center h-[78px]">
-                      <div className="text-sm text-gray-500">reCAPTCHA será carregado aqui</div>
+                    <div id="register-recaptcha" className="flex justify-center">
+                      {!recaptchaLoaded && (
+                        <div className="border border-gray-200 rounded p-2 bg-gray-50 flex justify-center items-center h-[78px] w-full">
+                          <div className="text-sm text-gray-500">reCAPTCHA será carregado aqui</div>
+                        </div>
+                      )}
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Criando conta..." : "Criar Conta"}
-                    </Button>
+                    <div className="space-y-4">
+                      <Button 
+                        type="submit" 
+                        className="w-full"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Criando conta..." : "Criar Conta"}
+                      </Button>
+                      
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white px-2 text-muted-foreground">Ou continue com</span>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleGoogleSignIn}
+                        disabled={isLoading}
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        Google
+                      </Button>
+                    </div>
                   </form>
                 </CardContent>
               </Card>

@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -17,6 +16,10 @@ interface AuthContextType {
     data: any;
   }>;
   resetPassword: (email: string) => Promise<{
+    error: Error | null;
+    data: any;
+  }>;
+  signInWithGoogle: () => Promise<{
     error: Error | null;
     data: any;
   }>;
@@ -161,6 +164,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        }
+      });
+      
+      return { data, error };
+    } catch (err) {
+      console.error('Error signing in with Google:', err);
+      return { data: null, error: err as Error };
+    }
+  };
+
   const signUp = async (email: string, password: string, name: string, role: UserRole) => {
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -219,6 +238,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       signUp,
       resetPassword, 
       signOut,
+      signInWithGoogle,
       userRole,
       userTags,
       isAdmin,
