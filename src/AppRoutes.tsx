@@ -1,3 +1,4 @@
+
 import React, { lazy, Suspense } from "react";
 import { Route, Routes, Outlet, Navigate } from "react-router-dom";
 import RouteComponents from "./pages/RouteComponents";
@@ -5,7 +6,7 @@ import { ProtectedRoute, AdminRoute } from "./pages/AuthRoutes";
 import { FinanceiroRoutes } from "./pages/routes/FinanceiroRoutes";
 import { SharedRoutes } from "./pages/routes/SharedRoutes";
 import PluginLayout from "./components/PluginLayout";
-import LoginPage from "./components/auth/LoginPage";
+import { LoginPage } from "./components/auth"; // Updated import path
 import NotFound from "./pages/NotFound";
 
 // Página de configurações
