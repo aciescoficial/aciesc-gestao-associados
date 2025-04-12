@@ -5,7 +5,8 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { logOperation } from '@/components/audit/auditLogService';
 import Papa from 'papaparse';
-import { EmpresaData, ImportError, validateEmpresaData } from './validationUtils';
+import { EmpresaData, ImportError } from './types';
+import { validateEmpresaData } from './validationUtils';
 
 interface UseImportExportProps {
   onImportSuccess: () => void;
@@ -103,7 +104,7 @@ export const useImportExport = ({ onImportSuccess, onExportSuccess }: UseImportE
           entityType: 'empresa',
           format: 'csv',
           recordCount: data.length,
-          details: `Exportação de ${data.length} empresas em CSV`
+          details: `Exportação de ${count} empresas em CSV`
         });
         
         toast({

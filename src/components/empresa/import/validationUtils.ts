@@ -1,5 +1,6 @@
 
 import { z } from 'zod';
+import { EmpresaData, ImportError } from './types';
 
 // Define allowed values for nicho with proper string literals
 export const nichoOptions = [
@@ -15,8 +16,8 @@ export const nichoOptions = [
 
 // Define schema for empresa data
 export const empresaSchema = z.object({
-  razaoSocial: z.string().min(1, 'Razão Social é obrigatória'),
-  nomeFantasia: z.string().min(1, 'Nome Fantasia é obrigatório'),
+  razao_social: z.string().min(1, 'Razão Social é obrigatória'),
+  nome_fantasia: z.string().min(1, 'Nome Fantasia é obrigatório'),
   cnpj: z.string().min(14, 'CNPJ inválido'),
   responsavel: z.string().min(1, 'Responsável é obrigatório'),
   telefone: z.string().min(1, 'Telefone é obrigatório'),
@@ -30,32 +31,8 @@ export const empresaSchema = z.object({
   site: z.string().optional(),
   instagram: z.string().optional(),
   whatsapp: z.string().optional(),
+  status: z.enum(['ativo', 'pendente', 'inativo']).default('pendente')
 });
-
-export interface EmpresaData {
-  id?: string;
-  razaoSocial: string;
-  nomeFantasia: string;
-  cnpj: string;
-  responsavel: string;
-  telefone: string;
-  email: string;
-  endereco: string;
-  cidade: string;
-  cep: string;
-  nicho: typeof nichoOptions[number];
-  desconto: string;
-  produtos: string;
-  site?: string;
-  instagram?: string;
-  whatsapp?: string;
-}
-
-export interface ImportError {
-  row: number;
-  field: string;
-  message: string;
-}
 
 export const validateEmpresaData = (data: Record<string, string>[]): { processedData: EmpresaData[], errors: ImportError[] } => {
   const processedData: EmpresaData[] = [];
@@ -65,8 +42,8 @@ export const validateEmpresaData = (data: Record<string, string>[]): { processed
     try {
       // Transform field names to match our schema
       const transformedData = {
-        razaoSocial: item.razao_social || '',
-        nomeFantasia: item.nome_fantasia || '',
+        razao_social: item.razao_social || '',
+        nome_fantasia: item.nome_fantasia || '',
         cnpj: item.cnpj || '',
         responsavel: item.responsavel || '',
         telefone: item.telefone || '',
@@ -74,25 +51,46 @@ export const validateEmpresaData = (data: Record<string, string>[]): { processed
         endereco: item.endereco || '',
         cidade: item.cidade || '',
         cep: item.cep || '',
-        nicho: item.nicho || 'Outro',
+        nicho: item.nicho as any || 'Outro',
         desconto: item.desconto || '',
         produtos: item.produtos || '',
         site: item.site || undefined,
         instagram: item.instagram || undefined,
         whatsapp: item.whatsapp || undefined,
+        status: (item.status as 'ativo' | 'pendente' | 'inativo') || 'pendente'
       };
 
-      // Validate the data
+      // Validate the data with zod
       const result = empresaSchema.safeParse(transformedData);
       
       if (result.success) {
-        processedData.push(result.data);
+        // Convert to EmpresaData type
+        const empresaData: EmpresaData = {
+          razao_social: result.data.razao_social,
+          nome_fantasia: result.data.nome_fantasia,
+          cnpj: result.data.cnpj,
+          responsavel: result.data.responsavel,
+          telefone: result.data.telefone,
+          email: result.data.email,
+          endereco: result.data.endereco,
+          cidade: result.data.cidade,
+          cep: result.data.cep,
+          nicho: result.data.nicho,
+          status: result.data.status,
+          desconto: result.data.desconto,
+          produtos: result.data.produtos,
+          site: result.data.site,
+          instagram: result.data.instagram,
+          whatsapp: result.data.whatsapp
+        };
+        processedData.push(empresaData);
       } else {
         result.error.issues.forEach(issue => {
           errors.push({
             row: index + 1,
             field: issue.path.join('.'),
-            message: issue.message
+            message: issue.message,
+            data: item
           });
         });
       }
@@ -100,7 +98,8 @@ export const validateEmpresaData = (data: Record<string, string>[]): { processed
       errors.push({
         row: index + 1,
         field: 'general',
-        message: 'Erro ao processar linha'
+        message: 'Erro ao processar linha',
+        data: item
       });
     }
   });
