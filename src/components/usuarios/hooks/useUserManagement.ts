@@ -5,10 +5,11 @@ import { useUserFetch } from './useUserFetch';
 import { useUserCreate } from './useUserCreate';
 import { useUserEdit } from './useUserEdit';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 export const useUserManagement = () => {
-  const addUserDialog = useDialogState(false);
-  const editUserDialog = useDialogState(false);
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const { toast } = useToast();
   
   const { 
@@ -26,7 +27,7 @@ export const useUserManagement = () => {
       title: "Usuário criado",
       description: "O usuário foi criado com sucesso."
     });
-    addUserDialog.close();
+    setIsAddUserDialogOpen(false);
     await fetchUsers(); // Refresh the user list
   };
 
@@ -47,7 +48,7 @@ export const useUserManagement = () => {
       title: "Usuário atualizado",
       description: "O usuário foi atualizado com sucesso."
     });
-    editUserDialog.close();
+    setIsEditUserDialogOpen(false);
     await fetchUsers(); // Refresh the user list
   };
 
@@ -74,15 +75,15 @@ export const useUserManagement = () => {
     filteredUsers,
     
     // Add user dialog state
-    isAddUserDialogOpen: addUserDialog.isOpen,
-    setIsAddUserDialogOpen: addUserDialog.setIsOpen,
+    isAddUserDialogOpen,
+    setIsAddUserDialogOpen,
     newUser,
     handleNewUserChange,
     addUser,
     
     // Edit user dialog state
-    isEditUserDialogOpen: editUserDialog.isOpen,
-    setIsEditUserDialogOpen: editUserDialog.setIsOpen,
+    isEditUserDialogOpen,
+    setIsEditUserDialogOpen,
     selectedUser,
     setSelectedUser,
     handleSelectedUserChange,
@@ -98,12 +99,6 @@ export const useUserManagement = () => {
     loadingAssociados: createLoadingAssociados,
     loadingEmpresas: createLoadingEmpresas,
     fetchAssociados: fetchCreateAssociados,
-    fetchEmpresas: fetchCreateEmpresas,
-    editAssociados,
-    editEmpresas,
-    editLoadingAssociados,
-    editLoadingEmpresas,
-    fetchEditAssociados,
-    fetchEditEmpresas
+    fetchEmpresas: fetchCreateEmpresas
   };
 };

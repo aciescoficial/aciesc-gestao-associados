@@ -3,13 +3,14 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserRole, UserTag } from '../types';
 import { mapFromDbRole } from '../utils/roleUtils';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 export const useUserFetch = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
   // Filter users based on search term
   const filteredUsers = useMemo(() => {
@@ -30,7 +31,7 @@ export const useUserFetch = () => {
     setLoading(true);
     setError(null);
 
-    // Set a timeout to ensure we don't hang indefinitely
+    // Set a timeout to ensure we don't hang indefinitely - shorten to 5 seconds
     const timeoutId = setTimeout(() => {
       setLoading(false);
       setError(new Error('A busca de usuários demorou muito tempo. Por favor, tente novamente.'));
@@ -39,24 +40,10 @@ export const useUserFetch = () => {
         description: "A busca de usuários excedeu o tempo limite. Por favor, tente novamente.",
         variant: "destructive"
       });
-    }, 8000); // 8 seconds timeout
+    }, 5000); // 5 seconds timeout
 
     try {
       console.log('Fetching users from database...');
-      
-      // First try to use the RPC function that returns auth users
-      let authUsers: { id: string; email: string }[] = [];
-      try {
-        const { data: authUsersData, error: authError } = await supabase.rpc('get_auth_users');
-        if (authError) {
-          console.warn('Could not fetch auth users via RPC:', authError);
-        } else if (authUsersData) {
-          authUsers = authUsersData;
-          console.log('Auth users fetched via RPC:', authUsers.length);
-        }
-      } catch (err) {
-        console.warn('Error in RPC call for auth users:', err);
-      }
       
       // Fetch profiles with role information and join with associados and empresas
       const { data: profiles, error: profilesError } = await supabase
@@ -65,7 +52,8 @@ export const useUserFetch = () => {
           *,
           associado:associado_id(cpf),
           empresa:empresa_id(cnpj)
-        `);
+        `)
+        .limit(100); // Limit to improve performance
 
       // Clear the timeout since we got a response
       clearTimeout(timeoutId);
@@ -81,6 +69,18 @@ export const useUserFetch = () => {
         setUsers([]);
         setLoading(false);
         return;
+      }
+
+      // Try to fetch auth users to get emails (separate query to avoid timeouts)
+      let authUsers: { id: string; email: string }[] = [];
+      try {
+        const { data: authUsersData, error: authError } = await supabase.rpc('get_auth_users');
+        if (!authError && authUsersData) {
+          authUsers = authUsersData;
+          console.log('Auth users fetched via RPC:', authUsers.length);
+        }
+      } catch (err) {
+        console.warn('Error in RPC call for auth users (continuing with profiles only):', err);
       }
 
       // Map profiles to User objects and fill in email from auth users if available
@@ -123,7 +123,7 @@ export const useUserFetch = () => {
       clearTimeout(timeoutId);
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   // Fetch users on component mount
   useEffect(() => {

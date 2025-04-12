@@ -32,7 +32,7 @@ const UserManagement: React.FC = () => {
     updateUser,
     toggleUserActive,
     fetchUsers,
-    // New props for associado and empresa link
+    // Associado and empresa data
     associados,
     empresas,
     loadingAssociados,
@@ -50,7 +50,7 @@ const UserManagement: React.FC = () => {
       });
     }
   }, [error, toast]);
-
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
