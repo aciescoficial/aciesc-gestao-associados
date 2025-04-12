@@ -10,7 +10,7 @@ import { NotificationMessage } from '@/components/layout/NotificationBanner';
 const Dashboard: React.FC = () => {
   const { stats, recentActivity, loading, systemStatus, refreshData } = useDashboardData();
   
-  // Exemplo de como definir mensagens importantes para teste
+  // Example messages for testing the notification banner
   const [exampleMessages, setExampleMessages] = useState<NotificationMessage[]>([
     {
       id: '1',
@@ -20,21 +20,38 @@ const Dashboard: React.FC = () => {
         url: '/meus-pagamentos',
         text: 'Pagar agora'
       }
+    },
+    {
+      id: '2',
+      text: 'VOCÊ ESTÁ INATIVO NO MOMENTO! A sua Anuidade ACIESC venceu.',
+      type: 'inactive',
+      action: {
+        url: '/reativar',
+        text: 'Reativar agora'
+      }
+    },
+    {
+      id: '3',
+      text: 'PRÓXIMO EVENTO! Festa dos AMIGOS em Itapema.',
+      type: 'event',
+      action: {
+        url: '/eventos/festa-amigos',
+        text: 'Saiba mais'
+      }
     }
   ]);
   
   useEffect(() => {
-    // Define as mensagens no localStorage para que o Header possa acessá-las
-    // Esta é apenas uma simulação para demonstração - normalmente isso viria do backend
+    // Set example messages in localStorage for the Header component to use
     window.localStorage.setItem('demoMessages', JSON.stringify(exampleMessages));
     
-    // Limpa após alguns segundos para demonstrar o banner desaparecendo
+    // Clear after 30 seconds to demonstrate the banner disappearing
     const timer = setTimeout(() => {
       window.localStorage.removeItem('demoMessages');
     }, 30000);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [exampleMessages]);
 
   return (
     <div className="space-y-6">
