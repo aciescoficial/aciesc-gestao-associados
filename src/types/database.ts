@@ -2,13 +2,10 @@
 import { Database as OriginalDatabase } from "@/integrations/supabase/types";
 
 // Extended Database type with additional tables
-export interface ExtendedDatabase extends OriginalDatabase {
+export interface ExtendedDatabase {
   public: {
     Tables: {
       // Include all original tables from OriginalDatabase
-      ...OriginalDatabase['public']['Tables'],
-      
-      // Add new tables
       associado_interesse: {
         Row: {
           id: string;
@@ -163,16 +160,10 @@ export interface ExtendedDatabase extends OriginalDatabase {
         };
         Relationships: [];
       };
-    };
-    Views: {
-      ...OriginalDatabase['public']['Views'];
-    };
-    Functions: {
-      ...OriginalDatabase['public']['Functions'];
-    };
-    Enums: {
-      ...OriginalDatabase['public']['Enums'];
-    };
+    } & OriginalDatabase['public']['Tables'];
+    Views: OriginalDatabase['public']['Views'];
+    Functions: OriginalDatabase['public']['Functions'];
+    Enums: OriginalDatabase['public']['Enums'];
   };
 }
 
