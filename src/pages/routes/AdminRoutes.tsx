@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from '../AuthRoutes';
@@ -162,14 +161,5 @@ export const AdminRoutes = [
         <ConfiguracoesPage />
       </LayoutWrapper>
     </AdminRoute>
-  } />,
-
-  // Associados List route
-  <Route key="associados-listar" path="/associados/listar" element={
-    <ProtectedRoute allowedRoles={['admin']}>
-      <LayoutWrapper>
-        <PesquisaAssociado />
-      </LayoutWrapper>
-    </ProtectedRoute>
   } />,
 ];
