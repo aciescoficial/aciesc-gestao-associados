@@ -15,10 +15,12 @@ export async function getAssociadoInteresses(): Promise<AssociadoInteresse[]> {
   if (error) throw error;
   
   // Map the data to ensure it conforms to AssociadoInteresse type
-  // including the payment_proof_url property which was missing
+  // including the payment_proof_url property which might be in the interface
   return data?.map(item => ({
     ...item,
-    payment_proof_url: item.payment_proof_url || null
+    // Add any required properties from AssociadoInteresse that might be missing
+    payment_proof_url: null, // Add this property if it's required by the interface
+    ...((item as any).payment_proof_url ? { payment_proof_url: (item as any).payment_proof_url } : {})
   })) || [];
 }
 

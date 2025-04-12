@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { getOperationLogs, OperationLog } from './auditLogService';
+import { getOperationLogs, OperationLog } from './services';
 import { format } from 'date-fns';
 import {
   Table,
