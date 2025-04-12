@@ -59,9 +59,10 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
         .from('profiles')
         .update({
           name: selectedUser.name,
-          role: mapToDbRole(selectedUser.role),
+          email: selectedUser.email,
+          role: mapToDbRole(selectedUser.role as UserRole),
           tags: selectedUser.tags || [],
-          email: selectedUser.email, // Also update email in profiles for consistency
+          active: selectedUser.active,
           associado_id: selectedUser.associado_id,
           empresa_id: selectedUser.empresa_id
         })
@@ -79,14 +80,6 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
 
   const toggleUserActive = useCallback(async (userId: string, active: boolean) => {
     try {
-      // Toggle user active status in auth.users
-      const { error: authError } = await supabase.auth.admin.updateUserById(
-        userId, 
-        { user_metadata: { active } }
-      );
-
-      if (authError) throw authError;
-
       // Also update the active status in profiles
       const { error: profileError } = await supabase
         .from('profiles')

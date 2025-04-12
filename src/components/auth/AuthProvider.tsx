@@ -12,6 +12,14 @@ interface AuthContextType {
     data: any;
   }>;
   signOut: () => Promise<void>;
+  signUp: (email: string, password: string, name: string, role: UserRole) => Promise<{
+    error: Error | null;
+    data: any;
+  }>;
+  resetPassword: (email: string) => Promise<{
+    error: Error | null;
+    data: any;
+  }>;
   userRole: UserRole | null;
   userTags: UserTag[];
   isAdmin: boolean;
@@ -97,7 +105,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('role, tags')
+        .select('role, tags, email')
         .eq('id', userId)
         .single();
       
@@ -146,6 +154,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return { data: null, error: err as Error };
     }
   };
+
+  const signUp = async (email: string, password: string, name: string, role: UserRole) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            role
+          }
+        }
+      });
+      
+      return { data, error };
+    } catch (err) {
+      console.error('Error signing up:', err);
+      return { data: null, error: err as Error };
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      
+      return { data, error };
+    } catch (err) {
+      console.error('Error resetting password:', err);
+      return { data: null, error: err as Error };
+    }
+  };
   
   const signOut = async () => {
     try {
@@ -168,7 +209,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     <AuthContext.Provider value={{ 
       user, 
       loading, 
-      signIn, 
+      signIn,
+      signUp,
+      resetPassword, 
       signOut,
       userRole,
       userTags,

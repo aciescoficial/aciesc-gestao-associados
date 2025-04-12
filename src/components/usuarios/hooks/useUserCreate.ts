@@ -85,9 +85,10 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           .from('profiles')
           .update({
             name: newUser.name,
+            email: newUser.email,
             role: mapToDbRole(newUser.role as UserRole),
             tags: newUser.tags || [],
-            email: newUser.email,
+            active: true,
             associado_id: newUser.associado_id,
             empresa_id: newUser.empresa_id
           })

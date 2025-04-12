@@ -478,30 +478,39 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active: boolean | null
           avatar_url: string | null
           created_at: string
+          email: string | null
           id: string
           name: string | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          tags: string[] | null
           updated_at: string
         }
         Insert: {
+          active?: boolean | null
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           id: string
           name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          tags?: string[] | null
           updated_at?: string
         }
         Update: {
+          active?: boolean | null
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          tags?: string[] | null
           updated_at?: string
         }
         Relationships: []
@@ -657,7 +666,13 @@ export type Database = {
         | "Outro"
       payment_method: "cartao" | "pix" | "boleto"
       status_type: "ativo" | "pendente" | "inativo"
-      user_role: "admin" | "user" | "diretoria" | "conveniado" | "associado"
+      user_role:
+        | "admin"
+        | "user"
+        | "diretoria"
+        | "conveniado"
+        | "associado"
+        | "empresa"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -786,7 +801,14 @@ export const Constants = {
       ],
       payment_method: ["cartao", "pix", "boleto"],
       status_type: ["ativo", "pendente", "inativo"],
-      user_role: ["admin", "user", "diretoria", "conveniado", "associado"],
+      user_role: [
+        "admin",
+        "user",
+        "diretoria",
+        "conveniado",
+        "associado",
+        "empresa",
+      ],
     },
   },
 } as const

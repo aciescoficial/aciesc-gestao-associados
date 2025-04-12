@@ -33,7 +33,7 @@ export const useUserFetch = () => {
       // Fetch profiles with role information
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('*, associados(cpf), empresas(cnpj)');
+        .select('*, associados:associado_id(cpf), empresas:empresa_id(cnpj)');
 
       if (profilesError) throw profilesError;
 
