@@ -59,7 +59,7 @@ export const logOperation = async (data: LogOperationData) => {
 
 export const getOperationLogs = async (): Promise<OperationLog[]> => {
   try {
-    // Use a different approach to get the user information
+    // Modify the query to fetch user profiles
     const { data, error } = await supabase
       .from('operation_logs')
       .select(`
@@ -71,19 +71,20 @@ export const getOperationLogs = async (): Promise<OperationLog[]> => {
         record_count,
         created_at,
         user_id,
-        profiles:user_id(name, email)
+        profiles:profiles(name, email)
       `)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
     
-    // Transform the data to match our OperationLog type
-    // Handle the case where profiles might be null or have an error
+    // Transform and validate the data
     const logs: OperationLog[] = data?.map(log => {
-      // If profiles is an error or null, replace with null
-      const safeProfiles = log.profiles && typeof log.profiles === 'object' && !('error' in log.profiles) 
-        ? log.profiles as { name: string; email: string; } 
-        : null;
+      // Handle the case where profiles might be null or have an error
+      let safeProfiles = null;
+      
+      if (log.profiles && typeof log.profiles === 'object' && !('error' in log.profiles)) {
+        safeProfiles = log.profiles as { name: string; email: string; };
+      }
         
       return {
         ...log,
