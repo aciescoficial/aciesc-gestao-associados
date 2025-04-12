@@ -51,8 +51,7 @@ export const useDashboardData = () => {
         .from('system_config')
         .select('value')
         .eq('key', 'ASAAS_API_KEY')
-        .maybeSingle()
-        .abortSignal(controller.signal);
+        .maybeSingle();
       
       clearTimeout(timeoutId);
       
@@ -115,36 +114,31 @@ export const useDashboardData = () => {
           // Fetch associados count
           supabase
             .from('associados')
-            .select('*', { count: 'exact', head: true })
-            .abortSignal(controller.signal),
+            .select('*', { count: 'exact', head: true }),
           
           // Fetch empresas count
           supabase
             .from('empresas')
-            .select('*', { count: 'exact', head: true })
-            .abortSignal(controller.signal),
+            .select('*', { count: 'exact', head: true }),
           
           // Fetch pending approvals count
           supabase
             .from('associados')
             .select('*', { count: 'exact', head: true })
-            .eq('status', 'pendente')
-            .abortSignal(controller.signal),
+            .eq('status', 'pendente'),
           
           // Fetch pending carteirinhas count
           supabase
             .from('carteirinha_solicitacoes')
             .select('*', { count: 'exact', head: true })
-            .eq('status', 'pendente_pagamento')
-            .abortSignal(controller.signal),
+            .eq('status', 'pendente_pagamento'),
           
           // Fetch recent associados
           supabase
             .from('associados')
             .select('nome, sobrenome, status, created_at')
             .order('created_at', { ascending: false })
-            .limit(3)
-            .abortSignal(controller.signal),
+            .limit(3),
           
           // Fetch recent empresas
           supabase
@@ -152,7 +146,6 @@ export const useDashboardData = () => {
             .select('nome_fantasia, status, created_at')
             .order('created_at', { ascending: false })
             .limit(3)
-            .abortSignal(controller.signal)
         ]);
       
       // Clear the timeout
