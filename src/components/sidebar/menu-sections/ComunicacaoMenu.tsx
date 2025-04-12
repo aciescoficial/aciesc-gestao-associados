@@ -9,7 +9,7 @@ export const getComunicacaoMenuItems = (): MenuItem[] => {
       header: "Comunicação", 
       roles: ['admin', 'user', 'empresa'],
       submenu: [
-        { icon: MessageSquare, label: "Mensagens", path: "/mensagens", roles: ['admin', 'user', 'empresa'] },
+        { icon: MessageSquare, label: "Mensagens", path: "/mensagens/enviar", roles: ['admin', 'user', 'empresa'] },
       ]
     }
   ];

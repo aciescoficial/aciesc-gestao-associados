@@ -6,6 +6,7 @@ import PluginLayout from '@/components/PluginLayout';
 import Dashboard from '@/components/Dashboard';
 import ProfilePage from '@/components/auth/ProfilePage';
 import MensagensPage from '@/components/mensagens/MensagensPage';
+import MessagesDashboard from '@/components/mensagens/MessagesDashboard';
 import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
 import PagamentoSucesso from '@/components/pagamento/PagamentoSucesso';
 
@@ -50,8 +51,17 @@ export const SharedRoutes = [
     </ProtectedRoute>
   } />,
   
-  // Mensagens route - accessible to all users
-  <Route key="mensagens" path="/mensagens" element={
+  // Messages Dashboard - accessible to all users (new route)
+  <Route key="mensagens-dashboard" path="/mensagens" element={
+    <ProtectedRoute>
+      <LayoutWrapper>
+        <MessagesDashboard />
+      </LayoutWrapper>
+    </ProtectedRoute>
+  } />,
+  
+  // Original Messages page (sending messages) - moved to a different path
+  <Route key="mensagens-envio" path="/mensagens/enviar" element={
     <ProtectedRoute>
       <LayoutWrapper>
         <MensagensPage />

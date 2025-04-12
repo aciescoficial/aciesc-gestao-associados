@@ -1,9 +1,9 @@
-
 import React, { lazy, Suspense } from "react";
 import { Route, Routes, Outlet, Navigate } from "react-router-dom";
 import RouteComponents from "./pages/RouteComponents";
 import { ProtectedRoute, AdminRoute } from "./pages/AuthRoutes";
 import { FinanceiroRoutes } from "./pages/routes/FinanceiroRoutes";
+import { SharedRoutes } from "./pages/routes/SharedRoutes";
 import PluginLayout from "./components/PluginLayout";
 import LoginPage from "./components/auth/LoginPage";
 import NotFound from "./pages/NotFound";
@@ -33,6 +33,9 @@ const AppRoutes: React.FC = () => {
         
         {/* Catch-all 404 route */}
         <Route path="*" element={<NotFound />} />
+
+        {/* Include SharedRoutes */}
+        {SharedRoutes}
 
         {/* Fixed route by using element with children prop properly through Outlet */}
         <Route path="/" element={<PluginLayout><Outlet /></PluginLayout>}>
@@ -81,8 +84,8 @@ const AppRoutes: React.FC = () => {
           {/* Include Financeiro routes */}
           {FinanceiroRoutes}
 
-          {/* Mensagens for all users */}
-          <Route path="/mensagens" element={<RouteComponents.MensagensPage />} />
+          {/* Mensagens for all users - updated path */}
+          <Route path="/mensagens/enviar" element={<RouteComponents.MensagensPage />} />
           
           {/* Usuários routes */}
           <Route path="/usuarios" element={<RouteComponents.UserManagement />} />

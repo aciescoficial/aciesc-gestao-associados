@@ -1,4 +1,3 @@
-
 import React from 'react';
 import PluginLayout from '@/components/PluginLayout';
 import Dashboard from '@/components/Dashboard';
@@ -15,6 +14,7 @@ import ProfilePage from '@/components/auth/ProfilePage';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import MensagensPage from '@/components/mensagens/MensagensPage';
+import MessagesDashboard from '@/components/mensagens/MessagesDashboard';
 import EmpresasConveniadas from '@/components/associado/EmpresasConveniadas';
 import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
 import ConfiguracoesPage from '@/components/configuracoes/ConfiguracoesPage';
@@ -34,7 +34,7 @@ export const CobrancasPage = () => (
 );
 
 // Export MensagensPage route component
-export { MensagensPage };
+export { MensagensPage, MessagesDashboard };
 
 // Placeholder for member payment page
 export const PagamentosAssociadoPage = () => (
@@ -98,6 +98,7 @@ const RouteComponents = {
   AssociadosPage,
   FinanceiroResumoPage,
   MensagensPage,
+  MessagesDashboard,
   EmpresasConveniadas,
   EmpresasPesquisa,
   CobrancasPage,
