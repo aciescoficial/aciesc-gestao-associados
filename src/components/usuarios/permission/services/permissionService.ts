@@ -2,7 +2,7 @@
 import { UserRole } from '../../types';
 import { MenuPermission } from '../types';
 import { getDefaultMenus } from '../data/defaultMenus';
-import { supabase } from '@/integrations/supabase/client';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 
 // Creates a copy of menu permissions with specified enabled state
 export const createRoleMenuPermissions = (
@@ -94,7 +94,7 @@ export const savePermissions = async (
     };
 
     // First, check if permissions for this role already exist
-    const { data: existingPermissions } = await supabase
+    const { data: existingPermissions } = await extendedSupabase
       .from('role_permissions')
       .select('*')
       .eq('role', role)
@@ -102,14 +102,14 @@ export const savePermissions = async (
 
     // Update or insert based on existence
     if (existingPermissions) {
-      const { error } = await supabase
+      const { error } = await extendedSupabase
         .from('role_permissions')
         .update(permissionsData)
         .eq('role', role);
       
       return { error };
     } else {
-      const { error } = await supabase
+      const { error } = await extendedSupabase
         .from('role_permissions')
         .insert(permissionsData);
       
@@ -124,7 +124,7 @@ export const savePermissions = async (
 // Fetch permissions from Supabase
 export const fetchPermissionsFromDB = async (): Promise<{ data: Record<UserRole, MenuPermission[]> | null, error: any | null }> => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await extendedSupabase
       .from('role_permissions')
       .select('*');
     
