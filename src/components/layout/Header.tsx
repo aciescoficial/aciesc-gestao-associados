@@ -16,7 +16,7 @@ const Header: React.FC = () => {
       <NotificationBanner />
       <header className="bg-aciesc-primary text-white py-3 px-4 flex justify-between items-center shadow-sm">
         <div className="flex items-center">
-          {isMobile && <SidebarTrigger className="text-white mr-3 hover:text-gray-200" />}
+          <SidebarTrigger className="text-white mr-3 hover:text-gray-200" />
           <div className="flex items-center">
             <span className="text-lg font-medium">ACIESC</span>
             <SystemVersion />

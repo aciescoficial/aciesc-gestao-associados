@@ -5,6 +5,24 @@ import { useAuth } from '../auth/AuthProvider';
 import { useSidebarState } from '@/hooks/use-sidebar-state';
 import SidebarMenuItem from './SidebarMenuItem';
 import SidebarSubmenu from './SidebarSubmenu';
+import { 
+  Home, 
+  Users, 
+  Building, 
+  FileText,
+  DollarSign, 
+  Settings,
+  Search,
+  UserPlus,
+  CheckSquare,
+  CreditCard,
+  Shield,
+  UserCog,
+  UserCheck,
+  BarChart,
+  MessageSquare,
+  ClipboardList
+} from 'lucide-react';
 
 interface MenuItem {
   icon?: LucideIcon;
@@ -76,7 +94,7 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
       header: "Área do Associado", 
       roles: ['user'],
       submenu: [
-        { icon: Payment, label: "Meus Pagamentos", path: "/meus-pagamentos", roles: ['user'] },
+        { icon: CreditCard, label: "Meus Pagamentos", path: "/meus-pagamentos", roles: ['user'] },
         { icon: CreditCard, label: "Solicitar Carteirinha", path: "/solicitar-carteirinha", roles: ['user'] },
         { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['user'] },
         { icon: Building, label: "Empresas Conveniadas", path: "/empresas-conveniadas", roles: ['user'] },
@@ -139,26 +157,5 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
     </>
   );
 };
-
-// Need to import these icons here to make the component work
-import { 
-  Home, 
-  Users, 
-  Building, 
-  FileText,
-  DollarSign, 
-  Settings,
-  Search,
-  UserPlus,
-  CheckSquare,
-  CreditCard,
-  Shield,
-  UserCog,
-  UserCheck,
-  BarChart,
-  MessageSquare,
-  CreditCard as Payment,
-  ClipboardList
-} from 'lucide-react';
 
 export default SidebarMenuItems;
