@@ -7,7 +7,10 @@ interface AsaasPaymentLinkResponse {
   url: string;
 }
 
-export const generatePaymentLink = async (associationType: AssociationType): Promise<string> => {
+export const generatePaymentLink = async (
+  associationType: AssociationType, 
+  externalReference?: string
+): Promise<string> => {
   try {
     // Default to the first payment method if multiple are available
     const billingType = mapToBillingType(associationType.payment_methods[0]);
@@ -21,7 +24,8 @@ export const generatePaymentLink = async (associationType: AssociationType): Pro
         billingType: billingType,
         chargeType: associationType.max_installments && associationType.max_installments > 1 ? 'INSTALLMENT' : 'DETACHED',
         dueDateLimitDays: 5,
-        maxInstallmentCount: associationType.max_installments || 1
+        maxInstallmentCount: associationType.max_installments || 1,
+        externalReference: externalReference
       }
     });
 

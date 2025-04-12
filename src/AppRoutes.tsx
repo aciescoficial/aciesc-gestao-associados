@@ -1,3 +1,4 @@
+
 import React, { lazy, Suspense } from "react";
 import { Route, Routes, Outlet, Navigate } from "react-router-dom";
 import RouteComponents from "./pages/RouteComponents";
@@ -10,6 +11,12 @@ import NotFound from "./pages/NotFound";
 const ConfiguracoesPage = lazy(() => import("./components/configuracoes/ConfiguracoesPage"));
 // Página de relatórios financeiros
 const FinanceiroRelatoriosPage = lazy(() => import("./components/financeiro/FinanceiroRelatoriosPage"));
+// Formulário de interesse
+const FormularioInteressePage = lazy(() => import("./components/associado/FormularioInteressePage"));
+// Página de aprovação de interesse
+const AprovacaoInteressePage = lazy(() => import("./components/associado/AprovacaoInteressePage"));
+// Página de finalização de cadastro
+const AssociadoSignupCompletion = lazy(() => import("./components/associado/AssociadoSignupCompletion"));
 
 const AppRoutes: React.FC = () => {
   return (
@@ -17,6 +24,10 @@ const AppRoutes: React.FC = () => {
       <Routes>
         <Route path="/auth/*" element={<RouteComponents.Index />} />
         <Route path="/login" element={<LoginPage />} />
+        
+        {/* Standaline routes */}
+        <Route path="/formulario-interesse" element={<FormularioInteressePage />} />
+        <Route path="/associado-signup" element={<AssociadoSignupCompletion />} />
         
         {/* Redirect from root to dashboard */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -50,10 +61,15 @@ const AppRoutes: React.FC = () => {
             </ProtectedRoute>
           } />
           
-          {/* Admin approval route - moved under admin section */}
+          {/* Admin approval routes */}
           <Route path="/aprovacoes" element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <RouteComponents.AprovacoesPendentes />
+            </ProtectedRoute>
+          } />
+          <Route path="/associados/aprovacao" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AprovacaoInteressePage />
             </ProtectedRoute>
           } />
 

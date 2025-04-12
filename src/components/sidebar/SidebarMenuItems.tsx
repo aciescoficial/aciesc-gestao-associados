@@ -22,7 +22,8 @@ import {
   BarChart,
   MessageSquare,
   ClipboardList,
-  Inbox
+  Inbox,
+  FileCheck
 } from 'lucide-react';
 
 interface MenuItem {
@@ -59,6 +60,7 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
       header: "Associados", 
       roles: ['admin'],
       submenu: [
+        { icon: FileCheck, label: "Aprovar Interessados", path: "/associados/aprovacao", roles: ['admin'] },
         { icon: UserPlus, label: "Cadastrar", path: "/associados/cadastro", roles: ['admin'] },
         { icon: Search, label: "Pesquisar", path: "/associados/pesquisa", roles: ['admin', 'user'] },
         { icon: Users, label: "Listar Todos", path: "/associados/listar", roles: ['admin'] },
