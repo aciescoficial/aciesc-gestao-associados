@@ -14,6 +14,7 @@ interface SubmenuItem {
 
 interface SidebarSubmenuProps {
   header: string;
+  icon?: LucideIcon;
   submenu: SubmenuItem[];
   isExpanded: boolean;
   toggleMenu: () => void;
@@ -22,6 +23,7 @@ interface SidebarSubmenuProps {
 
 const SidebarSubmenu: React.FC<SidebarSubmenuProps> = ({ 
   header, 
+  icon: Icon,
   submenu, 
   isExpanded, 
   toggleMenu, 
@@ -31,6 +33,7 @@ const SidebarSubmenu: React.FC<SidebarSubmenuProps> = ({
     <SidebarGroup key={header}>
       <SubmenuHeader 
         header={header}
+        icon={Icon}
         isExpanded={isExpanded}
         toggleMenu={toggleMenu}
       />

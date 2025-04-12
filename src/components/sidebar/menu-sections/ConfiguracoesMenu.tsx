@@ -7,6 +7,7 @@ export const getConfiguracoesMenuItems = (): MenuItem[] => {
   return [
     { 
       header: "Configurações", 
+      icon: Settings,
       roles: ['admin'],
       submenu: [
         { icon: Settings, label: "Configurações", path: "/configuracoes", roles: ['admin'] },

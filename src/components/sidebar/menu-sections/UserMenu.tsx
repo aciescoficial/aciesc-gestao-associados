@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { CreditCard, ClipboardList, Building } from 'lucide-react';
+import { CreditCard, ClipboardList, Building, User } from 'lucide-react';
 import { MenuItem } from '../types/MenuItem';
 
 export const getUserMenuItems = (): MenuItem[] => {
   return [
     { 
       header: "Área do Associado", 
+      icon: User,
       roles: ['user'],
       submenu: [
         { icon: CreditCard, label: "Meus Pagamentos", path: "/meus-pagamentos", roles: ['user'] },

@@ -50,6 +50,7 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
         <SidebarSubmenu
           key={item.header}
           header={item.header}
+          icon={item.icon}
           submenu={item.submenu || []}
           isExpanded={isMenuExpanded(item.header)}
           toggleMenu={() => toggleMenu(item.header!)}

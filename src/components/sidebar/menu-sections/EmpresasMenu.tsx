@@ -7,6 +7,7 @@ export const getEmpresasMenuItems = (): MenuItem[] => {
   return [
     { 
       header: "Empresas", 
+      icon: Building,
       roles: ['admin'],
       submenu: [
         { icon: Building, label: "Cadastrar", path: "/empresas/cadastro", roles: ['admin'] },
