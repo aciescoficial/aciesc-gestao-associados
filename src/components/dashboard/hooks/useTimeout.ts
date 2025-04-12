@@ -16,11 +16,11 @@ export const useTimeout = <T>(ms: number, fallbackValue: T) => {
         clearTimeout(timeoutRef.current);
       }
 
-      // Create a promise that rejects after ms milliseconds
-      const timeoutPromise = new Promise<T>((_, reject) => {
+      // Create a promise that resolves with the fallback value after ms milliseconds
+      const timeoutPromise = new Promise<T>((resolve) => {
         timeoutRef.current = setTimeout(() => {
           console.log(`Operation timed out after ${ms}ms, using default values`);
-          reject(new Error(`Operation timed out after ${ms}ms`));
+          resolve(fallbackValue);
         }, ms);
       });
 

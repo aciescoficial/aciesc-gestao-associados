@@ -24,17 +24,17 @@ export const useDashboardData = () => {
     emails: { active: false, message: 'Verificando...' }
   });
 
-  // Use our timeout hook with appropriate default values
-  const statsTimeout = useTimeout(5000, {
+  // Use timeout hook with appropriate default values
+  const statsTimeout = useTimeout(2500, {
     associados: 0,
     empresas: 0,
     pendentes: 0,
     carteirasPendentes: 0
   });
   
-  const activityTimeout = useTimeout(5000, []);
+  const activityTimeout = useTimeout(2500, []);
   
-  const statusTimeout = useTimeout(3000, {
+  const statusTimeout = useTimeout(2000, {
     asaas: { active: false, message: 'Verificação falhou (timeout)' },
     stripe: { active: false, message: 'Verificação falhou (timeout)' },
     emails: { active: false, message: 'Verificação falhou (timeout)' }
@@ -85,18 +85,27 @@ export const useDashboardData = () => {
         variant: "destructive"
       });
     } finally {
+      // Always set loading to false, even if there are errors
       setLoading(false);
     }
   }, [statsTimeout, activityTimeout, statusTimeout]);
 
   useEffect(() => {
+    // Set a maximum timeout for the entire loading process
+    const loadingTimeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+    
     fetchDashboardData();
     
     // Set up an interval to refresh the data every 5 minutes
     const intervalId = setInterval(fetchDashboardData, 300000);
     
     // Clean up on unmount
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(loadingTimeout);
+    };
   }, [fetchDashboardData]);
 
   return {

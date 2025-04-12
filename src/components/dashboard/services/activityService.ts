@@ -13,56 +13,69 @@ export interface RecentActivity {
  * Fetches recent activity data for the dashboard
  * @param retries Number of retry attempts
  */
-export const fetchRecentActivity = async (retries = 3): Promise<RecentActivity[]> => {
+export const fetchRecentActivity = async (retries = 1): Promise<RecentActivity[]> => {
   try {
-    // Fetch recent associados
-    const { data: recentAssociados, error: recentAssociadosError } = await supabase
-      .from('associados')
-      .select('nome, sobrenome, status, created_at')
-      .order('created_at', { ascending: false })
-      .limit(3);
+    // Default empty array in case of errors
+    const defaultActivity: RecentActivity[] = [];
     
-    if (recentAssociadosError) {
-      console.error('Error fetching recent associados:', recentAssociadosError);
-      if (retries > 0) {
-        console.log(`Retrying fetchRecentActivity (${retries} attempts remaining)...`);
-        return fetchRecentActivity(retries - 1);
-      }
-    }
+    // Use Promise.race with a timeout
+    const timeoutPromise = new Promise<RecentActivity[]>((resolve) => {
+      setTimeout(() => {
+        console.log('Activity query timed out, using default values');
+        resolve(defaultActivity);
+      }, 2000);
+    });
     
-    // Fetch recent empresas
-    const { data: recentEmpresas, error: recentEmpresasError } = await supabase
-      .from('empresas')
-      .select('nome_fantasia, status, created_at')
-      .order('created_at', { ascending: false })
-      .limit(3);
-    
-    if (recentEmpresasError) {
-      console.error('Error fetching recent empresas:', recentEmpresasError);
-      if (retries > 0) {
-        console.log(`Retrying fetchRecentActivity (${retries} attempts remaining)...`);
-        return fetchRecentActivity(retries - 1);
-      }
-    }
+    // Create the actual data fetching promise
+    const dataPromise = (async () => {
+      try {
+        // Execute queries in parallel for better performance
+        const [recentAssociadosResult, recentEmpresasResult] = await Promise.all([
+          // Fetch recent associados
+          supabase
+            .from('associados')
+            .select('nome, sobrenome, status, created_at')
+            .order('created_at', { ascending: false })
+            .limit(3),
+            
+          // Fetch recent empresas
+          supabase
+            .from('empresas')
+            .select('nome_fantasia, status, created_at')
+            .order('created_at', { ascending: false })
+            .limit(3)
+        ]);
+        
+        const recentAssociados = recentAssociadosResult.data || [];
+        const recentEmpresas = recentEmpresasResult.data || [];
 
-    // Combine and format recent activity
-    const formattedActivity = [
-      ...(recentAssociados || []).map(item => ({
-        type: 'associado' as const,
-        name: `${item.nome} ${item.sobrenome}`,
-        action: item.status === 'pendente' ? 'pendente' : 'cadastrado',
-        date: new Date(item.created_at).toLocaleDateString()
-      })),
-      ...(recentEmpresas || []).map(item => ({
-        type: 'empresa' as const,
-        name: item.nome_fantasia,
-        action: item.status === 'pendente' ? 'pendente' : 'conveniada',
-        date: new Date(item.created_at).toLocaleDateString()
-      }))
-    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 4); // Get only the 4 most recent activities
+        // Combine and format recent activity
+        const formattedActivity = [
+          ...recentAssociados.map(item => ({
+            type: 'associado' as const,
+            name: `${item.nome} ${item.sobrenome}`,
+            action: item.status === 'pendente' ? 'pendente' : 'cadastrado',
+            date: new Date(item.created_at).toLocaleDateString()
+          })),
+          ...recentEmpresas.map(item => ({
+            type: 'empresa' as const,
+            name: item.nome_fantasia,
+            action: item.status === 'pendente' ? 'pendente' : 'conveniada',
+            date: new Date(item.created_at).toLocaleDateString()
+          }))
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 4); // Get only the 4 most recent activities
+        
+        return formattedActivity;
+      } catch (error) {
+        console.error('Error in activity data promise:', error);
+        return defaultActivity;
+      }
+    })();
+
+    // Race between actual data and timeout
+    return await Promise.race([dataPromise, timeoutPromise]);
     
-    return formattedActivity;
   } catch (error) {
     console.error('Error fetching recent activity:', error);
     if (retries > 0) {

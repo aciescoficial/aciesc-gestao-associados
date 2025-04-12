@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface RecentActivityProps {
   recentActivity: {
@@ -27,9 +28,14 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ recentActivity, 
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={4} className="text-center py-4">Carregando atividades...</td>
-              </tr>
+              Array(3).fill(0).map((_, index) => (
+                <tr key={`loading-${index}`}>
+                  <td><Skeleton className="h-6 w-20" /></td>
+                  <td><Skeleton className="h-6 w-32" /></td>
+                  <td><Skeleton className="h-6 w-24" /></td>
+                  <td><Skeleton className="h-6 w-24" /></td>
+                </tr>
+              ))
             ) : recentActivity.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center py-4">Nenhuma atividade recente encontrada</td>
