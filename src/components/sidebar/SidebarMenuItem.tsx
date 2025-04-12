@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
   SidebarMenuItem as SidebarMenuItemComponent, 
@@ -31,10 +32,10 @@ const SidebarMenuItem: React.FC<SidebarMenuItemProps> = ({
           isActive && "bg-aciesc-dark text-white"
         )}
       >
-        <a href={path} className="flex items-center text-white">
+        <Link to={path || "#"} className="flex items-center text-white">
           {Icon && <Icon className="mr-2 h-4 w-4" />}
           <span>{label}</span>
-        </a>
+        </Link>
       </SidebarMenuButton>
     </SidebarMenuItemComponent>
   );

@@ -124,9 +124,8 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
   // Filter menu items based on user role and required tags
   const menuItems = allMenuItems.filter(item => {
     // Check if user has the appropriate role
-    if (!item.roles || !userRole || !item.roles.includes(userRole)) {
-      // Allow admin access to everything
-      if (!isAdmin) {
+    if (item.roles && userRole) {
+      if (!item.roles.includes(userRole) && !isAdmin) {
         return false;
       }
     }
@@ -139,16 +138,15 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
     return true;
   });
   
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   const renderMenu = (item: MenuItem) => {
     // Filter submenu items based on user role and required tags
     if (item.submenu) {
       const filteredSubmenu = item.submenu.filter(subItem => {
         // Check if user has appropriate role
-        if (!subItem.roles || !userRole || !subItem.roles.includes(userRole)) {
-          // Allow admin access to everything
-          if (!isAdmin) {
+        if (subItem.roles && userRole) {
+          if (!subItem.roles.includes(userRole) && !isAdmin) {
             return false;
           }
         }
@@ -177,7 +175,7 @@ const SidebarMenuItems: React.FC<SidebarMenuItemsProps> = ({ location }) => {
           header={item.header}
           submenu={item.submenu || []}
           isExpanded={isMenuExpanded(item.header)}
-          toggleMenu={toggleMenu}
+          toggleMenu={() => toggleMenu(item.header!)}
           isActive={isActive}
         />
       );

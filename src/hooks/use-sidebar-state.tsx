@@ -20,13 +20,28 @@ type SidebarState = {
 export function useSidebarState() {
   // Initialize state from localStorage or use defaults
   const [state, setState] = useState<SidebarState>(() => {
-    const savedCollapsed = localStorage.getItem(STORAGE_KEYS.COLLAPSED);
-    const savedMenus = localStorage.getItem(STORAGE_KEYS.EXPANDED_MENUS);
-    
-    return {
-      collapsed: savedCollapsed ? JSON.parse(savedCollapsed) : false,
-      expandedMenus: savedMenus ? JSON.parse(savedMenus) : {},
-    };
+    try {
+      const savedCollapsed = localStorage.getItem(STORAGE_KEYS.COLLAPSED);
+      const savedMenus = localStorage.getItem(STORAGE_KEYS.EXPANDED_MENUS);
+      
+      return {
+        collapsed: savedCollapsed ? JSON.parse(savedCollapsed) : false,
+        expandedMenus: savedMenus ? JSON.parse(savedMenus) : {
+          // Default expanded menus
+          "Admin": true,
+          "Associados": true,
+          "Área do Associado": true,
+          "Área da Empresa": true,
+          "Comunicação": true
+        },
+      };
+    } catch (error) {
+      console.error('Error loading sidebar state from localStorage:', error);
+      return {
+        collapsed: false,
+        expandedMenus: {},
+      };
+    }
   });
 
   // Toggle sidebar collapsed state
@@ -56,8 +71,12 @@ export function useSidebarState() {
 
   // Save state to localStorage when it changes
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.COLLAPSED, JSON.stringify(state.collapsed));
-    localStorage.setItem(STORAGE_KEYS.EXPANDED_MENUS, JSON.stringify(state.expandedMenus));
+    try {
+      localStorage.setItem(STORAGE_KEYS.COLLAPSED, JSON.stringify(state.collapsed));
+      localStorage.setItem(STORAGE_KEYS.EXPANDED_MENUS, JSON.stringify(state.expandedMenus));
+    } catch (error) {
+      console.error('Error saving sidebar state to localStorage:', error);
+    }
   }, [state]);
 
   return {

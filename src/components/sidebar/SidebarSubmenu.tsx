@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
@@ -21,7 +22,7 @@ interface SidebarSubmenuProps {
   header: string;
   submenu: SubmenuItem[];
   isExpanded: boolean;
-  toggleMenu: (menuId: string) => void;
+  toggleMenu: () => void;
   isActive: (path: string) => boolean;
 }
 
@@ -36,7 +37,7 @@ const SidebarSubmenu: React.FC<SidebarSubmenuProps> = ({
     <SidebarGroup key={header}>
       <div 
         className="flex items-center justify-between cursor-pointer py-2 px-4 text-white hover:bg-aciesc-dark transition-colors"
-        onClick={() => toggleMenu(header)}
+        onClick={toggleMenu}
       >
         <SidebarGroupLabel className="text-white text-sm">{header}</SidebarGroupLabel>
         {isExpanded ? (

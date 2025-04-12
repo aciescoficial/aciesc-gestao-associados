@@ -17,7 +17,7 @@ interface MainSidebarProps {
 
 const MainSidebar: React.FC<MainSidebarProps> = ({ location }) => {
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="bg-aciesc-primary text-white">
+    <Sidebar variant="sidebar" collapsible={true} className="bg-aciesc-primary text-white z-30">
       <SidebarHeader className="py-4 border-b border-aciesc-dark">
         <div className="px-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-white">ACIESC</h1>
