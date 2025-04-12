@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -327,58 +328,47 @@ const PermissionPanel: React.FC = () => {
             <span>Carregando permissões...</span>
           </div>
         ) : (
-          <div className="flex">
-            <div className="w-1/4 border-r pr-4">
-              <h3 className="text-lg font-medium mb-4">Usuário Informações</h3>
-              <div className="flex flex-col">
-                <Button variant="link" className="text-primary justify-start font-bold">
-                  Funções & Permissões
-                </Button>
-              </div>
-            </div>
-            
-            <div className="w-3/4 pl-4">
-              <Tabs defaultValue="admin" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-4">
-                  <TabsTrigger value="admin">Administrador</TabsTrigger>
-                  <TabsTrigger value="user">Associado</TabsTrigger>
-                  <TabsTrigger value="empresa">Empresa</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="admin">
-                  <div className="p-4 rounded-md bg-muted/50 mb-4">
-                    <p className="text-muted-foreground">Administradores têm acesso total ao sistema. Essas permissões não podem ser modificadas.</p>
-                  </div>
-                  <div className="space-y-1">
-                    {menuPermissions.admin.map((menu) => renderPermissionSection('admin', menu))}
-                  </div>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="outline">Cancelar</Button>
-                    <Button>Salvar</Button>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="user">
-                  <div className="space-y-1">
-                    {menuPermissions.user.map((menu) => renderPermissionSection('user', menu))}
-                  </div>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="outline">Cancelar</Button>
-                    <Button>Salvar</Button>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="empresa">
-                  <div className="space-y-1">
-                    {menuPermissions.empresa.map((menu) => renderPermissionSection('empresa', menu))}
-                  </div>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="outline">Cancelar</Button>
-                    <Button>Salvar</Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
+          <div>
+            <Tabs defaultValue="admin" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="admin">Administrador</TabsTrigger>
+                <TabsTrigger value="user">Associado</TabsTrigger>
+                <TabsTrigger value="empresa">Empresa</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="admin">
+                <div className="p-4 rounded-md bg-muted/50 mb-4">
+                  <p className="text-muted-foreground">Administradores têm acesso total ao sistema. Essas permissões não podem ser modificadas.</p>
+                </div>
+                <div className="space-y-1">
+                  {menuPermissions.admin.map((menu) => renderPermissionSection('admin', menu))}
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline">Cancelar</Button>
+                  <Button>Salvar</Button>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="user">
+                <div className="space-y-1">
+                  {menuPermissions.user.map((menu) => renderPermissionSection('user', menu))}
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline">Cancelar</Button>
+                  <Button>Salvar</Button>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="empresa">
+                <div className="space-y-1">
+                  {menuPermissions.empresa.map((menu) => renderPermissionSection('empresa', menu))}
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button variant="outline">Cancelar</Button>
+                  <Button>Salvar</Button>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </div>
