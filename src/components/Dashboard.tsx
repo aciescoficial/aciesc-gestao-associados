@@ -6,6 +6,8 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { SystemStatus } from '@/components/dashboard/SystemStatus';
 import { useDashboardData } from '@/components/dashboard/hooks/useDashboardData';
 import { NotificationMessage } from '@/components/layout/NotificationBanner';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 // Example messages are defined once outside the component to avoid recreations
 const exampleMessages: NotificationMessage[] = [
@@ -57,7 +59,18 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="wp-header">Dashboard</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="wp-header">Dashboard</h1>
+        <Button 
+          onClick={refreshData} 
+          variant="outline" 
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <RefreshCw size={16} className="mr-1" />
+          Atualizar dados
+        </Button>
+      </div>
       
       {/* Stats Grid */}
       <DashboardStats stats={stats} loading={loading} />

@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 export interface DashboardStats {
   associados: number;
@@ -10,8 +11,9 @@ export interface DashboardStats {
 
 /**
  * Fetches statistics data for the dashboard
+ * @param retries Number of retry attempts
  */
-export const fetchDashboardStats = async (): Promise<DashboardStats> => {
+export const fetchDashboardStats = async (retries = 3): Promise<DashboardStats> => {
   try {
     // Fetch associados count
     const { count: associadosCount, error: associadosError } = await supabase
@@ -20,6 +22,10 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
     
     if (associadosError) {
       console.error('Error fetching associados count:', associadosError);
+      if (retries > 0) {
+        console.log(`Retrying fetchDashboardStats (${retries} attempts remaining)...`);
+        return fetchDashboardStats(retries - 1);
+      }
     }
     
     // Fetch empresas count
@@ -29,6 +35,10 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
     
     if (empresasError) {
       console.error('Error fetching empresas count:', empresasError);
+      if (retries > 0) {
+        console.log(`Retrying fetchDashboardStats (${retries} attempts remaining)...`);
+        return fetchDashboardStats(retries - 1);
+      }
     }
     
     // Fetch pending approvals count
@@ -39,6 +49,10 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
     
     if (pendentesError) {
       console.error('Error fetching pendentes count:', pendentesError);
+      if (retries > 0) {
+        console.log(`Retrying fetchDashboardStats (${retries} attempts remaining)...`);
+        return fetchDashboardStats(retries - 1);
+      }
     }
     
     // Fetch pending carteirinhas count
@@ -49,6 +63,10 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
     
     if (carteirasError) {
       console.error('Error fetching carteiras pendentes count:', carteirasError);
+      if (retries > 0) {
+        console.log(`Retrying fetchDashboardStats (${retries} attempts remaining)...`);
+        return fetchDashboardStats(retries - 1);
+      }
     }
 
     return {
@@ -59,6 +77,15 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
     };
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
+    if (retries > 0) {
+      console.log(`Retrying fetchDashboardStats (${retries} attempts remaining)...`);
+      return fetchDashboardStats(retries - 1);
+    }
+    toast({
+      title: "Erro ao carregar estatísticas",
+      description: "Tente atualizar a página",
+      variant: "destructive"
+    });
     return {
       associados: 0,
       empresas: 0,

@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 export interface SystemStatus {
   asaas: { active: boolean; message: string };
@@ -9,8 +10,9 @@ export interface SystemStatus {
 
 /**
  * Checks the status of system integrations
+ * @param retries Number of retry attempts
  */
-export const checkSystemStatus = async (): Promise<SystemStatus> => {
+export const checkSystemStatus = async (retries = 3): Promise<SystemStatus> => {
   try {
     // Check Asaas integration status
     const { data: asaasConfig, error: asaasError } = await supabase
@@ -21,6 +23,10 @@ export const checkSystemStatus = async (): Promise<SystemStatus> => {
     
     if (asaasError) {
       console.error('Error checking Asaas status:', asaasError);
+      if (retries > 0) {
+        console.log(`Retrying checkSystemStatus (${retries} attempts remaining)...`);
+        return checkSystemStatus(retries - 1);
+      }
     }
     
     // Check Stripe integration status
@@ -32,6 +38,10 @@ export const checkSystemStatus = async (): Promise<SystemStatus> => {
     
     if (stripeError) {
       console.error('Error checking Stripe status:', stripeError);
+      if (retries > 0) {
+        console.log(`Retrying checkSystemStatus (${retries} attempts remaining)...`);
+        return checkSystemStatus(retries - 1);
+      }
     }
     
     // Check GHL integration status for email functionality
@@ -43,6 +53,10 @@ export const checkSystemStatus = async (): Promise<SystemStatus> => {
     
     if (ghlError) {
       console.error('Error checking GHL status:', ghlError);
+      if (retries > 0) {
+        console.log(`Retrying checkSystemStatus (${retries} attempts remaining)...`);
+        return checkSystemStatus(retries - 1);
+      }
     }
     
     const asaasActive = !!asaasConfig?.value;
@@ -65,6 +79,15 @@ export const checkSystemStatus = async (): Promise<SystemStatus> => {
     };
   } catch (error) {
     console.error('Error checking system status:', error);
+    if (retries > 0) {
+      console.log(`Retrying checkSystemStatus (${retries} attempts remaining)...`);
+      return checkSystemStatus(retries - 1);
+    }
+    toast({
+      title: "Erro ao verificar status do sistema",
+      description: "Tente atualizar a página",
+      variant: "destructive"
+    });
     // Set default values if there was an error
     return {
       asaas: { active: false, message: 'Verificação falhou' },

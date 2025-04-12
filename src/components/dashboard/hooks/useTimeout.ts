@@ -2,7 +2,7 @@
 import { useCallback, useRef } from 'react';
 
 /**
- * Custom hook for handling timeouts
+ * Custom hook for handling timeouts with improved error handling
  * @param ms Time in milliseconds before timeout
  * @param fallbackValue Value to return on timeout
  */

@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 export interface RecentActivity {
   type: 'associado' | 'empresa';
@@ -10,8 +11,9 @@ export interface RecentActivity {
 
 /**
  * Fetches recent activity data for the dashboard
+ * @param retries Number of retry attempts
  */
-export const fetchRecentActivity = async (): Promise<RecentActivity[]> => {
+export const fetchRecentActivity = async (retries = 3): Promise<RecentActivity[]> => {
   try {
     // Fetch recent associados
     const { data: recentAssociados, error: recentAssociadosError } = await supabase
@@ -22,6 +24,10 @@ export const fetchRecentActivity = async (): Promise<RecentActivity[]> => {
     
     if (recentAssociadosError) {
       console.error('Error fetching recent associados:', recentAssociadosError);
+      if (retries > 0) {
+        console.log(`Retrying fetchRecentActivity (${retries} attempts remaining)...`);
+        return fetchRecentActivity(retries - 1);
+      }
     }
     
     // Fetch recent empresas
@@ -33,6 +39,10 @@ export const fetchRecentActivity = async (): Promise<RecentActivity[]> => {
     
     if (recentEmpresasError) {
       console.error('Error fetching recent empresas:', recentEmpresasError);
+      if (retries > 0) {
+        console.log(`Retrying fetchRecentActivity (${retries} attempts remaining)...`);
+        return fetchRecentActivity(retries - 1);
+      }
     }
 
     // Combine and format recent activity
@@ -55,6 +65,15 @@ export const fetchRecentActivity = async (): Promise<RecentActivity[]> => {
     return formattedActivity;
   } catch (error) {
     console.error('Error fetching recent activity:', error);
+    if (retries > 0) {
+      console.log(`Retrying fetchRecentActivity (${retries} attempts remaining)...`);
+      return fetchRecentActivity(retries - 1);
+    }
+    toast({
+      title: "Erro ao carregar atividades recentes",
+      description: "Tente atualizar a página",
+      variant: "destructive"
+    });
     return [];
   }
 };

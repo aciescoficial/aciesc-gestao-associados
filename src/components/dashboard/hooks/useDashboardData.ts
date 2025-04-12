@@ -4,6 +4,7 @@ import { fetchDashboardStats, DashboardStats } from '../services/statsService';
 import { fetchRecentActivity, RecentActivity } from '../services/activityService';
 import { checkSystemStatus, SystemStatus } from '../services/systemStatusService';
 import { useTimeout } from './useTimeout';
+import { toast } from '@/components/ui/use-toast';
 
 export const useDashboardData = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -41,20 +42,48 @@ export const useDashboardData = () => {
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
+    
     try {
       // Fetch data in parallel using the timeout wrapper
-      const [statsData, activityData, statusData] = await Promise.all([
-        statsTimeout.withTimeout(fetchDashboardStats()),
-        activityTimeout.withTimeout(fetchRecentActivity()),
-        statusTimeout.withTimeout(checkSystemStatus())
+      const statsPromise = statsTimeout.withTimeout(fetchDashboardStats());
+      const activityPromise = activityTimeout.withTimeout(fetchRecentActivity());
+      const statusPromise = statusTimeout.withTimeout(checkSystemStatus());
+      
+      // Use Promise.allSettled to handle partial failures
+      const [statsResult, activityResult, statusResult] = await Promise.allSettled([
+        statsPromise,
+        activityPromise,
+        statusPromise
       ]);
       
-      setStats(statsData);
-      setRecentActivity(activityData);
-      setSystemStatus(statusData);
+      // Handle stats result
+      if (statsResult.status === 'fulfilled') {
+        setStats(statsResult.value);
+      } else {
+        console.error('Failed to fetch stats:', statsResult.reason);
+      }
+      
+      // Handle activity result
+      if (activityResult.status === 'fulfilled') {
+        setRecentActivity(activityResult.value);
+      } else {
+        console.error('Failed to fetch recent activity:', activityResult.reason);
+      }
+      
+      // Handle system status result
+      if (statusResult.status === 'fulfilled') {
+        setSystemStatus(statusResult.value);
+      } else {
+        console.error('Failed to fetch system status:', statusResult.reason);
+      }
       
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      toast({
+        title: "Erro ao carregar dados do dashboard",
+        description: "Tente atualizar a página",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
