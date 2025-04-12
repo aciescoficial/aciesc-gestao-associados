@@ -60,10 +60,17 @@ export async function getOperationStats(): Promise<OperationStats> {
       Array.from(
         userData.reduce((acc, curr) => {
           const count = (acc.get(curr.user_id) || 0) + 1;
+          
           // Safely extract user name with proper null checks
           let userName = 'Unknown';
-          if (curr.profiles !== null && typeof curr.profiles === 'object') {
-            userName = curr.profiles.name || 'Unknown';
+          
+          // Ensure profiles is not null before trying to access its properties
+          if (curr.profiles !== null) {
+            // Now TypeScript knows profiles isn't null, but we still need to check if it's an object
+            // with the expected structure and if the name property exists
+            if (typeof curr.profiles === 'object') {
+              userName = curr.profiles.name || 'Unknown';
+            }
           }
           
           acc.set(curr.user_id, {

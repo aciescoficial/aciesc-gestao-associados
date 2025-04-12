@@ -47,8 +47,14 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
     // Format data for display
     const formattedLogs: OperationLog[] = data?.map(log => {
       // Safely extract user name with proper null checks
-      const profileName = log.profiles && typeof log.profiles === 'object' ? 
-        (log.profiles.name || 'Unknown') : 'Unknown';
+      let profileName = 'Unknown';
+      let profileData = null;
+      
+      // Check if profiles exists and is an object
+      if (log.profiles !== null && typeof log.profiles === 'object') {
+        profileName = log.profiles.name || 'Unknown';
+        profileData = { name: log.profiles.name };
+      }
       
       return {
         id: log.id,
@@ -61,8 +67,7 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
         userName: profileName,
         userId: log.user_id,
         created_at: log.created_at,
-        profiles: log.profiles && typeof log.profiles === 'object' ? 
-          { name: log.profiles.name } : null
+        profiles: profileData
       };
     }) || [];
 
