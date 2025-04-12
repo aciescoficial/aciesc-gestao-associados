@@ -18,12 +18,12 @@ export interface EmpresaData {
   site?: string;
   instagram?: string;
   whatsapp?: string;
-  produtos?: string;
+  produtos: string;
   endereco: string;
   cep: string;
   latitude?: number;
   longitude?: number;
-  desconto?: string;
+  desconto: string;
   created_at?: string;
   logo_url?: string;
   capa_url?: string;
@@ -32,7 +32,7 @@ export interface EmpresaData {
 
 export interface ImportError {
   row: number;
-  message: string;
   field?: string;
+  message: string;
   data: any;
 }

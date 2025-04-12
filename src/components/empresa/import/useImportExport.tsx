@@ -104,7 +104,7 @@ export const useImportExport = ({ onImportSuccess, onExportSuccess }: UseImportE
           entityType: 'empresa',
           format: 'csv',
           recordCount: data.length,
-          details: `Exportação de ${count} empresas em CSV`
+          details: `Exportação de ${data.length} empresas em CSV`
         });
         
         toast({

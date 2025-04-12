@@ -64,26 +64,7 @@ export const validateEmpresaData = (data: Record<string, string>[]): { processed
       const result = empresaSchema.safeParse(transformedData);
       
       if (result.success) {
-        // Convert to EmpresaData type
-        const empresaData: EmpresaData = {
-          razao_social: result.data.razao_social,
-          nome_fantasia: result.data.nome_fantasia,
-          cnpj: result.data.cnpj,
-          responsavel: result.data.responsavel,
-          telefone: result.data.telefone,
-          email: result.data.email,
-          endereco: result.data.endereco,
-          cidade: result.data.cidade,
-          cep: result.data.cep,
-          nicho: result.data.nicho,
-          status: result.data.status,
-          desconto: result.data.desconto,
-          produtos: result.data.produtos,
-          site: result.data.site,
-          instagram: result.data.instagram,
-          whatsapp: result.data.whatsapp
-        };
-        processedData.push(empresaData);
+        processedData.push(result.data as EmpresaData);
       } else {
         result.error.issues.forEach(issue => {
           errors.push({
