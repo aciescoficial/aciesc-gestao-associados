@@ -24,7 +24,14 @@ export const generateDefaultPermissions = (): Record<UserRole, MenuPermission[]>
   const defaultMenus = getDefaultMenus();
   
   // Admin has all permissions
-  const adminPermissions = [...defaultMenus];
+  const adminPermissions = defaultMenus.map(menu => ({
+    ...menu,
+    enabled: true,
+    subPermissions: menu.subPermissions.map(perm => ({
+      ...perm,
+      enabled: true
+    }))
+  }));
   
   // User permissions
   const userPermissions = createRoleMenuPermissions(

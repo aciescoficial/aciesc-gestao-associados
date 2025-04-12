@@ -43,7 +43,7 @@ const MenuPermissionItem: React.FC<MenuPermissionItemProps> = ({
       </div>
       
       <div className="ml-10 space-y-2">
-        {menu.subPermissions.map((subPerm) => {
+        {menu.subPermissions && menu.subPermissions.map((subPerm) => {
           const subPermKey = `${role}-${menu.id}-${subPerm.id}`;
           const isSubLoading = saveLoading[subPermKey] || false;
           

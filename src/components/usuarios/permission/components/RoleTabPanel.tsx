@@ -30,7 +30,7 @@ const RoleTabPanel: React.FC<RoleTabPanelProps> = ({
         </div>
       )}
       <div className="space-y-1">
-        {menuPermissions.map((menu) => (
+        {menuPermissions && menuPermissions.map((menu) => (
           <MenuPermissionItem
             key={`${role}-${menu.id}`}
             role={role}
