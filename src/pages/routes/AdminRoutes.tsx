@@ -57,7 +57,7 @@ export const AdminRoutes = [
   } />,
   
   // Associados Routes (Admin)
-  <Route key="associados-cadastrar" path="/associados/cadastrar" element={
+  <Route key="associados-cadastro" path="/associados/cadastro" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
         <CadastroAssociado />
