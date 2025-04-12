@@ -9,7 +9,7 @@ import CadastroAssociado from '@/components/CadastroAssociado';
 import PesquisaAssociado from '@/components/PesquisaAssociado';
 import AprovacoesPendentes from '@/components/AprovacoesPendentes';
 import CadastroEmpresa from '@/components/CadastroEmpresa';
-import PesquisaEmpresa from '@/components/PesquisaEmpresa';
+import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
 import GeradorCarteirinha from '@/components/carteirinha/GeradorCarteirinha';
 import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
 import UserManagement from '@/components/usuarios/UserManagement';
@@ -101,7 +101,7 @@ export const AdminRoutes = [
   <Route key="empresas-pesquisar" path="/empresas/pesquisar" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <PesquisaEmpresa />
+        <EmpresasPesquisa />
       </LayoutWrapper>
     </ProtectedRoute>
   } />,

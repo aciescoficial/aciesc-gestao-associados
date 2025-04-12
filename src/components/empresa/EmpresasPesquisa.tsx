@@ -1,21 +1,15 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  Search, Map, MapPin, Navigation, Locate, Building,
-  Check, X
-} from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Map, MapPin, Navigation, Locate, Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from '@/integrations/supabase/types';
 import { GoogleMap, useLoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { useGoogleMapsApi } from '@/hooks/use-google-maps-api';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { logOperation } from "../audit/auditLogService";
+import EmpresaSearchFields from './EmpresaSearchFields';
+import { nichoOptions } from './import/validationUtils';
 
 type NichoType = Database['public']['Enums']['nicho_type'];
 type StatusType = Database['public']['Enums']['status_type'];
@@ -68,7 +62,10 @@ const defaultMapOptions = {
 
 const EmpresasPesquisa: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState<'nome' | 'cnpj' | 'nicho' | 'mapa'>('mapa');
+  const [searchType, setSearchType] = useState<'nome' | 'cnpj' | 'nicho' | 'cidade' | 'cidade_nicho' | 'mapa'>('mapa');
+  const [cidadeFilter, setCidadeFilter] = useState('');
+  const [nichoFilter, setNichoFilter] = useState('');
+  const [cidades, setCidades] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<EmpresaData[]>([]);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -81,6 +78,28 @@ const EmpresasPesquisa: React.FC = () => {
     googleMapsApiKey: apiKey || '',
     libraries: ['places'],
   });
+
+  // Fetch distinct cities on component mount
+  useEffect(() => {
+    const fetchCidades = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('empresas')
+          .select('cidade')
+          .order('cidade');
+        
+        if (error) throw error;
+        
+        // Get unique cities
+        const uniqueCidades = [...new Set(data.map(item => item.cidade))];
+        setCidades(uniqueCidades);
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+      }
+    };
+
+    fetchCidades();
+  }, []);
   
   // Inicializar a localização atual
   useEffect(() => {
@@ -174,6 +193,20 @@ const EmpresasPesquisa: React.FC = () => {
       return;
     }
     
+    if (searchType === 'cidade_nicho') {
+      if (!cidadeFilter && !nichoFilter) {
+        toast({
+          title: "Filtros vazios",
+          description: "Por favor, selecione pelo menos uma cidade ou nicho para realizar a busca.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      await searchByCityAndNiche();
+      return;
+    }
+    
     if (!searchTerm.trim()) {
       toast({
         title: "Campo de busca vazio",
@@ -198,15 +231,82 @@ const EmpresasPesquisa: React.FC = () => {
       } else if (searchType === 'nicho') {
         // We'll search for any nicho that contains the search term
         query = query.ilike('nicho', `%${searchTerm}%`);
+      } else if (searchType === 'cidade') {
+        query = query.ilike('cidade', `%${searchTerm}%`);
       }
       
       const { data, error } = await query;
       
       if (error) throw error;
       
+      // Log the search operation
+      await logOperation({
+        eventType: 'export',
+        entityType: 'empresa',
+        details: `Pesquisa por ${searchType}: ${searchTerm}`,
+        recordCount: data?.length || 0
+      });
+      
       if (data && data.length > 0) {
         // Add simulated geo coordinates for map view
         // In a real implementation, these would come from the database
+        const companiesWithCoords = data.map(company => ({
+          ...company,
+          latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
+          longitude: -47.9292 + (Math.random() - 0.5) * 0.1
+        }));
+        setResults(companiesWithCoords as EmpresaData[]);
+      } else {
+        setResults([]);
+        toast({
+          title: "Nenhum resultado encontrado",
+          description: "Não foram encontradas empresas com os critérios informados.",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error searching data:", error);
+      toast({
+        title: "Erro na busca",
+        description: error.message || "Ocorreu um erro ao realizar a busca. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // New function to search by city and niche
+  const searchByCityAndNiche = async () => {
+    setIsSearching(true);
+    
+    try {
+      let query = supabase
+        .from('empresas')
+        .select('*');
+      
+      // Apply filters if they are set
+      if (cidadeFilter) {
+        query = query.eq('cidade', cidadeFilter);
+      }
+      
+      if (nichoFilter) {
+        query = query.eq('nicho', nichoFilter);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      
+      // Log the search operation
+      await logOperation({
+        eventType: 'export',
+        entityType: 'empresa',
+        details: `Pesquisa por Cidade: ${cidadeFilter || 'Todas'} e Nicho: ${nichoFilter || 'Todos'}`,
+        recordCount: data?.length || 0
+      });
+      
+      if (data && data.length > 0) {
+        // Add simulated geo coordinates for map view
         const companiesWithCoords = data.map(company => ({
           ...company,
           latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
@@ -340,86 +440,48 @@ const EmpresasPesquisa: React.FC = () => {
       
       <div className="wp-card">
         <form onSubmit={handleSearch}>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium mb-1">Tipo de busca</label>
-              <Select 
-                value={searchType} 
-                onValueChange={(value) => setSearchType(value as 'nome' | 'cnpj' | 'nicho' | 'mapa')}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo de busca" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="mapa">
-                    <div className="flex items-center gap-2">
-                      <Map size={16} />
-                      <span>Mapa (GeoDirectório)</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="nome">
-                    <div className="flex items-center gap-2">
-                      <Building size={16} />
-                      <span>Nome da Empresa</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="cnpj">CNPJ</SelectItem>
-                  <SelectItem value="nicho">Nicho de Atuação</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {searchType !== 'mapa' && (
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Termo de busca</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    className="wp-input w-full pl-10"
-                    placeholder={`Buscar por ${searchType === 'nome' ? 'nome' : searchType === 'cnpj' ? 'CNPJ' : 'nicho'}`}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400" />
-                  </div>
-                </div>
+          <EmpresaSearchFields
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            searchType={searchType}
+            setSearchType={setSearchType}
+            cidadeFilter={cidadeFilter}
+            setCidadeFilter={setCidadeFilter}
+            nichoFilter={nichoFilter}
+            setNichoFilter={setNichoFilter}
+            cidades={cidades}
+          />
+          
+          <div className="flex items-end justify-end mt-4">
+            {searchType === 'mapa' && (
+              <div className="flex flex-col h-full mr-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={getCurrentLocation}
+                  className="flex items-center gap-2 h-10"
+                  disabled={!apiKey}
+                >
+                  <Locate size={16} />
+                  Usar minha localização
+                </Button>
               </div>
             )}
             
-            <div className={searchType === 'mapa' ? "md:col-span-2" : "md:col-span-1"}>
-              {searchType === 'mapa' && (
-                <div className="flex flex-col h-full">
-                  <label className="block text-sm font-medium mb-1">Localização</label>
-                  <button 
-                    type="button" 
-                    onClick={getCurrentLocation}
-                    className="wp-button-secondary flex items-center gap-2 h-10"
-                    disabled={!apiKey}
-                  >
-                    <Locate size={16} />
-                    Usar minha localização
-                  </button>
-                </div>
+            <Button 
+              type="submit"
+              className="flex items-center justify-center gap-2"
+              disabled={isSearching || (searchType === 'mapa' && !apiKey)}
+            >
+              {searchType === 'mapa' ? (
+                <>
+                  <MapPin size={16} />
+                  {isSearching ? 'Buscando...' : 'Buscar empresas próximas'}
+                </>
+              ) : (
+                <>{isSearching ? 'Buscando...' : 'Buscar'}</>
               )}
-            </div>
-            
-            <div className="flex items-end">
-              <button 
-                type="submit" 
-                className="wp-button w-full flex items-center justify-center gap-2"
-                disabled={isSearching || (searchType === 'mapa' && !apiKey)}
-              >
-                {searchType === 'mapa' ? (
-                  <>
-                    <MapPin size={16} />
-                    {isSearching ? 'Buscando...' : 'Buscar empresas próximas'}
-                  </>
-                ) : (
-                  <>{isSearching ? 'Buscando...' : 'Buscar'}</>
-                )}
-              </button>
-            </div>
+            </Button>
           </div>
         </form>
       </div>
