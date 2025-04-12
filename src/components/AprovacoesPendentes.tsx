@@ -1,8 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, X, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { fetchPendingEmpresas, updateEmpresaStatus } from '@/components/empresa/empresaService';
+import { useAdminPermission } from '@/hooks/use-admin-permission';
+import { Database } from '@/integrations/supabase/types';
+
+type NichoType = Database['public']['Enums']['nicho_type'];
+type StatusType = Database['public']['Enums']['status_type'];
 
 interface PendenteData {
   id: string;
@@ -14,15 +20,64 @@ interface PendenteData {
   telefone: string;
 }
 
+interface EmpresaData {
+  id: string;
+  nome_fantasia: string;
+  cnpj: string;
+  created_at: string;
+  email: string;
+  telefone: string;
+  nicho: NichoType;
+  status: StatusType;
+}
+
 const AprovacoesPendentes: React.FC = () => {
   const [pendentes, setPendentes] = useState<PendenteData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const { toast } = useToast();
+  const { checkAdminPermission } = useAdminPermission();
+  
+  useEffect(() => {
+    loadPendingCompanies();
+  }, []);
+
+  const loadPendingCompanies = async () => {
+    if (!checkAdminPermission()) return;
+    
+    try {
+      setIsLoading(true);
+      const empresas = await fetchPendingEmpresas();
+      
+      // Transform to our display format
+      const mappedData: PendenteData[] = empresas.map((empresa: EmpresaData) => ({
+        id: empresa.id,
+        tipo: 'empresa',
+        nome: empresa.nome_fantasia,
+        documento: empresa.cnpj,
+        dataCadastro: new Date(empresa.created_at).toLocaleDateString('pt-BR'),
+        email: empresa.email,
+        telefone: empresa.telefone
+      }));
+      
+      setPendentes(mappedData);
+    } catch (error) {
+      console.error('Error loading pending companies:', error);
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar as aprovações pendentes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const handleApprove = async (id: string) => {
+    if (!checkAdminPermission()) return;
+    
     try {
-      // Mock API call - would call actual API in real implementation
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await updateEmpresaStatus(id, 'ativo');
       
       // Update local state
       setPendentes(pendentes.filter(item => item.id !== id));
@@ -41,9 +96,10 @@ const AprovacoesPendentes: React.FC = () => {
   };
   
   const handleReject = async (id: string) => {
+    if (!checkAdminPermission()) return;
+    
     try {
-      // Mock API call - would call actual API in real implementation
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await updateEmpresaStatus(id, 'inativo');
       
       // Update local state
       setPendentes(pendentes.filter(item => item.id !== id));
@@ -74,7 +130,11 @@ const AprovacoesPendentes: React.FC = () => {
     <div className="space-y-6">
       <h1 className="wp-header">Aprovações Pendentes</h1>
       
-      {pendentes.length === 0 ? (
+      {isLoading ? (
+        <div className="wp-card flex justify-center p-6">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      ) : pendentes.length === 0 ? (
         <div className="wp-notice-success">
           <p className="font-medium">Parabéns!</p>
           <p>Não há aprovações pendentes no momento.</p>

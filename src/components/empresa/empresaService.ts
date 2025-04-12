@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from '@/integrations/supabase/types';
 import { EmpresaFormData } from './EmpresaForm';
@@ -154,3 +153,38 @@ export const updateEmpresa = async (id: string, data: Partial<EmpresaFormData>) 
   
   return result;
 };
+
+/**
+ * Update the status of a company
+ */
+export async function updateEmpresaStatus(empresaId: string, status: 'ativo' | 'pendente' | 'inativo'): Promise<boolean> {
+  const { error } = await supabase
+    .from('empresas')
+    .update({ status })
+    .eq('id', empresaId);
+  
+  if (error) {
+    console.error('Error updating company status:', error);
+    throw error;
+  }
+  
+  return true;
+}
+
+/**
+ * Fetch companies with pending status
+ */
+export async function fetchPendingEmpresas() {
+  const { data, error } = await supabase
+    .from('empresas')
+    .select('*')
+    .eq('status', 'pendente')
+    .order('created_at', { ascending: false });
+    
+  if (error) {
+    console.error('Error fetching pending companies:', error);
+    throw error;
+  }
+  
+  return data || [];
+}

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Building } from 'lucide-react';
+import { Building, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EmpresaForm from './empresa/EmpresaForm';
@@ -25,6 +25,14 @@ const CadastroEmpresa = () => {
         Cadastro de Empresas
       </h1>
 
+      <div className="wp-notice-info flex items-start mb-4">
+        <Info className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="font-medium">Processo de aprovação</p>
+          <p className="text-sm">Após o cadastro, a empresa ficará com status pendente até que um administrador aprove os dados enviados.</p>
+        </div>
+      </div>
+
       <Tabs 
         value={activeTab} 
         onValueChange={setActiveTab}
@@ -41,7 +49,7 @@ const CadastroEmpresa = () => {
         
         <TabsContent value="importacao">
           <ImportExportEmpresas
-            onImportSuccess={handleImportSuccess} // Passamos a prop aqui
+            onImportSuccess={handleImportSuccess}
           />
         </TabsContent>
       </Tabs>

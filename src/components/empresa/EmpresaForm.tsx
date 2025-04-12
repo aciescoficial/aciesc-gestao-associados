@@ -76,7 +76,7 @@ const EmpresaForm: React.FC = () => {
       
       toast({
         title: "Cadastro realizado com sucesso!",
-        description: "A empresa foi cadastrada e está aguardando aprovação.",
+        description: "A empresa foi cadastrada e está aguardando aprovação por um administrador.",
       });
       
       reset();
