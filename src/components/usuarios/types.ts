@@ -1,12 +1,22 @@
 
 export type UserRole = "user" | "admin" | "empresa";
 
+export type UserTag = 
+  | "corretor" 
+  | "corretor_autonomo" 
+  | "empresa_conveniada" 
+  | "diretoria_aciesc" 
+  | "administrador" 
+  | "financeiro" 
+  | "proprietario_imobiliaria";
+
 export interface UserProfile {
   id: string;
   user_id: string;
   name: string;
   email: string;
   role: UserRole;
+  tags?: UserTag[];
   created_at?: string;
   avatar_url?: string;
   active?: boolean;
@@ -18,6 +28,12 @@ export interface RoleInfo {
   name: string;
   description: string;
   icon: JSX.Element;
+}
+
+export interface TagInfo {
+  id: UserTag;
+  name: string;
+  description: string;
 }
 
 export interface Permission {
@@ -42,6 +58,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  tags?: UserTag[];
   active: boolean;
   createdAt: Date;
 }

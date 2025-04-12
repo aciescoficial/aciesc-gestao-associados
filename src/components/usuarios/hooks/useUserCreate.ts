@@ -1,198 +1,83 @@
-import { useState } from 'react';
-import { UserRole, User } from '../types';
-import { supabase, handleSupabaseError } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+
+import { useState, useCallback } from 'react';
+import { User, UserRole, UserTag } from '../types';
+import { supabase } from '@/integrations/supabase/client';
 import { mapToDbRole } from '../utils/roleUtils';
-import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 
 export const useUserCreate = (onSuccess: (user: User) => void) => {
-  const [newUser, setNewUser] = useState({
+  const [newUser, setNewUser] = useState<Partial<User>>({
     name: '',
     email: '',
     role: 'user' as UserRole,
-    password: '',
-    paymentProof: null as File | null
+    tags: [] as UserTag[],
+    active: true
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
-  const handleNewUserChange = (field: string, value: string | File | null) => {
+  const handleNewUserChange = (field: string, value: any) => {
     setNewUser(prev => ({ ...prev, [field]: value }));
   };
 
-  const addUser = async () => {
-    setIsLoading(true);
+  const addUser = useCallback(async () => {
     try {
-      // Validate input
-      if (!newUser.name || !newUser.email || !newUser.password) {
-        toast({
-          title: "Campos obrigatórios",
-          description: "Por favor, preencha todos os campos obrigatórios.",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Map the role properly before sending to Supabase
-      const dbRole = mapToDbRole(newUser.role);
-
-      // Variable to store user data - not using const so we can reassign it
-      let userData = null;
-      let userId = '';
-
-      // Try admin API first
-      try {
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: newUser.email,
-          password: newUser.password,
-          email_confirm: true,
-          user_metadata: {
-            name: newUser.name,
-            role: dbRole
-          }
-        });
-
-        if (authError) throw authError;
-        
-        userData = authData;
-        userId = authData.user?.id || '';
-      } catch (adminError) {
-        console.log("Admin API failed, falling back to standard signup:", adminError);
-        
-        // Fallback to regular signup
-        const { data: regularAuthData, error: regularAuthError } = await supabase.auth.signUp({
-          email: newUser.email,
-          password: newUser.password,
-          options: {
-            data: {
-              name: newUser.name,
-              role: dbRole
-            }
-          }
-        });
-        
-        if (regularAuthError) throw regularAuthError;
-        
-        if (regularAuthData && regularAuthData.user) {
-          userData = regularAuthData;
-          userId = regularAuthData.user.id;
-        } else {
-          throw new Error('Não foi possível criar o usuário usando método padrão.');
+      // Step 1: Create the user in auth.users
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: newUser.email!,
+        email_confirm: true,
+        password: 'temporary-password', // Temporary password, will be changed on first login
+        user_metadata: {
+          name: newUser.name,
+          role: mapToDbRole(newUser.role as UserRole),
+          tags: newUser.tags
         }
-      }
-      
-      if (userData && userId) {
-        // Set the user role in profiles table
+      });
+
+      if (authError) throw authError;
+
+      // Step 2: Update the profile with role and tags
+      if (authData && authData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
             name: newUser.name,
-            role: dbRole as any // Cast to any to bypass type checking since we've verified the mapping is correct
+            role: mapToDbRole(newUser.role as UserRole),
+            tags: newUser.tags || []
           })
-          .eq('id', userId);
-        
-        if (profileError) {
-          console.error("Error updating profile role:", profileError);
-          // Continue anyway since the user was created
-        }
+          .eq('id', authData.user.id);
 
-        // Upload payment proof if provided
-        if (newUser.paymentProof) {
-          const fileExt = newUser.paymentProof.name.split('.').pop();
-          const fileName = `${userId}-payment-proof.${fileExt}`;
-          const filePath = `payment-proofs/${fileName}`;
-          
-          // Create storage bucket if it doesn't exist
-          try {
-            // Check if bucket exists
-            const { data: buckets } = await supabase
-              .storage
-              .listBuckets();
-            
-            const bucketExists = buckets?.some(bucket => bucket.name === 'payment-proofs');
-            
-            if (!bucketExists) {
-              // Create the bucket using storage API
-              const { error } = await supabase.storage.createBucket('payment-proofs', {
-                public: false,
-                fileSizeLimit: 10485760 // 10MB
-              });
-              
-              if (error) throw error;
-              console.log('Created payment-proofs bucket');
-            }
-          } catch (bucketError) {
-            console.error("Error checking/creating bucket:", bucketError);
-          }
-          
-          // Upload the file
-          const { error: uploadError } = await supabase
-            .storage
-            .from('payment-proofs')
-            .upload(filePath, newUser.paymentProof, {
-              cacheControl: '3600',
-              upsert: false
-            });
-          
-          if (uploadError) {
-            console.error("Error uploading payment proof:", uploadError);
-            toast({
-              title: "Aviso",
-              description: "Usuário criado, mas houve um erro ao fazer upload do comprovante de pagamento.",
-              variant: "default"
-            });
-          }
-        }
-        
-        const createdUser: User = {
-          id: userId,
-          name: newUser.name,
-          email: newUser.email,
-          role: newUser.role,
+        if (profileError) throw profileError;
+
+        // Return the created user to the caller
+        onSuccess({
+          id: authData.user.id,
+          name: newUser.name!,
+          email: newUser.email!,
+          role: newUser.role as UserRole,
+          tags: newUser.tags || [],
           active: true,
           createdAt: new Date()
-        };
-        
-        onSuccess(createdUser);
-        resetNewUser();
-        
-        toast({
-          title: "Usuário criado",
-          description: `O usuário ${createdUser.name} foi criado com sucesso.`
         });
-      } else {
-        throw new Error('Não foi possível criar o usuário. Nenhum dado retornado.');
-      }
-    } catch (error) {
-      const errorMessage = handleSupabaseError(error);
-      
-      toast({
-        title: "Erro ao criar usuário",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      console.error("Error creating user:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const resetNewUser = () => {
-    setNewUser({
-      name: '',
-      email: '',
-      role: 'user',
-      password: '',
-      paymentProof: null
-    });
-  };
+        // Reset the form
+        setNewUser({
+          name: '',
+          email: '',
+          role: 'user' as UserRole,
+          tags: [] as UserTag[],
+          active: true
+        });
+
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      return false;
+    }
+  }, [newUser, onSuccess]);
 
   return {
     newUser,
-    isLoading,
     handleNewUserChange,
-    addUser,
-    resetNewUser
+    addUser
   };
 };

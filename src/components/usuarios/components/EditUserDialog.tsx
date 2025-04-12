@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { User, UserRole } from '../types';
+import { User, UserRole, UserTag } from '../types';
+import { getUserTags } from '../utils/roleUtils';
 
 interface EditUserDialogProps {
   isOpen: boolean;
@@ -38,9 +40,24 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 }) => {
   if (!selectedUser) return null;
 
+  const availableTags = getUserTags();
+
+  const handleTagToggle = (tagId: UserTag, checked: boolean) => {
+    const currentTags = selectedUser.tags || [];
+    let newTags: UserTag[];
+    
+    if (checked) {
+      newTags = [...currentTags, tagId];
+    } else {
+      newTags = currentTags.filter(tag => tag !== tagId);
+    }
+    
+    onSelectedUserChange('tags', newTags);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Usuário</DialogTitle>
           <DialogDescription>
@@ -82,6 +99,28 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
+          
+          <div className="space-y-2">
+            <Label>Tags do Usuário</Label>
+            <div className="grid grid-cols-1 gap-2 mt-2">
+              {availableTags.map((tag) => (
+                <div className="flex items-center space-x-2" key={tag.id}>
+                  <Checkbox 
+                    id={`tag-${tag.id}`}
+                    checked={selectedUser.tags?.includes(tag.id) || false}
+                    onCheckedChange={(checked) => handleTagToggle(tag.id, checked === true)}
+                  />
+                  <Label 
+                    htmlFor={`tag-${tag.id}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {tag.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+          
           <div className="flex items-center space-x-2">
             <Switch
               id="edit-active"

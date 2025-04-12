@@ -1,95 +1,72 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { User } from '../types';
-import { supabase, handleSupabaseError } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { User, UserRole, UserTag } from '../types';
 import { mapFromDbRole } from '../utils/roleUtils';
 
 export const useUserFetch = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
 
-  const fetchUsers = useCallback(async () => {
+  // Filter users based on search term
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm.trim()) return users;
+    
+    const normalizedSearch = searchTerm.toLowerCase();
+    return users.filter(
+      user => 
+        user.name.toLowerCase().includes(normalizedSearch) ||
+        user.email.toLowerCase().includes(normalizedSearch)
+    );
+  }, [users, searchTerm]);
+
+  // Fetch all users from the database
+  const fetchUsers = async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      // Fetch profiles data
-      const { data: profilesData, error: profilesError } = await supabase
+      // Fetch profiles with role information
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*');
-      
+
       if (profilesError) throw profilesError;
 
-      // If we have profiles data, format it
-      if (profilesData && profilesData.length > 0) {
-        // Get user emails from auth.users if possible (requires admin rights)
-        let authUsers: {id: string, email: string}[] = [];
-        try {
-          // Try to get user emails from auth schema using the RPC function
-          const { data, error } = await supabase
-            .rpc('get_auth_users');
-          
-          if (!error && data) {
-            // Make sure we handle the data as an array
-            authUsers = Array.isArray(data) ? data : [];
-          }
-        } catch (error) {
-          console.warn("Could not fetch auth users data. Continuing with profiles only.", error);
-        }
-        
-        // Map auth users to a dictionary for faster lookups
-        const authUsersDict = authUsers.reduce((dict, user) => {
-          dict[user.id] = user.email;
-          return dict;
-        }, {} as Record<string, string>);
-        
-        // Format users from profiles
-        const formattedUsers: User[] = profilesData.map(profile => {
-          return {
-            id: profile.id,
-            name: profile.name || '',
-            email: authUsersDict[profile.id] || '', // Get email from dictionary if available
-            role: mapFromDbRole(profile.role),
-            active: true, // Default to active since this isn't in the database
-            createdAt: profile.created_at ? new Date(profile.created_at) : new Date()
-          };
-        });
-        
-        setUsers(formattedUsers);
-      } else {
-        setUsers([]);
-      }
-    } catch (error) {
-      const errorMessage = handleSupabaseError(error);
-      
-      toast({
-        title: "Erro ao carregar usuários",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      console.error("Error fetching users:", error);
-      setUsers([]);
+      // Map profiles to User objects
+      const mappedUsers: User[] = profiles.map(profile => ({
+        id: profile.id,
+        name: profile.name || '',
+        email: profile.email || '',  // This might need additional fetching if not stored in profiles
+        role: mapFromDbRole(profile.role),
+        tags: profile.tags || [],
+        active: profile.active !== false, // Default to true if not specified
+        createdAt: new Date(profile.created_at)
+      }));
+
+      setUsers(mappedUsers);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  };
 
+  // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
-
-  const filteredUsers = users.filter(user => 
-    (user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  }, []);
 
   return {
     users,
-    filteredUsers,
     loading,
-    searchTerm, 
+    error,
+    searchTerm,
     setSearchTerm,
+    filteredUsers,
     fetchUsers
   };
 };

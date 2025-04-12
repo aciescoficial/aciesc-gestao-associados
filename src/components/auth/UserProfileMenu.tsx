@@ -11,14 +11,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Link } from 'react-router-dom';
-import { Settings, LogOut, User, UserCog } from 'lucide-react';
+import { Settings, LogOut, User, UserCog, Tag } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
+import { UserTag } from '../usuarios/types';
+import { getTagBadgeColor, getUserTags } from '../usuarios/utils/roleUtils';
 
 const UserProfileMenu = () => {
   const { user, signOut, isAdmin } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>('');
+  const [userTags, setUserTags] = useState<UserTag[]>([]);
   
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -27,7 +31,7 @@ const UserProfileMenu = () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('name, avatar_url')
+          .select('name, avatar_url, tags')
           .eq('id', user.id)
           .single();
           
@@ -36,6 +40,7 @@ const UserProfileMenu = () => {
         if (data) {
           setUserName(data.name || '');
           setAvatarUrl(data.avatar_url);
+          setUserTags(data.tags || []);
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -66,6 +71,12 @@ const UserProfileMenu = () => {
     return email.substring(0, 2).toUpperCase();
   };
 
+  // Get tag name from id
+  const getTagName = (tagId: UserTag) => {
+    const tag = getUserTags().find(t => t.id === tagId);
+    return tag ? tag.name : tagId.replace(/_/g, ' ');
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -76,8 +87,26 @@ const UserProfileMenu = () => {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuLabel className="flex flex-col">
+          <span>{userName}</span>
+          <span className="text-xs text-muted-foreground">{user.email}</span>
+          
+          {userTags && userTags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {userTags.map(tag => (
+                <Badge 
+                  key={tag} 
+                  variant="outline" 
+                  className={`text-xs ${getTagBadgeColor(tag)}`}
+                >
+                  {getTagName(tag)}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </DropdownMenuLabel>
+        
         <DropdownMenuItem asChild>
           <Link to="/perfil" className="flex items-center">
             <User className="mr-2 h-4 w-4" />

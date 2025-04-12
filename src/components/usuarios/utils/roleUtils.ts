@@ -1,5 +1,5 @@
 
-import { UserRole } from '../types';
+import { UserRole, UserTag } from '../types';
 
 // Original database role types 
 export type DatabaseUserRole = 'admin' | 'user' | 'associado' | 'diretoria' | 'conveniado' | 'empresa';
@@ -58,6 +58,41 @@ export const getRoleBadgeColor = (role: UserRole): string => {
       return 'bg-blue-100 text-blue-800 border-blue-200';
     case 'empresa':
       return 'bg-amber-100 text-amber-800 border-amber-200';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
+
+// Get all available user tags
+export const getUserTags = (): { id: UserTag; name: string }[] => {
+  return [
+    { id: 'corretor', name: 'Corretor' },
+    { id: 'corretor_autonomo', name: 'Corretor Autônomo' },
+    { id: 'empresa_conveniada', name: 'Empresa Conveniada' },
+    { id: 'diretoria_aciesc', name: 'Diretoria ACIESC' },
+    { id: 'administrador', name: 'Administrador' },
+    { id: 'financeiro', name: 'Financeiro' },
+    { id: 'proprietario_imobiliaria', name: 'Proprietário de Imobiliária' },
+  ];
+};
+
+// Get tag badge color
+export const getTagBadgeColor = (tag: UserTag): string => {
+  switch (tag) {
+    case 'corretor':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'corretor_autonomo':
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    case 'empresa_conveniada':
+      return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+    case 'diretoria_aciesc':
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    case 'administrador':
+      return 'bg-red-100 text-red-800 border-red-200';
+    case 'financeiro':
+      return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+    case 'proprietario_imobiliaria':
+      return 'bg-orange-100 text-orange-800 border-orange-200';
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200';
   }
