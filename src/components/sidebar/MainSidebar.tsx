@@ -19,8 +19,8 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ location }) => {
     <Sidebar 
       variant="sidebar" 
       collapsible="icon" 
-      className="bg-aciesc-primary text-white z-30 border-r border-aciesc-dark w-[60px]"
-      collapsedSize="60px"
+      className="bg-[#1A1F2C] text-white z-30 w-[200px]"
+      style={{ "--sidebar-width": "200px", "--sidebar-width-icon": "64px" } as React.CSSProperties}
     >
       <SidebarHeaderContent />
       <SidebarContent>
