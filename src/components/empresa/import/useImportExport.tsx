@@ -5,8 +5,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { logOperation } from '@/components/audit/auditLogService';
 import Papa from 'papaparse';
-import { EmpresaData, ImportError } from './types';
-import { validateEmpresaData } from './validationUtils';
+import { EmpresaData, ImportError, validateEmpresaData } from './validationUtils';
 
 interface UseImportExportProps {
   onImportSuccess: () => void;

@@ -59,7 +59,7 @@ export const logOperation = async (data: LogOperationData) => {
 
 export const getOperationLogs = async (): Promise<OperationLog[]> => {
   try {
-    // Changed the query to use a join approach instead of nested selection
+    // Use a different approach to get the user information
     const { data, error } = await supabase
       .from('operation_logs')
       .select(`
@@ -78,10 +78,18 @@ export const getOperationLogs = async (): Promise<OperationLog[]> => {
     if (error) throw error;
     
     // Transform the data to match our OperationLog type
-    const logs: OperationLog[] = data?.map(log => ({
-      ...log,
-      profiles: log.profiles || null
-    })) || [];
+    // Handle the case where profiles might be null or have an error
+    const logs: OperationLog[] = data?.map(log => {
+      // If profiles is an error or null, replace with null
+      const safeProfiles = log.profiles && typeof log.profiles === 'object' && !('error' in log.profiles) 
+        ? log.profiles as { name: string; email: string; } 
+        : null;
+        
+      return {
+        ...log,
+        profiles: safeProfiles
+      };
+    }) || [];
     
     return logs;
   } catch (err) {
