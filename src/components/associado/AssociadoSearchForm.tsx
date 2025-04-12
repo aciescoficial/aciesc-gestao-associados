@@ -1,15 +1,16 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, RefreshCw, Filter } from 'lucide-react';
+import { Search, RefreshCw, Filter, Car } from 'lucide-react';
 import { AssociadoStatus } from './types';
 
 interface AssociadoSearchFormProps {
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  searchType: 'nome' | 'cpf' | 'creci';
-  setSearchType: React.Dispatch<React.SetStateAction<'nome' | 'cpf' | 'creci'>>;
+  searchType: 'nome' | 'cpf' | 'creci' | 'placa';
+  setSearchType: React.Dispatch<React.SetStateAction<'nome' | 'cpf' | 'creci' | 'placa'>>;
   statusFilter: AssociadoStatus | 'todos';
   setStatusFilter: React.Dispatch<React.SetStateAction<AssociadoStatus | 'todos'>>;
   cidadeFilter: string;
@@ -45,7 +46,9 @@ const AssociadoSearchForm: React.FC<AssociadoSearchFormProps> = ({
           <label htmlFor="search" className="block text-sm font-medium text-gray-700">
             Buscar por {
               searchType === 'nome' ? 'nome' : 
-              searchType === 'cpf' ? 'CPF' : 'CRECI'
+              searchType === 'cpf' ? 'CPF' : 
+              searchType === 'creci' ? 'CRECI' :
+              'placa do veículo'
             }
           </label>
           <div className="relative">
@@ -53,14 +56,20 @@ const AssociadoSearchForm: React.FC<AssociadoSearchFormProps> = ({
               id="search"
               placeholder={`Digite o ${
                 searchType === 'nome' ? 'nome' : 
-                searchType === 'cpf' ? 'CPF' : 'CRECI'
+                searchType === 'cpf' ? 'CPF' : 
+                searchType === 'creci' ? 'CRECI' :
+                'placa do veículo'
               } para buscar...`}
               className="pl-10 shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              {searchType === 'placa' ? (
+                <Car className="h-5 w-5 text-gray-400" />
+              ) : (
+                <Search className="h-5 w-5 text-gray-400" />
+              )}
             </div>
           </div>
         </div>
@@ -69,7 +78,7 @@ const AssociadoSearchForm: React.FC<AssociadoSearchFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-2">Buscar por</label>
           <Select 
             value={searchType}
-            onValueChange={(value) => setSearchType(value as 'nome' | 'cpf' | 'creci')}
+            onValueChange={(value) => setSearchType(value as 'nome' | 'cpf' | 'creci' | 'placa')}
           >
             <SelectTrigger className="shadow-sm">
               <SelectValue placeholder="Nome" />
@@ -78,6 +87,7 @@ const AssociadoSearchForm: React.FC<AssociadoSearchFormProps> = ({
               <SelectItem value="nome">Nome</SelectItem>
               <SelectItem value="cpf">CPF</SelectItem>
               <SelectItem value="creci">CRECI</SelectItem>
+              <SelectItem value="placa">Placa do Veículo</SelectItem>
             </SelectContent>
           </Select>
         </div>

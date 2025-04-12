@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Search, RefreshCw, Filter } from 'lucide-react';
+import { Search, RefreshCw, Filter, Car } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { 
@@ -40,18 +41,25 @@ const ConveniadoSearchForm: React.FC<ConveniadoSearchFormProps> = ({
   fetchConveniados,
   loading
 }) => {
+  // Check if search term looks like a license plate format
+  const isLicensePlateSearch = /^[A-Za-z0-9]{3,8}$/.test(searchTerm);
+  
   return (
     <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
       <form onSubmit={handleSearch} className="flex flex-1 gap-2">
         <div className="relative flex-1">
           <Input
-            placeholder="Buscar por nome, CPF, CRECI, telefone ou email..."
+            placeholder="Buscar por nome, CPF, CRECI, telefone, email ou placa do veículo..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+            {isLicensePlateSearch ? (
+              <Car className="h-5 w-5 text-gray-400" />
+            ) : (
+              <Search className="h-5 w-5 text-gray-400" />
+            )}
           </div>
         </div>
         <Button type="submit">Buscar</Button>

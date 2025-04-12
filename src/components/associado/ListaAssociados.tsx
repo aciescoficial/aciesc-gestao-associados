@@ -19,11 +19,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, UserCheck, UserX, Clock, RefreshCw, Filter } from 'lucide-react';
+import { Search, UserCheck, UserX, Clock, RefreshCw, Filter, Car } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 type AssociadoStatus = 'pendente' | 'ativo' | 'inativo';
+type SearchType = 'nome' | 'cpf' | 'creci' | 'placa';
 
 interface Associado {
   id: string;
@@ -44,6 +45,7 @@ const ListaAssociados: React.FC = () => {
   const [associados, setAssociados] = useState<Associado[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState<SearchType>('nome');
   const [statusFilter, setStatusFilter] = useState<AssociadoStatus | 'todos'>('todos');
   const [cidadeFilter, setCidadeFilter] = useState<string>('todas');
   const [cidades, setCidades] = useState<string[]>([]);
@@ -97,7 +99,16 @@ const ListaAssociados: React.FC = () => {
 
       // Apply search term filter if provided
       if (searchTerm) {
-        query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,telefone.ilike.%${searchTerm}%,creci.ilike.%${searchTerm}%`);
+        if (searchType === 'nome') {
+          query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
+        } else if (searchType === 'cpf') {
+          query = query.ilike('cpf', `%${searchTerm}%`);
+        } else if (searchType === 'creci') {
+          query = query.ilike('creci', `%${searchTerm}%`);
+        } else if (searchType === 'placa') {
+          // Add search by vehicle plate
+          query = query.or(`placa_principal.ilike.%${searchTerm}%,placa_secundaria.ilike.%${searchTerm}%`);
+        }
       }
 
       // Add pagination if not showing all
@@ -167,14 +178,37 @@ const ListaAssociados: React.FC = () => {
           <form onSubmit={handleSearch} className="flex flex-1 gap-2">
             <div className="relative flex-1">
               <Input
-                placeholder="Buscar por nome, CPF, CRECI, telefone ou email..."
+                placeholder={`Buscar por ${searchType === 'nome' ? 'nome' : 
+                         searchType === 'cpf' ? 'CPF' : 
+                         searchType === 'creci' ? 'CRECI' : 
+                         'placa do veículo'}`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                {searchType === 'placa' ? (
+                  <Car className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <Search className="h-5 w-5 text-gray-400" />
+                )}
               </div>
+            </div>
+            <div className="w-32">
+              <Select 
+                value={searchType}
+                onValueChange={(value) => setSearchType(value as SearchType)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Nome" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nome">Nome</SelectItem>
+                  <SelectItem value="cpf">CPF</SelectItem>
+                  <SelectItem value="creci">CRECI</SelectItem>
+                  <SelectItem value="placa">Placa</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Button type="submit" variant="default">Buscar</Button>
           </form>

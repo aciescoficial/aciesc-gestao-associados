@@ -6,7 +6,7 @@ import { Associado, AssociadoStatus } from './types';
 
 export const useAssociadoSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState<'nome' | 'cpf' | 'creci'>('nome');
+  const [searchType, setSearchType] = useState<'nome' | 'cpf' | 'creci' | 'placa'>('nome');
   const [statusFilter, setStatusFilter] = useState<AssociadoStatus | 'todos'>('todos');
   const [cidadeFilter, setCidadeFilter] = useState<string>('todas');
   const [cidades, setCidades] = useState<string[]>([]);
@@ -57,6 +57,9 @@ export const useAssociadoSearch = () => {
           query = query.ilike('cpf', `%${searchTerm}%`);
         } else if (searchType === 'creci') {
           query = query.ilike('creci', `%${searchTerm}%`);
+        } else if (searchType === 'placa') {
+          // Add search by vehicle plate (primary or secondary)
+          query = query.or(`placa_principal.ilike.%${searchTerm}%,placa_secundaria.ilike.%${searchTerm}%`);
         }
       }
       

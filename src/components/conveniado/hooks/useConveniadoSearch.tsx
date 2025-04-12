@@ -3,78 +3,81 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-export type ConveniadoStatus = 'pendente' | 'ativo' | 'inativo';
+export type ConveniadoStatus = 'ativo' | 'pendente' | 'inativo';
 
-export interface Conveniado {
+interface Conveniado {
   id: string;
   nome: string;
   sobrenome: string;
   cpf: string;
   email: string;
   telefone: string;
-  cidade: string;
   creci?: string;
+  cidade: string;
+  status: ConveniadoStatus;
   placa_principal?: string;
   placa_secundaria?: string;
-  status: ConveniadoStatus;
   created_at: string;
 }
 
 export const useConveniadoSearch = () => {
-  const [conveniados, setConveniados] = useState<Conveniado[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<ConveniadoStatus | 'todos'>('todos');
-  const [cidadeFilter, setCidadeFilter] = useState<string>('');
+  const [cidadeFilter, setCidadeFilter] = useState('todas');
   const [cidades, setCidades] = useState<string[]>([]);
+  const [conveniados, setConveniados] = useState<Conveniado[]>([]);
+  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchCidades();
+  }, []);
 
   const fetchCidades = async () => {
     try {
-      // Using associados table since conveniados table seems to be missing
       const { data, error } = await supabase
-        .from('associados')
+        .from('conveniados')
         .select('cidade')
         .order('cidade');
       
       if (error) throw error;
       
-      // Type assertion to safely use the data
-      const associadosData = data as Array<{ cidade: string }> || [];
-      const uniqueCidades = Array.from(new Set(associadosData.map(item => item.cidade)));
+      const conveniadosData = data as { cidade: string }[];
+      const uniqueCidades = Array.from(new Set(conveniadosData.map(item => item.cidade)))
+        .filter(city => city) // Filter out null/undefined
+        .sort();
+      
       setCidades(uniqueCidades);
     } catch (error) {
       console.error('Error fetching cities:', error);
     }
   };
 
-  useEffect(() => {
-    fetchCidades();
-  }, []);
-
   const fetchConveniados = async () => {
     setLoading(true);
+    
     try {
-      // Using associados table as a temporary replacement for conveniados
-      let query = supabase
-        .from('associados')
-        .select('*', { count: 'exact' });
-
-      if (statusFilter !== 'todos') {
-        query = query.eq('status', statusFilter as ConveniadoStatus);
+      let query = supabase.from('conveniados').select('*', { count: 'exact' });
+      
+      // Apply search term filter if provided
+      if (searchTerm.trim()) {
+        query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%,creci.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,telefone.ilike.%${searchTerm}%,placa_principal.ilike.%${searchTerm}%,placa_secundaria.ilike.%${searchTerm}%`);
       }
       
-      if (cidadeFilter) {
+      // Apply status filter if not 'todos'
+      if (statusFilter !== 'todos') {
+        query = query.eq('status', statusFilter);
+      }
+      
+      // Apply city filter if not 'todas'
+      if (cidadeFilter !== 'todas') {
         query = query.eq('cidade', cidadeFilter);
       }
-
-      if (searchTerm) {
-        query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%,cpf.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,telefone.ilike.%${searchTerm}%,creci.ilike.%${searchTerm}%`);
-      }
-
+      
+      // Add pagination if itemsPerPage is not -1 (which means "show all")
       if (itemsPerPage !== -1) {
         const from = (currentPage - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
@@ -95,24 +98,24 @@ export const useConveniadoSearch = () => {
     } catch (error) {
       console.error('Error fetching conveniados:', error);
       toast({
-        title: 'Erro ao carregar conveniados',
-        description: 'Não foi possível carregar a lista de conveniados.',
-        variant: 'destructive'
+        title: "Erro na busca",
+        description: "Ocorreu um erro ao realizar a busca. Tente novamente.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchConveniados();
-  }, [currentPage, statusFilter, cidadeFilter, itemsPerPage]);
-  
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page on new search
     fetchConveniados();
   };
+
+  useEffect(() => {
+    fetchConveniados();
+  }, [currentPage, itemsPerPage, statusFilter, cidadeFilter]);
 
   return {
     conveniados,
