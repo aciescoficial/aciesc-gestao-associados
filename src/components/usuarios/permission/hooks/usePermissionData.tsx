@@ -3,7 +3,12 @@ import { useState, useEffect } from 'react';
 import { UserRole } from '../../types';
 import { MenuPermission, SaveLoadingState } from '../types';
 import { useToast } from '@/hooks/use-toast';
-import { generateDefaultPermissions, logPermissionChange } from '../services/permissionService';
+import { 
+  generateDefaultPermissions, 
+  logPermissionChange, 
+  savePermissions, 
+  fetchPermissionsFromDB 
+} from '../services/permissionService';
 
 export const usePermissionData = () => {
   const [menuPermissions, setMenuPermissions] = useState<Record<UserRole, MenuPermission[]>>({
@@ -13,15 +18,26 @@ export const usePermissionData = () => {
     diretoria: []
   });
   const [loading, setLoading] = useState(true);
+  const [saveInProgress, setSaveInProgress] = useState(false);
   const { toast } = useToast();
   const [saveLoading, setSaveLoading] = useState<SaveLoadingState>({});
 
   const fetchPermissions = async () => {
     setLoading(true);
     try {
-      // In a real app, this would come from an API
-      // For now, we use the default permissions
-      setMenuPermissions(generateDefaultPermissions());
+      // Try to fetch from database first
+      const { data: dbPermissions, error } = await fetchPermissionsFromDB();
+      
+      if (error) {
+        throw error;
+      }
+
+      if (dbPermissions) {
+        setMenuPermissions(dbPermissions);
+      } else {
+        // Fall back to default permissions if none in DB
+        setMenuPermissions(generateDefaultPermissions());
+      }
     } catch (error) {
       console.error("Erro ao carregar permissões:", error);
       toast({
@@ -29,6 +45,9 @@ export const usePermissionData = () => {
         description: "Não foi possível carregar as permissões.",
         variant: "destructive"
       });
+      
+      // Fall back to default permissions
+      setMenuPermissions(generateDefaultPermissions());
     } finally {
       setLoading(false);
     }
@@ -45,9 +64,9 @@ export const usePermissionData = () => {
     try {
       logPermissionChange(role, menuId, undefined, enabled);
       
-      setMenuPermissions(prev => ({
-        ...prev,
-        [role]: prev[role].map(menu => {
+      const updatedPermissions = {
+        ...menuPermissions,
+        [role]: menuPermissions[role].map(menu => {
           if (menu.id === menuId) {
             const updatedSubPermissions = !enabled 
               ? menu.subPermissions.map(subPerm => ({ ...subPerm, enabled: false }))
@@ -61,7 +80,13 @@ export const usePermissionData = () => {
           }
           return menu;
         })
-      }));
+      };
+      
+      setMenuPermissions(updatedPermissions);
+      
+      // Save to database
+      const { error } = await savePermissions(role, updatedPermissions[role]);
+      if (error) throw error;
       
       toast({
         title: "Permissão atualizada",
@@ -86,9 +111,9 @@ export const usePermissionData = () => {
     try {
       logPermissionChange(role, menuId, subPermId, enabled);
       
-      setMenuPermissions(prev => ({
-        ...prev,
-        [role]: prev[role].map(menu => {
+      const updatedPermissions = {
+        ...menuPermissions,
+        [role]: menuPermissions[role].map(menu => {
           if (menu.id === menuId) {
             const menuEnabled = enabled ? true : menu.enabled;
             
@@ -105,7 +130,13 @@ export const usePermissionData = () => {
           }
           return menu;
         })
-      }));
+      };
+      
+      setMenuPermissions(updatedPermissions);
+      
+      // Save to database
+      const { error } = await savePermissions(role, updatedPermissions[role]);
+      if (error) throw error;
       
       toast({
         title: "Permissão atualizada",
@@ -123,12 +154,42 @@ export const usePermissionData = () => {
     }
   };
 
+  const saveAllPermissions = async () => {
+    setSaveInProgress(true);
+    
+    try {
+      // Save each role's permissions
+      const roles: UserRole[] = ['admin', 'user', 'empresa', 'diretoria'];
+      
+      for (const role of roles) {
+        const { error } = await savePermissions(role, menuPermissions[role]);
+        if (error) throw error;
+      }
+      
+      toast({
+        title: "Permissões salvas",
+        description: "Todas as permissões foram salvas com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao salvar permissões:", error);
+      toast({
+        title: "Erro ao salvar permissões",
+        description: "Não foi possível salvar todas as permissões.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaveInProgress(false);
+    }
+  };
+
   return {
     menuPermissions,
     loading,
     saveLoading,
+    saveInProgress,
     fetchPermissions,
     toggleMenuPermission,
-    toggleSubPermission
+    toggleSubPermission,
+    saveAllPermissions
   };
 };

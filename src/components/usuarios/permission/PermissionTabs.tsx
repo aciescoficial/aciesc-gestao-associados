@@ -8,15 +8,19 @@ import { UserRole } from '../types';
 interface PermissionTabsProps {
   menuPermissions: Record<UserRole, MenuPermission[]>;
   saveLoading: SaveLoadingState;
+  saveInProgress: boolean;
   toggleMenuPermission: (role: UserRole, menuId: string, enabled: boolean) => void;
   toggleSubPermission: (role: UserRole, menuId: string, subPermId: string, enabled: boolean) => void;
+  saveAllPermissions: () => void;
 }
 
 const PermissionTabs: React.FC<PermissionTabsProps> = ({
   menuPermissions,
   saveLoading,
+  saveInProgress,
   toggleMenuPermission,
-  toggleSubPermission
+  toggleSubPermission,
+  saveAllPermissions
 }) => {
   return (
     <Tabs defaultValue="admin" className="w-full">
@@ -32,9 +36,11 @@ const PermissionTabs: React.FC<PermissionTabsProps> = ({
           role="admin"
           menuPermissions={menuPermissions.admin}
           saveLoading={saveLoading}
+          saveInProgress={saveInProgress}
           isAdmin={true}
           toggleMenuPermission={toggleMenuPermission}
           toggleSubPermission={toggleSubPermission}
+          onSave={saveAllPermissions}
         />
       </TabsContent>
       
@@ -43,9 +49,11 @@ const PermissionTabs: React.FC<PermissionTabsProps> = ({
           role="diretoria"
           menuPermissions={menuPermissions.diretoria}
           saveLoading={saveLoading}
+          saveInProgress={saveInProgress}
           isAdmin={false}
           toggleMenuPermission={toggleMenuPermission}
           toggleSubPermission={toggleSubPermission}
+          onSave={saveAllPermissions}
         />
       </TabsContent>
       
@@ -54,9 +62,11 @@ const PermissionTabs: React.FC<PermissionTabsProps> = ({
           role="user"
           menuPermissions={menuPermissions.user}
           saveLoading={saveLoading}
+          saveInProgress={saveInProgress}
           isAdmin={false}
           toggleMenuPermission={toggleMenuPermission}
           toggleSubPermission={toggleSubPermission}
+          onSave={saveAllPermissions}
         />
       </TabsContent>
       
@@ -65,9 +75,11 @@ const PermissionTabs: React.FC<PermissionTabsProps> = ({
           role="empresa"
           menuPermissions={menuPermissions.empresa}
           saveLoading={saveLoading}
+          saveInProgress={saveInProgress}
           isAdmin={false}
           toggleMenuPermission={toggleMenuPermission}
           toggleSubPermission={toggleSubPermission}
+          onSave={saveAllPermissions}
         />
       </TabsContent>
     </Tabs>

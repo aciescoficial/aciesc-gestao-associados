@@ -10,16 +10,18 @@ const PermissionPanel: React.FC = () => {
     menuPermissions,
     loading,
     saveLoading,
+    saveInProgress,
     fetchPermissions,
     toggleMenuPermission,
-    toggleSubPermission
+    toggleSubPermission,
+    saveAllPermissions
   } = usePermissionData();
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="wp-header">Gerenciamento de Permissões</h1>
-        <Button onClick={fetchPermissions} disabled={loading}>
+        <Button onClick={fetchPermissions} disabled={loading || saveInProgress}>
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -38,8 +40,10 @@ const PermissionPanel: React.FC = () => {
           <PermissionTabs
             menuPermissions={menuPermissions}
             saveLoading={saveLoading}
+            saveInProgress={saveInProgress}
             toggleMenuPermission={toggleMenuPermission}
             toggleSubPermission={toggleSubPermission}
+            saveAllPermissions={saveAllPermissions}
           />
         )}
       </div>

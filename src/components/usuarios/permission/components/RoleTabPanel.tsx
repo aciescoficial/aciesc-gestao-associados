@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import MenuPermissionItem from './MenuPermissionItem';
 import { UserRole } from '../../types';
 import { MenuPermission, SaveLoadingState } from '../types';
@@ -9,18 +10,22 @@ interface RoleTabPanelProps {
   role: UserRole;
   menuPermissions: MenuPermission[];
   saveLoading: SaveLoadingState;
+  saveInProgress: boolean;
   isAdmin: boolean;
   toggleMenuPermission: (role: UserRole, menuId: string, enabled: boolean) => void;
   toggleSubPermission: (role: UserRole, menuId: string, subPermId: string, enabled: boolean) => void;
+  onSave: () => void;
 }
 
 const RoleTabPanel: React.FC<RoleTabPanelProps> = ({ 
   role, 
   menuPermissions, 
-  saveLoading, 
+  saveLoading,
+  saveInProgress, 
   isAdmin,
   toggleMenuPermission, 
-  toggleSubPermission 
+  toggleSubPermission,
+  onSave
 }) => {
   return (
     <div>
@@ -42,8 +47,26 @@ const RoleTabPanel: React.FC<RoleTabPanelProps> = ({
         ))}
       </div>
       <div className="flex justify-end gap-2 mt-4">
-        <Button variant="outline">Cancelar</Button>
-        <Button>Salvar</Button>
+        <Button 
+          variant="outline" 
+          onClick={() => window.location.reload()}
+          disabled={saveInProgress}
+        >
+          Cancelar
+        </Button>
+        <Button 
+          onClick={onSave}
+          disabled={saveInProgress}
+        >
+          {saveInProgress ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Salvando...
+            </>
+          ) : (
+            "Salvar"
+          )}
+        </Button>
       </div>
     </div>
   );
