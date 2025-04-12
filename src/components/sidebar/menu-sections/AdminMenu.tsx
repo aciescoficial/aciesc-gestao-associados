@@ -1,15 +1,17 @@
 
 import React from 'react';
-import { Users } from 'lucide-react';
+import { UserCog, Shield, CheckSquare } from 'lucide-react';
 import { MenuItem } from '../types/MenuItem';
 
 export const getAdminMenuItems = (): MenuItem[] => {
   return [
     { 
-      header: "Gestão de Usuários", 
+      header: "Admin", 
       roles: ['admin'],
       submenu: [
-        { icon: Users, label: "Usuários", path: "/usuarios", roles: ['admin'] },
+        { icon: UserCog, label: "Usuários", path: "/usuarios", roles: ['admin'] },
+        { icon: Shield, label: "Permissões", path: "/usuarios/permissoes", roles: ['admin'] },
+        { icon: CheckSquare, label: "Aprovações Pendentes", path: "/aprovacoes", roles: ['admin'] },
       ]
     }
   ];

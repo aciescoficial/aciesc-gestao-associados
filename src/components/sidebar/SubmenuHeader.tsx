@@ -16,15 +16,11 @@ const SubmenuHeader: React.FC<SubmenuHeaderProps> = ({
 }) => {
   return (
     <div 
-      className="flex items-center justify-between cursor-pointer py-2 px-4 text-white hover:bg-indigo-700 transition-colors rounded-md my-1"
+      className="flex items-center justify-center cursor-pointer py-2 text-white hover:bg-aciesc-dark transition-colors rounded-md mx-1"
       onClick={toggleMenu}
     >
-      <SidebarGroupLabel className="text-white text-sm font-medium">{header}</SidebarGroupLabel>
-      {isExpanded ? (
-        <ChevronDown className="h-4 w-4 text-white" />
-      ) : (
-        <ChevronRight className="h-4 w-4 text-white" />
-      )}
+      <ChevronDown className="h-4 w-4 text-white" />
+      <span className="sr-only">{header}</span>
     </div>
   );
 };

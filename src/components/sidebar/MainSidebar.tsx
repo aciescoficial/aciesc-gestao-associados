@@ -19,7 +19,8 @@ const MainSidebar: React.FC<MainSidebarProps> = ({ location }) => {
     <Sidebar 
       variant="sidebar" 
       collapsible="icon" 
-      className="bg-indigo-600 text-white z-30 w-60 shrink-0"
+      className="bg-aciesc-primary text-white z-30 border-r border-aciesc-dark w-[60px]"
+      collapsedSize="60px"
     >
       <SidebarHeaderContent />
       <SidebarContent>

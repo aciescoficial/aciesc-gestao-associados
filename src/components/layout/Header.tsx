@@ -1,6 +1,8 @@
 
 import React from 'react';
+import { Menu } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
 import SystemVersion from './SystemVersion';
 import HeaderActions from './HeaderActions';
 import NotificationBanner from './NotificationBanner';
@@ -12,9 +14,9 @@ const Header: React.FC = () => {
   return (
     <>
       <NotificationBanner />
-      <header className="bg-white border-b border-gray-200 text-gray-800 py-2 px-4 flex justify-between items-center shadow-sm">
+      <header className="bg-aciesc-primary text-white py-2 px-3 flex justify-between items-center shadow-sm h-14">
         <div className="flex items-center">
-          <SidebarTrigger className="text-gray-600 mr-3 hover:text-gray-800" />
+          <SidebarTrigger className="text-white mr-3 hover:text-gray-200" />
           <div className="flex items-center">
             <SystemVersion />
           </div>

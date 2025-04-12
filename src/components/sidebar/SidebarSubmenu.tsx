@@ -28,7 +28,7 @@ const SidebarSubmenu: React.FC<SidebarSubmenuProps> = ({
   isActive 
 }) => {
   return (
-    <SidebarGroup key={header} className="px-1">
+    <SidebarGroup key={header}>
       <SubmenuHeader 
         header={header}
         isExpanded={isExpanded}
