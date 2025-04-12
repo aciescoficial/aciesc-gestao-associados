@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Map, Users, ClipboardList, Mail, CreditCard } from 'lucide-react';
+import { Settings, Map, Users, ClipboardList, Mail, CreditCard, DollarSign } from 'lucide-react';
 import GoogleMapsConfig from './GoogleMapsConfig';
 import PermissionPanel from '../usuarios/PermissionPanel';
 import { AuditLogSettings } from './AuditLogSettings';
 import EmailTemplatesConfig from './EmailTemplatesConfig';
 import CarteirinhaConfig from './CarteirinhaConfig';
+import IntegracaoFinanceira from '../IntegracaoFinanceira';
 
 const ConfiguracoesPage: React.FC = () => {
   return (
@@ -17,7 +18,7 @@ const ConfiguracoesPage: React.FC = () => {
       </h1>
       
       <Tabs defaultValue="geral" className="wp-card">
-        <TabsList className="grid grid-cols-6 mb-6">
+        <TabsList className="grid grid-cols-7 mb-6">
           <TabsTrigger value="geral" className="flex items-center gap-2">
             <Settings size={16} />
             Geral
@@ -41,6 +42,10 @@ const ConfiguracoesPage: React.FC = () => {
           <TabsTrigger value="emails" className="flex items-center gap-2">
             <Mail size={16} />
             Emails
+          </TabsTrigger>
+          <TabsTrigger value="integracoes" className="flex items-center gap-2">
+            <DollarSign size={16} />
+            Integrações
           </TabsTrigger>
         </TabsList>
         
@@ -69,6 +74,10 @@ const ConfiguracoesPage: React.FC = () => {
 
         <TabsContent value="emails">
           <EmailTemplatesConfig />
+        </TabsContent>
+        
+        <TabsContent value="integracoes">
+          <IntegracaoFinanceira />
         </TabsContent>
       </Tabs>
     </div>
