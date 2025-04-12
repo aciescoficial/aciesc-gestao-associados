@@ -8,7 +8,7 @@ const Dashboard: React.FC = () => {
     associados: 0,
     empresas: 0,
     pendentes: 0,
-    ultimaAtualizacao: new Date().toLocaleDateString()
+    carteirasPendentes: 0
   });
   
   const [recentActivity, setRecentActivity] = useState<{
@@ -19,6 +19,13 @@ const Dashboard: React.FC = () => {
   }[]>([]);
   
   const [loading, setLoading] = useState(true);
+  
+  // System status
+  const [systemStatus, setSystemStatus] = useState({
+    asaas: { active: false, message: 'Verificando...' },
+    stripe: { active: false, message: 'Verificando...' },
+    emails: { active: false, message: 'Verificando...' }
+  });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -46,12 +53,20 @@ const Dashboard: React.FC = () => {
         
         if (pendentesError) throw pendentesError;
         
+        // Fetch pending carteirinhas count
+        const { count: carteirasPendentesCount, error: carteirasError } = await supabase
+          .from('carteirinha_solicitacoes')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pendente_pagamento');
+        
+        if (carteirasError) throw carteirasError;
+        
         // Update stats
         setStats({
           associados: associadosCount || 0,
           empresas: empresasCount || 0,
           pendentes: pendentesCount || 0,
-          ultimaAtualizacao: new Date().toLocaleDateString()
+          carteirasPendentes: carteirasPendentesCount || 0
         });
         
         // Fetch recent activity (newest associados and empresas)
@@ -90,6 +105,8 @@ const Dashboard: React.FC = () => {
         
         setRecentActivity(formattedActivity);
         
+        // Check payment systems status
+        await checkSystemStatus();
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -99,6 +116,55 @@ const Dashboard: React.FC = () => {
     
     fetchDashboardData();
   }, []);
+  
+  const checkSystemStatus = async () => {
+    try {
+      // Check Asaas integration status
+      const { data: asaasConfig } = await supabase
+        .from('system_config')
+        .select('value')
+        .eq('key', 'ASAAS_API_KEY')
+        .maybeSingle();
+      
+      const asaasActive = !!asaasConfig?.value;
+      
+      // Check Stripe integration status
+      const { data: stripeConfig } = await supabase
+        .from('system_config')
+        .select('value')
+        .eq('key', 'STRIPE_SECRET_KEY')
+        .maybeSingle();
+      
+      const stripeActive = !!stripeConfig?.value;
+      
+      // Check GHL integration status for email functionality
+      const { data: ghlConfig } = await supabase
+        .from('system_config')
+        .select('value')
+        .eq('key', 'GO_HIGH_LEVEL_API_KEY')
+        .maybeSingle();
+      
+      const ghlActive = !!ghlConfig?.value;
+      
+      setSystemStatus({
+        asaas: { 
+          active: asaasActive, 
+          message: asaasActive ? 'Operacional' : 'Inativo (Token não cadastrado ou não funcionando)'
+        },
+        stripe: {
+          active: stripeActive,
+          message: stripeActive ? 'Operacional' : 'Inativo (Token não cadastrado ou não funcionando)'
+        },
+        emails: {
+          active: ghlActive,
+          message: ghlActive ? 'Ativos' : 'Inativos (Token não funcionando)'
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error checking system status:', error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -141,8 +207,8 @@ const Dashboard: React.FC = () => {
             <Calendar className="h-6 w-6 text-purple-600" />
           </div>
           <div>
-            <p className="text-sm text-gray-500">Última Atualização</p>
-            <p className="text-lg font-semibold">{stats.ultimaAtualizacao}</p>
+            <p className="text-sm text-gray-500">Carteirinhas Pendentes</p>
+            <p className="text-lg font-semibold">{stats.carteirasPendentes}</p>
           </div>
         </div>
       </div>
@@ -212,19 +278,27 @@ const Dashboard: React.FC = () => {
           <div className="space-y-2">
             <div className="flex justify-between items-center p-2 border-b">
               <span>Pagamentos</span>
-              <span className="wp-badge-success">Conectado</span>
+              <span className={`wp-badge-${systemStatus.asaas.active || systemStatus.stripe.active ? "success" : "error"}`}>
+                {systemStatus.asaas.active || systemStatus.stripe.active ? 'Conectado' : 'Desconectado'}
+              </span>
             </div>
             <div className="flex justify-between items-center p-2 border-b">
               <span>API Asaas</span>
-              <span className="wp-badge-success">Operacional</span>
+              <span className={`wp-badge-${systemStatus.asaas.active ? "success" : "error"}`}>
+                {systemStatus.asaas.message}
+              </span>
             </div>
             <div className="flex justify-between items-center p-2 border-b">
-              <span>Carteirinha PDF</span>
-              <span className="wp-badge-success">Funcionando</span>
+              <span>API Stripe</span>
+              <span className={`wp-badge-${systemStatus.stripe.active ? "success" : "error"}`}>
+                {systemStatus.stripe.message}
+              </span>
             </div>
             <div className="flex justify-between items-center p-2">
               <span>Emails</span>
-              <span className="wp-badge-success">Ativos</span>
+              <span className={`wp-badge-${systemStatus.emails.active ? "success" : "error"}`}>
+                {systemStatus.emails.message}
+              </span>
             </div>
           </div>
         </div>
