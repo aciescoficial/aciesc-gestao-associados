@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from "@/components/ui/use-toast";
@@ -10,7 +11,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { Separator } from "@/components/ui/separator";
-import { TwoFactorAuth } from '../two-factor';
+// Import is kept but the component won't be used temporarily
+// import { TwoFactorAuth } from '../two-factor';
 
 interface SecurityTabProps {
   userId: string;
@@ -135,9 +137,10 @@ export const SecurityTab = ({ userId }: SecurityTabProps) => {
             </Form>
           </div>
           
+          {/* Two-Factor Authentication Section - Temporarily disabled */}
+          {/* Uncomment this section to re-enable 2FA
           <Separator />
           
-          {/* Two-Factor Authentication Section */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <h3 className="text-lg font-medium">Autenticação de Dois Fatores</h3>
@@ -145,6 +148,7 @@ export const SecurityTab = ({ userId }: SecurityTabProps) => {
             
             <TwoFactorAuth userId={userId} />
           </div>
+          */}
         </div>
       </CardContent>
     </Card>
