@@ -32,6 +32,20 @@ export const useUserFetch = () => {
     try {
       console.log('Fetching users from database...');
       
+      // First try to use the RPC function that returns auth users
+      let authUsers: { id: string; email: string }[] = [];
+      try {
+        const { data: authUsersData, error: authError } = await supabase.rpc('get_auth_users');
+        if (authError) {
+          console.warn('Could not fetch auth users via RPC:', authError);
+        } else if (authUsersData) {
+          authUsers = authUsersData;
+          console.log('Auth users fetched via RPC:', authUsers.length);
+        }
+      } catch (err) {
+        console.warn('Error in RPC call for auth users:', err);
+      }
+      
       // Fetch profiles with role information and join with associados and empresas
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -53,8 +67,15 @@ export const useUserFetch = () => {
         return;
       }
 
-      // Map profiles to User objects
+      // Map profiles to User objects and fill in email from auth users if available
       const mappedUsers: User[] = profiles.map(profile => {
+        // Try to find matching auth user email
+        let email = profile.email || '';
+        const matchingAuthUser = authUsers.find(au => au.id === profile.id);
+        if (matchingAuthUser && matchingAuthUser.email) {
+          email = matchingAuthUser.email;
+        }
+
         // Convert string[] to UserTag[] by filtering to only valid UserTag values
         const validUserTags = Array.isArray(profile.tags) ? profile.tags.filter(tag => 
           ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
@@ -64,7 +85,7 @@ export const useUserFetch = () => {
         return {
           id: profile.id,
           name: profile.name || '',
-          email: profile.email || '',  
+          email: email,  
           role: mapFromDbRole(profile.role),
           tags: validUserTags,
           active: profile.active !== false, // Default to true if not specified

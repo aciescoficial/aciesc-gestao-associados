@@ -7,7 +7,7 @@
 /**
  * Check if a user has a specific role
  */
-export async function hasRole(user_id: string, role_to_check: 'admin' | 'user') {
+export async function hasRole(user_id: string, role_to_check: 'admin' | 'user' | 'empresa') {
   return { 
     user_id, 
     role_to_check 
