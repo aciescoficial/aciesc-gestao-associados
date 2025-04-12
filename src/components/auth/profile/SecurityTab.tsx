@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { Separator } from "@/components/ui/separator";
-import { TwoFactorAuth } from '../TwoFactorAuth';
+import { TwoFactorAuth } from '../two-factor/TwoFactorAuth';
 
 interface SecurityTabProps {
   userId: string;
