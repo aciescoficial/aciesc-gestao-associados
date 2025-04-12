@@ -21,6 +21,8 @@ export interface UserProfile {
   avatar_url?: string;
   active?: boolean;
   last_sign_in?: string;
+  associado_id?: string;
+  empresa_id?: string;
 }
 
 export interface RoleInfo {
@@ -61,4 +63,8 @@ export interface User {
   tags?: UserTag[];
   active: boolean;
   createdAt: Date;
+  associado_id?: string;
+  associado_cpf?: string; // To display the linked associado's CPF
+  empresa_id?: string;
+  empresa_cnpj?: string; // To display the linked empresa's CNPJ
 }

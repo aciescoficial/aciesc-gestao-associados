@@ -32,7 +32,13 @@ export const useUserManagement = () => {
   const { 
     newUser, 
     handleNewUserChange, 
-    addUser 
+    addUser,
+    associados: createAssociados,
+    empresas: createEmpresas,
+    loadingAssociados: createLoadingAssociados,
+    loadingEmpresas: createLoadingEmpresas,
+    fetchAssociados: fetchCreateAssociados,
+    fetchEmpresas: fetchCreateEmpresas
   } = useUserCreate(handleUserCreated);
 
   const handleUserUpdated = async (updatedUser: User) => {
@@ -49,7 +55,13 @@ export const useUserManagement = () => {
     setSelectedUser,
     handleSelectedUserChange,
     updateUser,
-    toggleUserActive
+    toggleUserActive,
+    associados: editAssociados,
+    empresas: editEmpresas,
+    loadingAssociados: editLoadingAssociados,
+    loadingEmpresas: editLoadingEmpresas,
+    fetchAssociados: fetchEditAssociados,
+    fetchEmpresas: fetchEditEmpresas
   } = useUserEdit(handleUserUpdated);
 
   return {
@@ -76,6 +88,20 @@ export const useUserManagement = () => {
     
     // User actions
     toggleUserActive,
-    fetchUsers
+    fetchUsers,
+
+    // Associated entities
+    associados: createAssociados,
+    empresas: createEmpresas,
+    loadingAssociados: createLoadingAssociados,
+    loadingEmpresas: createLoadingEmpresas,
+    fetchAssociados: fetchCreateAssociados,
+    fetchEmpresas: fetchCreateEmpresas,
+    editAssociados,
+    editEmpresas,
+    editLoadingAssociados,
+    editLoadingEmpresas,
+    fetchEditAssociados,
+    fetchEditEmpresas
   };
 };

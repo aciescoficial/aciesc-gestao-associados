@@ -18,7 +18,9 @@ export const useUserFetch = () => {
     return users.filter(
       user => 
         user.name.toLowerCase().includes(normalizedSearch) ||
-        user.email.toLowerCase().includes(normalizedSearch)
+        user.email.toLowerCase().includes(normalizedSearch) ||
+        (user.associado_cpf && user.associado_cpf.toLowerCase().includes(normalizedSearch)) ||
+        (user.empresa_cnpj && user.empresa_cnpj.toLowerCase().includes(normalizedSearch))
     );
   }, [users, searchTerm]);
 
@@ -31,7 +33,7 @@ export const useUserFetch = () => {
       // Fetch profiles with role information
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('*');
+        .select('*, associados(cpf), empresas(cnpj)');
 
       if (profilesError) throw profilesError;
 
@@ -43,7 +45,11 @@ export const useUserFetch = () => {
         role: mapFromDbRole(profile.role),
         tags: profile.tags || [],
         active: profile.active !== false, // Default to true if not specified
-        createdAt: new Date(profile.created_at)
+        createdAt: new Date(profile.created_at),
+        associado_id: profile.associado_id || undefined,
+        associado_cpf: profile.associados?.cpf || undefined,
+        empresa_id: profile.empresa_id || undefined,
+        empresa_cnpj: profile.empresas?.cnpj || undefined
       }));
 
       setUsers(mappedUsers);

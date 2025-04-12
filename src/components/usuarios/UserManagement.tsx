@@ -27,7 +27,14 @@ const UserManagement: React.FC = () => {
     addUser,
     updateUser,
     toggleUserActive,
-    fetchUsers
+    fetchUsers,
+    // New props for associado and empresa link
+    associados,
+    empresas,
+    loadingAssociados,
+    loadingEmpresas,
+    fetchAssociados,
+    fetchEmpresas
   } = useUserManagement();
 
   return (
@@ -50,7 +57,7 @@ const UserManagement: React.FC = () => {
         <div className="flex items-center space-x-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Pesquisar por nome ou email..."
+            placeholder="Pesquisar por nome, email, CPF ou CNPJ..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
@@ -76,6 +83,12 @@ const UserManagement: React.FC = () => {
         newUser={newUser}
         onNewUserChange={handleNewUserChange}
         onAddUser={addUser}
+        associados={associados}
+        empresas={empresas}
+        loadingAssociados={loadingAssociados}
+        loadingEmpresas={loadingEmpresas}
+        fetchAssociados={fetchAssociados}
+        fetchEmpresas={fetchEmpresas}
       />
 
       <EditUserDialog
@@ -84,6 +97,12 @@ const UserManagement: React.FC = () => {
         selectedUser={selectedUser}
         onSelectedUserChange={handleSelectedUserChange}
         onUpdateUser={updateUser}
+        associados={associados}
+        empresas={empresas}
+        loadingAssociados={loadingAssociados}
+        loadingEmpresas={loadingEmpresas}
+        fetchAssociados={fetchAssociados}
+        fetchEmpresas={fetchEmpresas}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from '@/components/ui/tabs';
 import { User, UserRole, UserTag } from '../types';
 import { getUserTags } from '../utils/roleUtils';
 
@@ -28,6 +34,12 @@ interface AddUserDialogProps {
   newUser: Partial<User>;
   onNewUserChange: (field: string, value: any) => void;
   onAddUser: () => void;
+  associados: Array<{id: string, cpf: string, nome: string, sobrenome: string}>;
+  empresas: Array<{id: string, cnpj: string, nome_fantasia: string}>;
+  loadingAssociados: boolean;
+  loadingEmpresas: boolean;
+  fetchAssociados: () => Promise<void>;
+  fetchEmpresas: () => Promise<void>;
 }
 
 const AddUserDialog: React.FC<AddUserDialogProps> = ({
@@ -35,9 +47,22 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
   onOpenChange,
   newUser,
   onNewUserChange,
-  onAddUser
+  onAddUser,
+  associados,
+  empresas,
+  loadingAssociados,
+  loadingEmpresas,
+  fetchAssociados,
+  fetchEmpresas
 }) => {
   const availableTags = getUserTags();
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchAssociados();
+      fetchEmpresas();
+    }
+  }, [isOpen, fetchAssociados, fetchEmpresas]);
 
   const handleTagToggle = (tagId: UserTag, checked: boolean) => {
     const currentTags = newUser.tags || [];
@@ -51,6 +76,48 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
     
     onNewUserChange('tags', newTags);
   };
+
+  const handleAssociadoSelect = (associadoId: string) => {
+    const selectedAssociado = associados.find(a => a.id === associadoId);
+    if (selectedAssociado) {
+      onNewUserChange('associado_id', associadoId);
+      onNewUserChange('associado_cpf', selectedAssociado.cpf);
+      // Clear empresa selection when associado is selected
+      onNewUserChange('empresa_id', undefined);
+      onNewUserChange('empresa_cnpj', undefined);
+    }
+  };
+
+  const handleEmpresaSelect = (empresaId: string) => {
+    const selectedEmpresa = empresas.find(e => e.id === empresaId);
+    if (selectedEmpresa) {
+      onNewUserChange('empresa_id', empresaId);
+      onNewUserChange('empresa_cnpj', selectedEmpresa.cnpj);
+      // Clear associado selection when empresa is selected
+      onNewUserChange('associado_id', undefined);
+      onNewUserChange('associado_cpf', undefined);
+    }
+  };
+
+  const handleDiretoriaSelect = (isDiretoria: boolean) => {
+    if (isDiretoria) {
+      const hasDiretoriaTag = newUser.tags?.includes('diretoria_aciesc') || false;
+      if (!hasDiretoriaTag) {
+        const newTags = [...(newUser.tags || []), 'diretoria_aciesc'];
+        onNewUserChange('tags', newTags);
+      }
+      // Clear associado and empresa selections for diretoria
+      onNewUserChange('associado_id', undefined);
+      onNewUserChange('associado_cpf', undefined);
+      onNewUserChange('empresa_id', undefined);
+      onNewUserChange('empresa_cnpj', undefined);
+    } else {
+      const newTags = (newUser.tags || []).filter(tag => tag !== 'diretoria_aciesc');
+      onNewUserChange('tags', newTags);
+    }
+  };
+
+  const isDiretoria = newUser.tags?.includes('diretoria_aciesc') || false;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -124,6 +191,84 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
                   </div>
                 ))}
               </div>
+            </div>
+            
+            <div className="space-y-2 border-t pt-4">
+              <Label>Vínculo do Usuário</Label>
+              <Tabs defaultValue={isDiretoria ? "diretoria" : (newUser.associado_id ? "associado" : "empresa")}>
+                <TabsList className="grid grid-cols-3">
+                  <TabsTrigger 
+                    value="associado"
+                    onClick={() => handleDiretoriaSelect(false)}
+                  >
+                    Associado
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="empresa"
+                    onClick={() => handleDiretoriaSelect(false)}
+                  >
+                    Empresa
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="diretoria"
+                    onClick={() => handleDiretoriaSelect(true)}
+                  >
+                    Diretoria
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="associado" className="space-y-4 mt-4">
+                  {loadingAssociados ? (
+                    <div className="text-center py-4">Carregando associados...</div>
+                  ) : (
+                    <Select
+                      value={newUser.associado_id}
+                      onValueChange={handleAssociadoSelect}
+                      disabled={isDiretoria}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um associado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {associados.map((associado) => (
+                          <SelectItem key={associado.id} value={associado.id}>
+                            {associado.nome} {associado.sobrenome} - CPF: {associado.cpf}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="empresa" className="space-y-4 mt-4">
+                  {loadingEmpresas ? (
+                    <div className="text-center py-4">Carregando empresas...</div>
+                  ) : (
+                    <Select
+                      value={newUser.empresa_id}
+                      onValueChange={handleEmpresaSelect}
+                      disabled={isDiretoria}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma empresa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {empresas.map((empresa) => (
+                          <SelectItem key={empresa.id} value={empresa.id}>
+                            {empresa.nome_fantasia} - CNPJ: {empresa.cnpj}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="diretoria" className="space-y-4 mt-4">
+                  <div className="text-sm text-muted-foreground">
+                    Este usuário será marcado como membro da Diretoria ACIESC.
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
           <DialogFooter>

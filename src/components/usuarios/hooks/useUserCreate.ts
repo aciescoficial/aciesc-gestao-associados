@@ -10,8 +10,51 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
     email: '',
     role: 'user' as UserRole,
     tags: [] as UserTag[],
-    active: true
+    active: true,
+    associado_id: undefined,
+    associado_cpf: undefined,
+    empresa_id: undefined,
+    empresa_cnpj: undefined
   });
+
+  const [associados, setAssociados] = useState<Array<{id: string, cpf: string, nome: string, sobrenome: string}>>([]);
+  const [empresas, setEmpresas] = useState<Array<{id: string, cnpj: string, nome_fantasia: string}>>([]);
+  const [loadingAssociados, setLoadingAssociados] = useState(false);
+  const [loadingEmpresas, setLoadingEmpresas] = useState(false);
+
+  const fetchAssociados = useCallback(async () => {
+    setLoadingAssociados(true);
+    try {
+      const { data, error } = await supabase
+        .from('associados')
+        .select('id, cpf, nome, sobrenome')
+        .eq('status', 'ativo');
+        
+      if (error) throw error;
+      setAssociados(data || []);
+    } catch (error) {
+      console.error("Error fetching associados:", error);
+    } finally {
+      setLoadingAssociados(false);
+    }
+  }, []);
+
+  const fetchEmpresas = useCallback(async () => {
+    setLoadingEmpresas(true);
+    try {
+      const { data, error } = await supabase
+        .from('empresas')
+        .select('id, cnpj, nome_fantasia')
+        .eq('status', 'ativo');
+        
+      if (error) throw error;
+      setEmpresas(data || []);
+    } catch (error) {
+      console.error("Error fetching empresas:", error);
+    } finally {
+      setLoadingEmpresas(false);
+    }
+  }, []);
 
   const handleNewUserChange = (field: string, value: any) => {
     setNewUser(prev => ({ ...prev, [field]: value }));
@@ -28,13 +71,15 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           name: newUser.name,
           role: mapToDbRole(newUser.role as UserRole),
           tags: newUser.tags,
-          active: true
+          active: true,
+          associado_id: newUser.associado_id,
+          empresa_id: newUser.empresa_id
         }
       });
 
       if (authError) throw authError;
 
-      // Step 2: Update the profile with role and tags
+      // Step 2: Update the profile with role, tags, and linked entities
       if (authData && authData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
@@ -42,7 +87,9 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
             name: newUser.name,
             role: mapToDbRole(newUser.role as UserRole),
             tags: newUser.tags || [],
-            email: newUser.email // Add email to profiles table for easier access
+            email: newUser.email,
+            associado_id: newUser.associado_id,
+            empresa_id: newUser.empresa_id
           })
           .eq('id', authData.user.id);
 
@@ -56,7 +103,11 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           role: newUser.role as UserRole,
           tags: newUser.tags || [],
           active: true,
-          createdAt: new Date()
+          createdAt: new Date(),
+          associado_id: newUser.associado_id,
+          associado_cpf: newUser.associado_cpf,
+          empresa_id: newUser.empresa_id,
+          empresa_cnpj: newUser.empresa_cnpj
         });
 
         // Reset the form
@@ -65,7 +116,11 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           email: '',
           role: 'user' as UserRole,
           tags: [] as UserTag[],
-          active: true
+          active: true,
+          associado_id: undefined,
+          associado_cpf: undefined,
+          empresa_id: undefined,
+          empresa_cnpj: undefined
         });
 
         return true;
@@ -80,6 +135,12 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
   return {
     newUser,
     handleNewUserChange,
-    addUser
+    addUser,
+    associados,
+    empresas,
+    loadingAssociados,
+    loadingEmpresas,
+    fetchAssociados,
+    fetchEmpresas,
   };
 };
