@@ -1,4 +1,5 @@
 
-export * from './AdminRoutes';
-export * from './UserRoutes';
-export * from './SharedRoutes';
+export { SharedRoutes } from './SharedRoutes';
+export { AdminRoutes } from './AdminRoutes';
+export { UserRoutes } from './UserRoutes';
+export { FinanceiroRoutes } from './FinanceiroRoutes';
