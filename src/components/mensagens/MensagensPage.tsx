@@ -1,13 +1,12 @@
 
 import React from 'react';
-import MensagensForm from './MensagensForm';
+import MensagensForm from './form/MensagensForm';
+import MensagensHeader from './components/MensagensHeader';
 
 const MensagensPage: React.FC = () => {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="wp-header">Sistema de Mensagens</h1>
-      </div>
+      <MensagensHeader />
       
       <div className="wp-card">
         <h2 className="text-xl font-semibold mb-4">Enviar Nova Mensagem</h2>
