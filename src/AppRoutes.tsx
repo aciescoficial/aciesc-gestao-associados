@@ -13,7 +13,14 @@ import AppLoading from "./components/shared/AppLoading";
 import Dashboard from "./components/Dashboard";
 
 // Lazily loaded components for better performance
-const RouteComponents = lazy(() => import("./pages/RouteComponents"));
+const CadastroAssociado = lazy(() => import("./components/CadastroAssociado"));
+const PesquisaAssociado = lazy(() => import("./components/PesquisaAssociado"));
+const CadastroEmpresa = lazy(() => import("./components/CadastroEmpresa"));
+const PesquisaEmpresa = lazy(() => import("./components/pesquisa-empresa/PesquisaEmpresaRefactored"));
+const AprovacoesPendentes = lazy(() => import("./components/AprovacoesPendentes"));
+const UserManagement = lazy(() => import("./components/usuarios/UserManagement"));
+const PermissionPanel = lazy(() => import("./components/usuarios/permission/PermissionPanel"));
+const ProfilePage = lazy(() => import("./components/auth/profile/ProfilePage"));
 const MessagesDashboard = lazy(() => import("./components/mensagens/MessagesDashboard"));
 const MensagensPage = lazy(() => import("./components/mensagens/MensagensPage"));
 const ConfiguracoesPage = lazy(() => import("./components/configuracoes/ConfiguracoesPage"));
@@ -22,6 +29,10 @@ const AprovacaoInteressePage = lazy(() => import("./components/associado/Aprovac
 const AssociadoSignupCompletion = lazy(() => import("./components/associado/AssociadoSignupCompletion"));
 const GeradorCarteirinha = lazy(() => import("./components/carteirinha/GeradorCarteirinha"));
 const SolicitarCarteirinhaPage = lazy(() => import("./components/associado/SolicitarCarteirinhaPage"));
+const EmpresasConveniadas = lazy(() => import("./components/associado/EmpresasConveniadas"));
+
+// Placeholder components - these should eventually be proper components
+const PagamentosAssociadoPage = lazy(() => import("./components/associado/PagamentosAssociadoPage"));
 
 // Fallback component with custom loading time
 const PageLoading = () => <AppLoading message="Carregando página..." />;
@@ -29,12 +40,6 @@ const PageLoading = () => <AppLoading message="Carregando página..." />;
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/auth/*" element={
-        <Suspense fallback={<PageLoading />}>
-          <RouteComponents />
-        </Suspense>
-      } />
-      
       <Route path="/login" element={<LoginPage />} />
       
       {/* Standalone routes */}
@@ -68,7 +73,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/associados/cadastro" element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Suspense fallback={<PageLoading />}>
-              <RouteComponents.CadastroAssociado />
+              <CadastroAssociado />
             </Suspense>
           </ProtectedRoute>
         } />
@@ -76,7 +81,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/associados/pesquisa" element={
           <ProtectedRoute allowedRoles={["admin", "user"]}>
             <Suspense fallback={<PageLoading />}>
-              <RouteComponents.PesquisaAssociado />
+              <PesquisaAssociado />
             </Suspense>
           </ProtectedRoute>
         } />
@@ -84,7 +89,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/empresas/cadastro" element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Suspense fallback={<PageLoading />}>
-              <RouteComponents.CadastroEmpresa />
+              <CadastroEmpresa />
             </Suspense>
           </ProtectedRoute>
         } />
@@ -92,7 +97,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/empresas/pesquisa" element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Suspense fallback={<PageLoading />}>
-              <RouteComponents.PesquisaEmpresa />
+              <PesquisaEmpresa />
             </Suspense>
           </ProtectedRoute>
         } />
@@ -101,7 +106,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/aprovacoes" element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Suspense fallback={<PageLoading />}>
-              <RouteComponents.AprovacoesPendentes />
+              <AprovacoesPendentes />
             </Suspense>
           </ProtectedRoute>
         } />
@@ -141,25 +146,25 @@ const AppRoutes: React.FC = () => {
         {/* Usuários routes */}
         <Route path="/usuarios" element={
           <Suspense fallback={<PageLoading />}>
-            <RouteComponents.UserManagement />
+            <UserManagement />
           </Suspense>
         } />
         
         <Route path="/usuarios/gerenciar" element={
           <Suspense fallback={<PageLoading />}>
-            <RouteComponents.UserManagement />
+            <UserManagement />
           </Suspense>
         } />
         
         <Route path="/usuarios/permissoes" element={
           <Suspense fallback={<PageLoading />}>
-            <RouteComponents.PermissionPanel />
+            <PermissionPanel />
           </Suspense>
         } />
         
         <Route path="/perfil" element={
           <Suspense fallback={<PageLoading />}>
-            <RouteComponents.ProfilePage />
+            <ProfilePage />
           </Suspense>
         } />
         
@@ -167,7 +172,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/meus-pagamentos" element={
           <ProtectedRoute allowedRoles={["user"]}>
             <Suspense fallback={<PageLoading />}>
-              <RouteComponents.PagamentosAssociadoPage />
+              <PagamentosAssociadoPage />
             </Suspense>
           </ProtectedRoute>
         } />
@@ -183,7 +188,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/empresas-conveniadas" element={
           <ProtectedRoute allowedRoles={["user"]}>
             <Suspense fallback={<PageLoading />}>
-              <RouteComponents.EmpresasConveniadasPage />
+              <EmpresasConveniadas />
             </Suspense>
           </ProtectedRoute>
         } />
