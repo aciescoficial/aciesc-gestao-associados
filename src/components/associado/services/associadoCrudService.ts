@@ -2,6 +2,8 @@
 import { supabase, handleSupabaseError } from "@/integrations/supabase/client";
 import { AssociadoFormData, StatusType } from '../types';
 import { logOperation } from '@/components/audit/auditLogService';
+import { uploadFoto, uploadComprovante } from './associadoStorageService';
+import { createUserForAssociado, sendRegistrationEmail } from './associadoUserService';
 
 /**
  * Create and update operations for associados
@@ -30,7 +32,7 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       data_ultimo_pagamento: data.dataUltimoPagamento || null,
       valor_devido: data.valorDevido || null,
       tipo_pagamento: data.tipoPagamento || null,
-      tipo_associado: data.tipoAssociado || null,
+      tags: data.tags || null,
       validade: data.validade || null,
       status: 'pendente' as StatusType
     };
@@ -53,6 +55,35 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       details: `Associado ${data.nome} ${data.sobrenome} (CPF: ${data.cpf}) cadastrado manualmente`,
       recordCount: 1
     });
+
+    // Upload photo if it exists
+    if (data.foto && data.foto.length > 0) {
+      await uploadFoto(associadoResult.id, data.foto[0]);
+    }
+    
+    // Upload payment receipt if it exists
+    if (data.comprovantePagamento && data.comprovantePagamento.length > 0) {
+      await uploadComprovante(associadoResult.id, data.comprovantePagamento[0]);
+    }
+    
+    // Create user if requested
+    if (data.criarUsuario) {
+      await createUserForAssociado({
+        id: associadoResult.id,
+        email: data.email,
+        nome: data.nome,
+        sobrenome: data.sobrenome,
+        cpf: data.cpf
+      });
+    } else {
+      // Send email with registration link
+      await sendRegistrationEmail({
+        email: data.email,
+        nome: data.nome,
+        sobrenome: data.sobrenome,
+        associadoId: associadoResult.id
+      });
+    }
     
     return associadoResult;
   } catch (error) {

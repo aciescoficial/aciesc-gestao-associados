@@ -1,4 +1,5 @@
 
+
 export interface EmailTemplate {
   id: string;
   nome: string;
@@ -39,5 +40,37 @@ Este link é válido por 24 horas.
 Atenciosamente,
 Equipe ACIESC`,
     codigo: 'confirmacao_pagamento'
+  },
+  {
+    nome: 'Usuário Criado',
+    assunto: 'Sua conta na ACIESC foi criada',
+    corpo: `Olá {nome},
+
+Uma conta de usuário foi criada para você na plataforma da ACIESC.
+
+Para acessar sua conta, clique no link abaixo:
+{link_login}
+
+Na primeira vez que você acessar, será solicitado que você complete seu cadastro.
+
+Atenciosamente,
+Equipe ACIESC`,
+    codigo: 'usuario_criado'
+  },
+  {
+    nome: 'Convite para Cadastro',
+    assunto: 'Complete seu cadastro na ACIESC',
+    corpo: `Olá {nome},
+
+Você foi registrado como associado na ACIESC.
+
+Para completar seu cadastro e criar sua conta de usuário, clique no link abaixo:
+{link_cadastro}
+
+Após criar sua conta, você terá acesso a todos os benefícios e serviços disponíveis para associados.
+
+Atenciosamente,
+Equipe ACIESC`,
+    codigo: 'convite_cadastro'
   }
 ];

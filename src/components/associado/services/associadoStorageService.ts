@@ -56,3 +56,57 @@ export const uploadFoto = async (id: string, file: File) => {
     throw error;
   }
 };
+
+export const uploadComprovante = async (id: string, file: File) => {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `comprovante-${id}.${fileExt}`;
+    
+    // Verificar se o bucket existe
+    const { data: buckets } = await supabase
+      .storage
+      .listBuckets();
+    
+    let bucketExists = false;
+    if (buckets) {
+      bucketExists = buckets.some(bucket => bucket.name === 'comprovantes');
+    }
+    
+    // Criar bucket se não existir
+    if (!bucketExists) {
+      await supabase
+        .storage
+        .createBucket('comprovantes', {
+          public: false, // Comprovantes ficam privados por segurança
+          fileSizeLimit: 10485760, // 10MB
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf']
+        });
+    }
+    
+    const { error } = await supabase
+      .storage
+      .from('comprovantes')
+      .upload(fileName, file, {
+        upsert: true
+      });
+      
+    if (error) {
+      console.error("Error uploading payment receipt:", error);
+      throw error;
+    }
+    
+    // Atualizar o registro do associado com o caminho do comprovante
+    await supabase
+      .from('associados')
+      .update({
+        comprovante_url: fileName
+      })
+      .eq('id', id);
+    
+    return fileName;
+  } catch (error) {
+    const errorMsg = handleSupabaseError(error);
+    console.error("Erro ao fazer upload do comprovante:", errorMsg);
+    throw error;
+  }
+};

@@ -1,4 +1,5 @@
 
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface SendTestEmailParams {
@@ -32,6 +33,18 @@ export function getTemplateTestData(templateCode: string): Record<string, string
         email: 'maria@example.com',
         link_cadastro: 'https://example.com/cadastro/xyz789'
       };
+    case 'usuario_criado':
+      return {
+        nome: 'Carlos Oliveira',
+        email: 'carlos@example.com',
+        link_login: 'https://example.com/auth/login'
+      };
+    case 'convite_cadastro':
+      return {
+        nome: 'Ana Pereira',
+        email: 'ana@example.com',
+        link_cadastro: 'https://example.com/cadastro?associado=123456'
+      };
     default:
       return {
         nome: 'Usuário Teste',
@@ -39,3 +52,4 @@ export function getTemplateTestData(templateCode: string): Record<string, string
       };
   }
 }
+

@@ -1,3 +1,4 @@
+
 import { Database } from '@/integrations/supabase/types';
 
 export type StatusType = Database['public']['Enums']['status_type'];
@@ -31,9 +32,11 @@ export interface AssociadoFormData {
   dataUltimoPagamento?: string;
   valorDevido?: string;
   tipoPagamento?: string;
-  tipoAssociado?: string;
+  tags?: string[];
   validade?: string;
   foto?: FileList;
+  comprovantePagamento?: FileList;
+  criarUsuario?: boolean;
 }
 
 export interface ImportAssociadoData {
@@ -61,6 +64,7 @@ export interface ImportAssociadoData {
   tipoPagamento?: string;
   tipoAssociado?: string;
   validade?: string;
+  tags?: string[];
 }
 
 export interface ImportValidationData {
@@ -75,11 +79,15 @@ export const estados = [
   'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO'
 ];
 
-export const tiposAssociados = [
-  'Padrão',
-  'Premium',
-  'Familiar',
-  'Empresarial'
+export const associadoTags = [
+  'Corretor',
+  'Imobiliária',
+  'Engenheiro',
+  'Arquiteto',
+  'Avaliador',
+  'Incorporador',
+  'Consultor',
+  'Construtor'
 ];
 
 export const tiposPagamento = [
@@ -106,4 +114,5 @@ export interface Associado {
   creci?: string;
   status: AssociadoStatus;
   avatar_url?: string;
+  tags?: string[];
 }
