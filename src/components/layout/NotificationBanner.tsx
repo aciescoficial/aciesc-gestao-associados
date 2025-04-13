@@ -64,6 +64,11 @@ const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages =
   // Display only the current message
   const currentMessage = activeMessages[currentMessageIndex];
   
+  // Safety check - if currentMessage is undefined, don't render anything
+  if (!currentMessage) {
+    return null;
+  }
+  
   const handleActionClick = () => {
     if (currentMessage.action && currentMessage.action.url) {
       window.location.href = currentMessage.action.url;

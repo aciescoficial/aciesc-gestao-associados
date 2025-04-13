@@ -31,9 +31,12 @@ const Header: React.FC = () => {
         
         // Cache valid for 5 minutes
         if (now - timestamp < 5 * 60 * 1000) {
-          setImportantMessages(JSON.parse(cachedMessages));
-          setIsLoading(false);
-          return;
+          const parsedMessages = JSON.parse(cachedMessages);
+          if (Array.isArray(parsedMessages)) {
+            setImportantMessages(parsedMessages);
+            setIsLoading(false);
+            return;
+          }
         }
       }
       
@@ -60,10 +63,10 @@ const Header: React.FC = () => {
       if (data && data.length > 0) {
         // Format messages from the email_templates table
         const formattedMessages = data.map(template => ({
-          id: template.id,
-          text: template.assunto, // Using the subject as the message text
+          id: template.id || String(Math.random()),
+          text: template.assunto || 'Notificação do sistema', // Using the subject as the message text
           type: 'info' as 'payment' | 'event' | 'inactive' | 'info', // Default type
-          action: template.corpo.includes('http') ? {
+          action: template.corpo && template.corpo.includes('http') ? {
             url: template.corpo.match(/https?:\/\/[^\s]+/)?.[0] || '#',
             text: 'Saiba mais'
           } : undefined
@@ -78,7 +81,16 @@ const Header: React.FC = () => {
         // When testing locally, if no messages in the database, use demo messages
         const storedMessages = window.localStorage.getItem('demoMessages');
         if (storedMessages) {
-          setImportantMessages(JSON.parse(storedMessages));
+          try {
+            const parsedMessages = JSON.parse(storedMessages);
+            if (Array.isArray(parsedMessages)) {
+              setImportantMessages(parsedMessages);
+            } else {
+              setImportantMessages([]);
+            }
+          } catch (e) {
+            setImportantMessages([]);
+          }
         } else {
           setImportantMessages([]);
         }
@@ -89,11 +101,25 @@ const Header: React.FC = () => {
       // On error, try to use cached messages or demo messages
       const cachedMessages = localStorage.getItem('cachedSystemMessages');
       if (cachedMessages) {
-        setImportantMessages(JSON.parse(cachedMessages));
+        try {
+          const parsedMessages = JSON.parse(cachedMessages);
+          if (Array.isArray(parsedMessages)) {
+            setImportantMessages(parsedMessages);
+          }
+        } catch (e) {
+          console.error("Error parsing cached messages:", e);
+        }
       } else {
         const storedMessages = window.localStorage.getItem('demoMessages');
         if (storedMessages) {
-          setImportantMessages(JSON.parse(storedMessages));
+          try {
+            const parsedMessages = JSON.parse(storedMessages);
+            if (Array.isArray(parsedMessages)) {
+              setImportantMessages(parsedMessages);
+            }
+          } catch (e) {
+            console.error("Error parsing demo messages:", e);
+          }
         }
       }
     } finally {
