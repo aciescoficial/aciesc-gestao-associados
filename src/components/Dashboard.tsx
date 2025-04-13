@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { QuickActions } from '@/components/dashboard/QuickActions';
@@ -8,7 +8,6 @@ import { useDashboardData } from '@/components/dashboard/hooks/useDashboardData'
 import { NotificationMessage } from '@/components/layout/NotificationBanner';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/components/auth/hooks/useAuthContext';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
@@ -47,6 +46,7 @@ const Dashboard: React.FC = () => {
   const { stats, recentActivity, loading, systemStatus, refreshData } = useDashboardData();
   const { user } = useAuth();
   
+  // Store example messages in localStorage only once
   useEffect(() => {
     // Only set example messages if they don't exist yet to prevent constant writes
     if (!window.localStorage.getItem('demoMessages')) {
@@ -61,6 +61,9 @@ const Dashboard: React.FC = () => {
     }
   }, []);
 
+  // Memoize the refresh handler to prevent recreation on every render
+  const handleRefresh = useMemo(() => refreshData, [refreshData]);
+
   // Force page refresh after a short delay if no user
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -68,20 +71,20 @@ const Dashboard: React.FC = () => {
       console.log('No authenticated user, dashboard might not show data');
       timeoutId = setTimeout(() => {
         console.log('Triggering refresh to ensure auth state is current');
-        refreshData();
+        handleRefresh();
       }, 1500);
     }
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [user, refreshData]);
+  }, [user, handleRefresh]);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="wp-header">Dashboard</h1>
         <Button 
-          onClick={refreshData} 
+          onClick={handleRefresh} 
           variant="outline" 
           size="sm"
           className="flex items-center gap-2"
@@ -124,4 +127,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default React.memo(Dashboard);

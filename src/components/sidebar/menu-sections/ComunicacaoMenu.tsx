@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MessageCircle, MessageSquare, SendHorizonal, Inbox } from 'lucide-react';
+import { MessageCircle, Inbox, SendHorizonal } from 'lucide-react';
 import { MenuItem } from '../types/MenuItem';
 
 // Memoize menu items to prevent recreation on every render
@@ -17,3 +17,5 @@ export const getComunicacaoMenuItems = (): MenuItem[] => {
     }
   ];
 };
+
+export default React.memo(getComunicacaoMenuItems);

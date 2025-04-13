@@ -103,7 +103,7 @@ const MessagesDashboard: React.FC = () => {
   }, []);
 
   // Get priority badge color
-  const getPriorityBadge = (priority: MessagePriority) => {
+  const getPriorityBadge = useCallback((priority: MessagePriority) => {
     switch (priority) {
       case 'urgent':
         return <Badge variant="destructive">Urgente</Badge>;
@@ -112,10 +112,10 @@ const MessagesDashboard: React.FC = () => {
       default:
         return <Badge variant="outline">Normal</Badge>;
     }
-  };
+  }, []);
 
   const renderMessageCard = useCallback((message: Message) => (
-    <Card key={message.id} className={`p-4 hover:bg-gray-50 ${!message.read ? 'border-l-4 border-l-blue-500' : ''}`}>
+    <Card key={message.id} className={`p-4 hover:bg-gray-50 transition-colors ${!message.read ? 'border-l-4 border-l-blue-500' : ''}`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ const MessagesDashboard: React.FC = () => {
         </div>
       </div>
     </Card>
-  ), [markAsRead]);
+  ), [getPriorityBadge, markAsRead]);
 
   return (
     <div className="space-y-6">
@@ -185,4 +185,4 @@ const MessagesDashboard: React.FC = () => {
   );
 };
 
-export default MessagesDashboard;
+export default React.memo(MessagesDashboard);

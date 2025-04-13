@@ -15,9 +15,11 @@ import GrupoDestinatariosField from './form-fields/GrupoDestinatariosField';
 import AssuntoField from './form-fields/AssuntoField';
 import MensagemField from './form-fields/MensagemField';
 import EnviarCopiaField from './form-fields/EnviarCopiaField';
+import { useMensagensSubmit } from './hooks/useMensagensSubmit';
 
 const MensagensForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { submitMensagem } = useMensagensSubmit();
 
   // Configuração do formulário com React Hook Form e validação Zod
   const form = useForm<MensagemFormValues>({
@@ -39,13 +41,7 @@ const MensagensForm: React.FC = () => {
     setIsLoading(true);
     
     try {
-      console.log('Enviando mensagem:', values);
-      
-      // Aqui iria a lógica para enviar a mensagem através de uma API
-      // Simulando um envio com atraso
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success('Mensagem enviada com sucesso!');
+      await submitMensagem(values);
       form.reset();
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
@@ -53,7 +49,7 @@ const MensagensForm: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [form]);
+  }, [form, submitMensagem]);
 
   return (
     <Form {...form}>
@@ -74,7 +70,11 @@ const MensagensForm: React.FC = () => {
         <EnviarCopiaField control={form.control} />
         
         {/* Botão de envio */}
-        <Button type="submit" disabled={isLoading} className="mt-4">
+        <Button 
+          type="submit" 
+          disabled={isLoading} 
+          className="mt-4"
+        >
           {isLoading ? (
             <>Enviando...</>
           ) : (
@@ -88,4 +88,4 @@ const MensagensForm: React.FC = () => {
   );
 };
 
-export default MensagensForm;
+export default React.memo(MensagensForm);

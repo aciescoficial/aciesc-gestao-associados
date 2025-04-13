@@ -1,11 +1,14 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchDashboardStats, DashboardStats } from '../services/statsService';
 import { fetchRecentActivity, RecentActivity } from '../services/activityService';
 import { checkSystemStatus, SystemStatus } from '../services/systemStatusService';
 import { useTimeout } from './useTimeout';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/components/auth/hooks/useAuthContext';
+
+// Cache timeout in milliseconds (5 minutes)
+const CACHE_TIMEOUT = 5 * 60 * 1000;
 
 export const useDashboardData = () => {
   const { user } = useAuth(); // Get the authenticated user
@@ -27,23 +30,38 @@ export const useDashboardData = () => {
     emails: { active: false, message: 'Verificando...' }
   });
 
+  // Cache timestamp references
+  const lastFetchTimeRef = useRef<number | null>(null);
+  const isMountedRef = useRef(true);
+
   // Use timeout hook with increased timeout values
-  const statsTimeout = useTimeout(5000, { // Increased from 2500ms to 5000ms
+  const statsTimeout = useTimeout(5000, { 
     associados: 0,
     empresas: 0,
     pendentes: 0,
     carteirasPendentes: 0
   });
   
-  const activityTimeout = useTimeout(5000, []); // Increased from 2500ms to 5000ms
+  const activityTimeout = useTimeout(5000, []); 
   
-  const statusTimeout = useTimeout(4000, { // Increased from 2000ms to 4000ms
+  const statusTimeout = useTimeout(4000, { 
     asaas: { active: false, message: 'Verificação falhou (timeout)' },
     stripe: { active: false, message: 'Verificação falhou (timeout)' },
     emails: { active: false, message: 'Verificação falhou (timeout)' }
   });
 
-  const fetchDashboardData = useCallback(async () => {
+  const fetchDashboardData = useCallback(async (forceRefresh: boolean = false) => {
+    // Check if we should use cached data
+    const currentTime = Date.now();
+    if (
+      !forceRefresh && 
+      lastFetchTimeRef.current && 
+      currentTime - lastFetchTimeRef.current < CACHE_TIMEOUT
+    ) {
+      console.log('Using cached dashboard data');
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -52,6 +70,8 @@ export const useDashboardData = () => {
         setLoading(false);
         return;
       }
+      
+      console.log('Fetching fresh dashboard data');
       
       // Fetch data in parallel using the timeout wrapper
       const statsPromise = statsTimeout.withTimeout(fetchDashboardStats(), 'fetchStats');
@@ -64,6 +84,9 @@ export const useDashboardData = () => {
         activityPromise,
         statusPromise
       ]);
+      
+      // Only update state if the component is still mounted
+      if (!isMountedRef.current) return;
       
       // Handle stats result
       if (statsResult.status === 'fulfilled') {
@@ -86,6 +109,9 @@ export const useDashboardData = () => {
         console.error('Failed to fetch system status:', statusResult.reason);
       }
       
+      // Update the last fetch timestamp
+      lastFetchTimeRef.current = currentTime;
+      
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast({
@@ -95,26 +121,33 @@ export const useDashboardData = () => {
       });
     } finally {
       // Always set loading to false, even if there are errors
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, [statsTimeout, activityTimeout, statusTimeout, user]);
 
   useEffect(() => {
+    isMountedRef.current = true;
+    
     // Set a maximum timeout for the entire loading process
     const loadingTimeout = setTimeout(() => {
-      setLoading(false);
-    }, 8000); // Increased from 5000ms to 8000ms
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+    }, 8000); 
     
     fetchDashboardData();
     
-    // Temporarily disabled auto-refresh interval
-    // const intervalId = setInterval(fetchDashboardData, 300000);
-    
     // Clean up on unmount
     return () => {
-      // clearInterval(intervalId);
+      isMountedRef.current = false;
       clearTimeout(loadingTimeout);
     };
+  }, [fetchDashboardData]);
+
+  const refreshData = useCallback(() => {
+    return fetchDashboardData(true);
   }, [fetchDashboardData]);
 
   return {
@@ -122,6 +155,6 @@ export const useDashboardData = () => {
     recentActivity,
     loading,
     systemStatus,
-    refreshData: fetchDashboardData
+    refreshData
   };
 };
