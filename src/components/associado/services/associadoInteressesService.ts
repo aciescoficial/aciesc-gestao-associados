@@ -17,8 +17,12 @@ export async function getAssociadoInteresses(options: GetInteressesOptions = {})
   let query = supabase
     .from('associado_interesse')
     .select('*')
-    .eq('status', status)
     .order('created_at', { ascending: false });
+  
+  // Only filter by status if it's not "todos"
+  if (status !== 'todos') {
+    query = query.eq('status', status);
+  }
   
   // Apply search filter if provided
   if (searchTerm && searchField) {

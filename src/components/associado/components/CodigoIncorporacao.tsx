@@ -8,14 +8,8 @@ const CodigoIncorporacao: React.FC = () => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
-  // Exemplo de código de incorporação para o formulário
-  const embedCode = `<iframe
-  src="https://seudominio.com.br/formulario-interesse-embed"
-  width="100%"
-  height="650"
-  frameborder="0"
-  allowtransparency="true"
-></iframe>`;
+  // Updated iframe code
+  const embedCode = `<iframe src="https://preview--aciesc-gestao-associados.lovable.app/formulario-interesse" width="100%" height="700px" frameborder="0" style="border: none;"></iframe>`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(embedCode)
