@@ -38,8 +38,11 @@ export async function getAssociadoInteresses(options: GetInteressesOptions = {})
   
   if (error) throw error;
   
-  // Ensure the data matches the AssociadoInteresse type
-  return (data || []) as AssociadoInteresse[];
+  // Map database response to AssociadoInteresse type with proper handling of payment_proof_url
+  return (data || []).map(item => ({
+    ...item,
+    payment_proof_url: item.payment_proof_url || null
+  })) as AssociadoInteresse[];
 }
 
 /**
