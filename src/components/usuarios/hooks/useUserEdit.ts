@@ -54,10 +54,10 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
     if (!selectedUser) return false;
 
     try {
-      // Update the user's metadata and profile
+      // Update the user's metadata and user data
       const dbRole = mapToDbRole(selectedUser.role as UserRole);
       
-      const { error: profileError } = await supabase
+      const { error: userError } = await supabase
         .from('profiles')
         .update({
           name: selectedUser.name,
@@ -70,7 +70,7 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
         })
         .eq('id', selectedUser.id);
 
-      if (profileError) throw profileError;
+      if (userError) throw userError;
 
       onSuccess(selectedUser);
       return true;
@@ -82,13 +82,13 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
 
   const toggleUserActive = useCallback(async (userId: string, active: boolean) => {
     try {
-      // Also update the active status in profiles
-      const { error: profileError } = await supabase
+      // Also update the active status in users
+      const { error: userError } = await supabase
         .from('profiles')
         .update({ active })
         .eq('id', userId);
 
-      if (profileError) throw profileError;
+      if (userError) throw userError;
 
       return true;
     } catch (error) {

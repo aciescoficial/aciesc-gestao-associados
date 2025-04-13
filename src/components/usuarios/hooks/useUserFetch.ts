@@ -75,8 +75,8 @@ export const useUserFetch = () => {
     try {
       console.log('Fetching users from database...');
       
-      // Fetch profiles with role information and join with associados and empresas
-      const { data: profiles, error: profilesError } = await supabase
+      // Fetch users with role information and join with associados and empresas
+      const { data: userData, error: userError } = await supabase
         .from('profiles')
         .select(`
           *,
@@ -88,14 +88,14 @@ export const useUserFetch = () => {
       // Clear the timeout since we got a response
       clearTimeout(timeoutId);
 
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        throw profilesError;
+      if (userError) {
+        console.error('Error fetching users:', userError);
+        throw userError;
       }
       
-      console.log('Profiles fetched:', profiles?.length || 0);
+      console.log('Users fetched:', userData?.length || 0);
 
-      if (!profiles) {
+      if (!userData) {
         setUsers([]);
         setLoading(false);
         return;
@@ -112,36 +112,36 @@ export const useUserFetch = () => {
           console.warn('Could not fetch auth users via RPC:', authError);
         }
       } catch (err) {
-        console.warn('Error in RPC call for auth users (continuing with profiles only):', err);
+        console.warn('Error in RPC call for auth users (continuing with users only):', err);
       }
 
-      // Map profiles to User objects and fill in email from auth users if available
-      const mappedUsers: User[] = profiles.map(profile => {
+      // Map users to User objects and fill in email from auth users if available
+      const mappedUsers: User[] = userData.map(user => {
         // Try to find matching auth user email
-        let email = profile.email || '';
-        const matchingAuthUser = authUsers.find(au => au.id === profile.id);
+        let email = user.email || '';
+        const matchingAuthUser = authUsers.find(au => au.id === user.id);
         if (matchingAuthUser && matchingAuthUser.email) {
           email = matchingAuthUser.email;
         }
 
         // Convert string[] to UserTag[] by filtering to only valid UserTag values
-        const validUserTags = Array.isArray(profile.tags) ? profile.tags.filter(tag => 
+        const validUserTags = Array.isArray(user.tags) ? user.tags.filter(tag => 
           ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
            'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc'].includes(tag)
         ) as UserTag[] : [];
         
         return {
-          id: profile.id,
-          name: profile.name || '',
+          id: user.id,
+          name: user.name || '',
           email: email,  
-          role: mapFromDbRole(profile.role),
+          role: mapFromDbRole(user.role),
           tags: validUserTags,
-          active: profile.active !== false, // Default to true if not specified
-          createdAt: new Date(profile.created_at),
-          associado_id: profile.associado_id || undefined,
-          associado_cpf: profile.associado?.cpf || undefined,
-          empresa_id: profile.empresa_id || undefined,
-          empresa_cnpj: profile.empresa?.cnpj || undefined
+          active: user.active !== false, // Default to true if not specified
+          createdAt: new Date(user.created_at),
+          associado_id: user.associado_id || undefined,
+          associado_cpf: user.associado?.cpf || undefined,
+          empresa_id: user.empresa_id || undefined,
+          empresa_cnpj: user.empresa?.cnpj || undefined
         };
       });
 

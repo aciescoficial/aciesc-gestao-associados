@@ -2,13 +2,13 @@
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole, UserTag } from '../../usuarios/types';
 
-// Function to fetch user role and tags from profiles table
+// Function to fetch user role and tags from user table
 export const fetchUserRole = async (userId: string): Promise<{ 
   userRole: UserRole | null; 
   userTags: UserTag[] 
 }> => {
   try {
-    const { data: profile, error } = await supabase
+    const { data: userData, error } = await supabase
       .from('profiles')
       .select('role, tags, email')
       .eq('id', userId)
@@ -19,10 +19,10 @@ export const fetchUserRole = async (userId: string): Promise<{
       return { userRole: null, userTags: [] };
     }
     
-    if (profile) {
+    if (userData) {
       let userRole: UserRole;
       
-      switch (profile.role) {
+      switch (userData.role) {
         case 'admin':
           userRole = 'admin';
           break;
@@ -39,7 +39,7 @@ export const fetchUserRole = async (userId: string): Promise<{
       }
       
       // Convert string[] to UserTag[] by filtering to only valid UserTag values
-      const validUserTags = Array.isArray(profile.tags) ? profile.tags.filter(tag => 
+      const validUserTags = Array.isArray(userData.tags) ? userData.tags.filter(tag => 
         ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
          'administrador', 'financeiro', 'proprietario_imobiliaria'].includes(tag)
       ) as UserTag[] : [];

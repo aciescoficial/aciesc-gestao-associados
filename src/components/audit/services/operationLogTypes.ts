@@ -11,7 +11,7 @@ export interface OperationLog {
   userId: string | null;
   userName: string | null;
   createdAt: string;
-  profiles?: { name: string | null } | null;
+  user?: { name: string | null } | null;
 }
 
 export interface LogOperationParams {

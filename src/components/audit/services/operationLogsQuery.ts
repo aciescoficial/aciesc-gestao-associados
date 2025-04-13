@@ -28,7 +28,7 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
         format, 
         created_at, 
         user_id,
-        profiles:user_id (name)
+        user:user_id (name)
       `)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -47,16 +47,16 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
     // Format data for display
     const formattedLogs: OperationLog[] = data?.map(log => {
       // Safely extract user name with proper null checks
-      let profileName = 'Unknown';
-      let profileData = null;
+      let userName = 'Unknown';
+      let userData = null;
       
-      // Check if profiles exists and is an object
-      if (log.profiles !== null && typeof log.profiles === 'object') {
+      // Check if user exists and is an object
+      if (log.user !== null && typeof log.user === 'object') {
         // Use optional chaining to safely access the name property with proper type assertion
-        const profileObj = log.profiles as { name?: string | null };
-        const name = profileObj?.name;
-        profileName = name || 'Unknown';
-        profileData = { name: name || null };
+        const userObj = log.user as { name?: string | null };
+        const name = userObj?.name;
+        userName = name || 'Unknown';
+        userData = { name: name || null };
       }
       
       return {
@@ -67,10 +67,10 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
         recordCount: log.record_count,
         format: log.format,
         createdAt: new Date(log.created_at).toLocaleString(),
-        userName: profileName,
+        userName: userName,
         userId: log.user_id,
         created_at: log.created_at,
-        profiles: profileData
+        user: userData
       };
     }) || [];
 

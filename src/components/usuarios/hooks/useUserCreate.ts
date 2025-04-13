@@ -63,17 +63,18 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
   const addUser = useCallback(async () => {
     try {
       // Step 1: Create the user in auth.users
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email!,
-        email_confirm: true,
-        password: 'temporary-password', // Temporary password, will be changed on first login
-        user_metadata: {
-          name: newUser.name,
-          role: mapToDbRole(newUser.role as UserRole),
-          tags: newUser.tags,
-          active: true,
-          associado_id: newUser.associado_id,
-          empresa_id: newUser.empresa_id
+        password: `temp${Math.random().toString(36).slice(2, 10)}`, // Generate random temp password
+        options: {
+          data: {
+            name: newUser.name,
+            role: mapToDbRole(newUser.role as UserRole),
+            tags: newUser.tags,
+            active: true,
+            associado_id: newUser.associado_id,
+            empresa_id: newUser.empresa_id
+          }
         }
       });
 
@@ -81,7 +82,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
 
       // Step 2: Update the profile with role, tags, and linked entities
       if (authData && authData.user) {
-        const { error: profileError } = await supabase
+        const { error: userError } = await supabase
           .from('profiles')
           .update({
             name: newUser.name,
@@ -94,7 +95,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           })
           .eq('id', authData.user.id);
 
-        if (profileError) throw profileError;
+        if (userError) throw userError;
 
         // Return the created user to the caller
         onSuccess({

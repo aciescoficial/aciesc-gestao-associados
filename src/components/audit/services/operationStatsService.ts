@@ -50,7 +50,7 @@ export async function getOperationStats(): Promise<OperationStats> {
     // Get most active users
     const { data: userData, error: usersError } = await supabase
       .from('operation_logs')
-      .select(`user_id, profiles:user_id (name)`)
+      .select(`user_id, user:user_id (name)`)
       .gte('created_at', thirtyDaysAgo.toISOString());
     
     if (usersError) throw usersError;
@@ -65,10 +65,10 @@ export async function getOperationStats(): Promise<OperationStats> {
           let userName = 'Unknown';
           
           // Use the proper null check with type guard
-          if (curr.profiles !== null && typeof curr.profiles === 'object') {
+          if (curr.user !== null && typeof curr.user === 'object') {
             // Use optional chaining with type assertion for safety
-            const profileObj = curr.profiles as { name?: string | null };
-            userName = profileObj?.name || 'Unknown';
+            const userObj = curr.user as { name?: string | null };
+            userName = userObj?.name || 'Unknown';
           }
           
           acc.set(curr.user_id, {
