@@ -3,7 +3,7 @@ import React from 'react';
 import { MessageCircle, Inbox, SendHorizonal } from 'lucide-react';
 import { MenuItem } from '../types/MenuItem';
 
-// Memoize menu items to prevent recreation on every render
+// Create a function to return menu items
 export const getComunicacaoMenuItems = (): MenuItem[] => {
   return [
     { 
@@ -18,4 +18,9 @@ export const getComunicacaoMenuItems = (): MenuItem[] => {
   ];
 };
 
-export default React.memo(getComunicacaoMenuItems);
+// Create a proper React component to be memoized
+const ComunicacaoMenu: React.FC = () => {
+  return null; // This component doesn't render anything, it's just used to export menu items
+};
+
+export default React.memo(ComunicacaoMenu);
