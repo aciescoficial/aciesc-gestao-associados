@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from '../AuthRoutes';
@@ -19,6 +20,10 @@ import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import ConfiguracoesPage from '@/components/configuracoes/ConfiguracoesPage';
 import Dashboard from '@/components/Dashboard';
 
+// Mensagens components
+import MessagesDashboard from '@/components/mensagens/MessagesDashboard';
+import MensagensPage from '@/components/mensagens/MensagensPage';
+
 // Layout wrapper component to avoid circular dependencies
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <PluginLayout>
@@ -39,6 +44,15 @@ const CobrancasPage: React.FC = () => (
 );
 
 export const AdminRoutes = [
+  // Dashboard Route
+  <Route key="admin-dashboard" path="/admin/dashboard" element={
+    <AdminRoute>
+      <LayoutWrapper>
+        <Dashboard />
+      </LayoutWrapper>
+    </AdminRoute>
+  } />,
+
   // User Management Routes
   <Route key="usuarios-gerenciar" path="/usuarios/gerenciar" element={
     <AdminRoute>
@@ -110,6 +124,23 @@ export const AdminRoutes = [
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
         <EmpresaSugestoes />
+      </LayoutWrapper>
+    </ProtectedRoute>
+  } />,
+  
+  // Mensagens Routes (Admin)
+  <Route key="mensagens" path="/mensagens" element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <LayoutWrapper>
+        <MessagesDashboard />
+      </LayoutWrapper>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="mensagens-enviar" path="/mensagens/enviar" element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <LayoutWrapper>
+        <MensagensPage />
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
