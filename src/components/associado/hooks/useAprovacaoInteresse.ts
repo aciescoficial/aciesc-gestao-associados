@@ -9,19 +9,26 @@ import { getAssociadoInteresses, updateInterestStatus } from '../services/associ
 export const useAprovacaoInteresse = () => {
   const [interesses, setInteresses] = useState<AssociadoInteresse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<string>('pendente');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchField, setSearchField] = useState<'nome' | 'email'>('nome');
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
   const fetchPendingInterests = async () => {
     try {
       setIsLoading(true);
-      const data = await getAssociadoInteresses();
+      const data = await getAssociadoInteresses({
+        status: statusFilter,
+        searchTerm: searchTerm.trim() || undefined,
+        searchField: searchTerm.trim() ? searchField : undefined
+      });
       setInteresses(data);
     } catch (error) {
-      console.error('Error fetching pending interests:', error);
+      console.error('Error fetching interests:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível carregar os interesses pendentes.',
+        description: 'Não foi possível carregar os interesses.',
         variant: 'destructive',
       });
     } finally {
@@ -33,7 +40,12 @@ export const useAprovacaoInteresse = () => {
     if (isAdmin) {
       fetchPendingInterests();
     }
-  }, [isAdmin]);
+  }, [isAdmin, statusFilter]);
+
+  // Search function that will be triggered by the search button
+  const handleSearch = async () => {
+    await fetchPendingInterests();
+  };
 
   const handleApprove = async (id: string, email: string, nome: string, sobrenome: string) => {
     try {
@@ -102,7 +114,14 @@ export const useAprovacaoInteresse = () => {
     interesses,
     isLoading,
     isAdmin,
+    statusFilter,
+    setStatusFilter,
+    searchTerm,
+    setSearchTerm,
+    searchField,
+    setSearchField,
     fetchPendingInterests,
+    handleSearch,
     handleApprove,
     handleReject
   };

@@ -1,27 +1,40 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { AssociadoInteresse } from '../AprovacaoInteresse';
+import { AssociadoInteresse } from '../types/associadoInteresse';
+
+interface GetInteressesOptions {
+  status?: string;
+  searchTerm?: string;
+  searchField?: 'nome' | 'email';
+}
 
 /**
- * Get all pending associado interests
+ * Get associado interests with optional filtering
  */
-export async function getAssociadoInteresses(): Promise<AssociadoInteresse[]> {
-  const { data, error } = await supabase
+export async function getAssociadoInteresses(options: GetInteressesOptions = {}): Promise<AssociadoInteresse[]> {
+  const { status = 'pendente', searchTerm, searchField } = options;
+  
+  let query = supabase
     .from('associado_interesse')
     .select('*')
-    .eq('status', 'pendente')
+    .eq('status', status)
     .order('created_at', { ascending: false });
+  
+  // Apply search filter if provided
+  if (searchTerm && searchField) {
+    if (searchField === 'nome') {
+      // Search in both nome and sobrenome
+      query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
+    } else if (searchField === 'email') {
+      query = query.ilike('email', `%${searchTerm}%`);
+    }
+  }
+  
+  const { data, error } = await query;
   
   if (error) throw error;
   
-  // Map the data to ensure it conforms to AssociadoInteresse type
-  // including the payment_proof_url property which might be in the interface
-  return data?.map(item => ({
-    ...item,
-    // Add any required properties from AssociadoInteresse that might be missing
-    payment_proof_url: null, // Add this property if it's required by the interface
-    ...((item as any).payment_proof_url ? { payment_proof_url: (item as any).payment_proof_url } : {})
-  })) || [];
+  return data || [];
 }
 
 /**
