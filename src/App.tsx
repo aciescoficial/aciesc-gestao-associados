@@ -8,14 +8,22 @@ import { AuthProvider } from "./components/auth/AuthProvider";
 import AppRoutes from "./AppRoutes";
 
 function App() {
-  // Create a client
-  const queryClient = new QueryClient();
+  // Create a client with better error handling options
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+        retry: 1,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      },
+    }
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
+        <Sonner richColors position="top-right" />
         <BrowserRouter>
           <AuthProvider>
             <AppRoutes />

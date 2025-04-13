@@ -56,12 +56,12 @@ const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages =
   // Filter out dismissed messages
   const activeMessages = messages.filter(msg => !dismissedMessages.includes(msg.id));
   
-  // Se não houver mensagens, não renderiza o banner
+  // If there are no messages, don't render the banner
   if (activeMessages.length === 0) {
     return null;
   }
   
-  // Por enquanto, exibe apenas a mensagem atual
+  // Display only the current message
   const currentMessage = activeMessages[currentMessageIndex];
   
   const handleActionClick = () => {

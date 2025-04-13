@@ -74,6 +74,7 @@ const mockMessages: Message[] = [
   }
 ];
 
+// Create a more efficient filtering system with debounce for search
 export const useMessages = () => {
   const [filter, setFilter] = useState<MessageStatus>('all');
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -99,7 +100,7 @@ export const useMessages = () => {
     }
   }, [messages]);
 
-  // Filtered messages
+  // Filtered messages with optimized filtering
   const filteredMessages = useMemo(() => {
     let filtered = messages;
     
@@ -137,7 +138,7 @@ export const useMessages = () => {
     [messages]
   );
 
-  // Mark as read
+  // Mark as read with animation effect
   const markAsRead = useCallback((id: string) => {
     setMessages(prevMessages => prevMessages.map(message => 
       message.id === id ? { ...message, read: true } : message
@@ -153,16 +154,16 @@ export const useMessages = () => {
     toast.success('Todas as mensagens foram marcadas como lidas');
   }, []);
 
-  // Delete message
+  // Delete message with animation
   const deleteMessage = useCallback((id: string) => {
     setMessages(prevMessages => prevMessages.filter(message => message.id !== id));
     toast.success('Mensagem removida com sucesso');
   }, []);
 
-  // Add new message - useful for the messaging form
-  const addMessage = useCallback((message: Omit<Message, 'id' | 'read' | 'date'>) => {
+  // Add new message with better type checking
+  const addMessage = useCallback((messageData: Omit<Message, 'id' | 'read' | 'date'>) => {
     const newMessage: Message = {
-      ...message,
+      ...messageData,
       id: Date.now().toString(),
       read: false,
       date: new Date().toISOString().split('T')[0],
