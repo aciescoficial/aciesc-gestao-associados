@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, Search } from 'lucide-react';
+import { Info, Search, CheckCircle2 } from 'lucide-react';
 
 interface AprovacaoAlertasProps {
   showInstructions?: boolean;
@@ -17,6 +17,7 @@ const AprovacaoAlertas: React.FC<AprovacaoAlertasProps> = ({ showInstructions = 
             <AlertTitle>Instruções</AlertTitle>
             <AlertDescription>
               Avalie cada solicitação de interesse. Ao aprovar, será enviado um email com link para cadastro.
+              Solicitações já aprovadas serão marcadas como "Já Aprovado".
             </AlertDescription>
           </Alert>
           

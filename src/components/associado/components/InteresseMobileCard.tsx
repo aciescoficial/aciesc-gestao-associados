@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { UserPlus, X } from 'lucide-react';
+import { UserPlus, X, CheckCircle2 } from 'lucide-react';
 import { AssociadoInteresse } from '../types/associadoInteresse';
 
 interface InteresseMobileCardProps {
@@ -15,6 +15,8 @@ const InteresseMobileCard: React.FC<InteresseMobileCardProps> = ({
   onApprove, 
   onReject 
 }) => {
+  const isApproved = interesse.status === 'aprovado';
+  
   return (
     <div className="bg-white rounded-lg shadow-sm border p-4 mb-4">
       <div className="flex justify-between items-start">
@@ -60,30 +62,44 @@ const InteresseMobileCard: React.FC<InteresseMobileCardProps> = ({
       </div>
       
       <div className="flex gap-2 mt-4">
-        <Button
-          size="sm"
-          className="flex-1"
-          onClick={() => 
-            onApprove(
-              interesse.id, 
-              interesse.email,
-              interesse.nome,
-              interesse.sobrenome
-            )
-          }
-        >
-          <UserPlus className="w-4 h-4 mr-1" />
-          Aprovar
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onReject(interesse.id)}
-          className="flex-1"
-        >
-          <X className="w-4 h-4 mr-1" />
-          Rejeitar
-        </Button>
+        {isApproved ? (
+          <Button
+            size="sm"
+            className="flex-1 bg-green-600 hover:bg-green-700"
+            disabled
+          >
+            <CheckCircle2 className="w-4 h-4 mr-1" />
+            Já Aprovado
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={() => 
+              onApprove(
+                interesse.id, 
+                interesse.email,
+                interesse.nome,
+                interesse.sobrenome
+              )
+            }
+          >
+            <UserPlus className="w-4 h-4 mr-1" />
+            Aprovar
+          </Button>
+        )}
+        
+        {!isApproved && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onReject(interesse.id)}
+            className="flex-1"
+          >
+            <X className="w-4 h-4 mr-1" />
+            Rejeitar
+          </Button>
+        )}
       </div>
     </div>
   );

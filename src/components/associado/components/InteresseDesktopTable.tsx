@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { UserPlus, X } from 'lucide-react';
+import { UserPlus, X, CheckCircle2 } from 'lucide-react';
 import { AssociadoInteresse } from '../types/associadoInteresse';
 
 interface InteresseDesktopTableProps {
@@ -31,62 +31,79 @@ const InteresseDesktopTable: React.FC<InteresseDesktopTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {interesses.map((interesse) => (
-            <tr key={interesse.id} className="border-b hover:bg-gray-50">
-              <td className="p-3">
-                {interesse.nome} {interesse.sobrenome}
-                {interesse.creci && (
-                  <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                    CRECI: {interesse.creci}
-                  </span>
-                )}
-              </td>
-              <td className="p-3">{interesse.email}</td>
-              <td className="p-3">{interesse.celular}</td>
-              <td className="p-3">{interesse.cpf}</td>
-              <td className="p-3">
-                {interesse.cidade}/{interesse.estado}
-              </td>
-              <td className="p-3">
-                {new Date(interesse.created_at).toLocaleDateString('pt-BR')}
-              </td>
-              <td className="p-3">
-                {interesse.pagamento_confirmado ? (
-                  <span className="text-green-600 font-medium">Confirmado</span>
-                ) : (
-                  <span className="text-amber-600 font-medium">Pendente</span>
-                )}
-              </td>
-              <td className="p-3">
-                <div className="flex justify-center space-x-2">
-                  <Button
-                    size="sm"
-                    onClick={() => 
-                      onApprove(
-                        interesse.id, 
-                        interesse.email,
-                        interesse.nome,
-                        interesse.sobrenome
-                      )
-                    }
-                    className="flex items-center"
-                  >
-                    <UserPlus className="w-4 h-4 mr-1" />
-                    Aprovar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onReject(interesse.id)}
-                    className="flex items-center"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Rejeitar
-                  </Button>
-                </div>
-              </td>
-            </tr>
-          ))}
+          {interesses.map((interesse) => {
+            const isApproved = interesse.status === 'aprovado';
+            
+            return (
+              <tr key={interesse.id} className="border-b hover:bg-gray-50">
+                <td className="p-3">
+                  {interesse.nome} {interesse.sobrenome}
+                  {interesse.creci && (
+                    <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                      CRECI: {interesse.creci}
+                    </span>
+                  )}
+                </td>
+                <td className="p-3">{interesse.email}</td>
+                <td className="p-3">{interesse.celular}</td>
+                <td className="p-3">{interesse.cpf}</td>
+                <td className="p-3">
+                  {interesse.cidade}/{interesse.estado}
+                </td>
+                <td className="p-3">
+                  {new Date(interesse.created_at).toLocaleDateString('pt-BR')}
+                </td>
+                <td className="p-3">
+                  {interesse.pagamento_confirmado ? (
+                    <span className="text-green-600 font-medium">Confirmado</span>
+                  ) : (
+                    <span className="text-amber-600 font-medium">Pendente</span>
+                  )}
+                </td>
+                <td className="p-3">
+                  <div className="flex justify-center space-x-2">
+                    {isApproved ? (
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 flex items-center"
+                        disabled
+                      >
+                        <CheckCircle2 className="w-4 h-4 mr-1" />
+                        Já Aprovado
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => 
+                            onApprove(
+                              interesse.id, 
+                              interesse.email,
+                              interesse.nome,
+                              interesse.sobrenome
+                            )
+                          }
+                          className="flex items-center"
+                        >
+                          <UserPlus className="w-4 h-4 mr-1" />
+                          Aprovar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onReject(interesse.id)}
+                          className="flex items-center"
+                        >
+                          <X className="w-4 h-4 mr-1" />
+                          Rejeitar
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
