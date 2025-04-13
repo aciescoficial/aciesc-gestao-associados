@@ -1,11 +1,13 @@
+
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute } from '../AuthRoutes';
 import PluginLayout from '@/components/PluginLayout';
 import Dashboard from '@/components/Dashboard';
 import { ProfilePage } from '@/components/auth';
-import MensagensPage from '@/components/mensagens/MensagensPage';
-import MessagesDashboard from '@/components/mensagens/MessagesDashboard';
+// Mensagens imports commented out
+// import MensagensPage from '@/components/mensagens/MensagensPage';
+// import MessagesDashboard from '@/components/mensagens/MessagesDashboard';
 import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
 import PagamentoSucesso from '@/components/pagamento/PagamentoSucesso';
 
@@ -50,7 +52,8 @@ export const SharedRoutes = [
     </ProtectedRoute>
   } />,
   
-  // Messages Dashboard - accessible to all users (new route)
+  // Messages Dashboard - accessible to all users (commented out to disable)
+  /*
   <Route key="mensagens-dashboard" path="/mensagens" element={
     <ProtectedRoute>
       <LayoutWrapper>
@@ -67,6 +70,7 @@ export const SharedRoutes = [
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
+  */
   
   // Payment success page
   <Route key="pagamento-sucesso" path="/pagamento-sucesso" element={

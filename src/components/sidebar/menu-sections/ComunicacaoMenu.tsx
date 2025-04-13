@@ -5,6 +5,11 @@ import { MenuItem } from '../types/MenuItem';
 
 // Create a function to return menu items
 export const getComunicacaoMenuItems = (): MenuItem[] => {
+  // Return empty array to disable the menu
+  return [];
+  
+  // Original code commented out
+  /*
   return [
     { 
       header: "Comunicação", 
@@ -16,6 +21,7 @@ export const getComunicacaoMenuItems = (): MenuItem[] => {
       ]
     }
   ];
+  */
 };
 
 // Create a proper React component to be memoized

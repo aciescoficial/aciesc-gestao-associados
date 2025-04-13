@@ -21,8 +21,9 @@ const AprovacoesPendentes = lazy(() => import("./components/AprovacoesPendentes"
 const UserManagement = lazy(() => import("./components/usuarios/UserManagement"));
 const PermissionPanel = lazy(() => import("./components/usuarios/permission/PermissionPanel"));
 const ProfilePage = lazy(() => import("./components/auth/profile/ProfilePage"));
-const MessagesDashboard = lazy(() => import("./components/mensagens/MessagesDashboard"));
-const MensagensPage = lazy(() => import("./components/mensagens/MensagensPage"));
+// Mensagens components commented out
+// const MessagesDashboard = lazy(() => import("./components/mensagens/MessagesDashboard"));
+// const MensagensPage = lazy(() => import("./components/mensagens/MensagensPage"));
 const ConfiguracoesPage = lazy(() => import("./components/configuracoes/ConfiguracoesPage"));
 const FormularioInteressePage = lazy(() => import("./components/associado/FormularioInteressePage"));
 const AprovacaoInteressePage = lazy(() => import("./components/associado/AprovacaoInteressePage"));
@@ -130,7 +131,8 @@ const AppRoutes: React.FC = () => {
         {/* Include Financeiro routes with Suspense */}
         {FinanceiroRoutes}
 
-        {/* Mensagens routes for all users */}
+        {/* Mensagens routes for all users - Commented out to disable */}
+        {/*
         <Route path="/mensagens" element={
           <Suspense fallback={<PageLoading />}>
             <MessagesDashboard />
@@ -142,6 +144,7 @@ const AppRoutes: React.FC = () => {
             <MensagensPage />
           </Suspense>
         } />
+        */}
         
         {/* Usuários routes */}
         <Route path="/usuarios" element={
