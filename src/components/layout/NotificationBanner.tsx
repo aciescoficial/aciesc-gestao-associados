@@ -18,6 +18,36 @@ interface NotificationBannerProps {
   messages?: NotificationMessage[];
 }
 
+// Define renderIcon function outside the component
+const renderIcon = (messageType: string) => {
+  switch (messageType) {
+    case 'payment':
+      return <Bell className="h-4 w-4 mr-2 flex-shrink-0" />;
+    case 'event':
+      return <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />;
+    case 'inactive':
+      return <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />;
+    case 'info':
+    default:
+      return <Bell className="h-4 w-4 mr-2 flex-shrink-0" />;
+  }
+};
+
+// Define getBgColor function outside the component
+const getBgColor = (messageType: string) => {
+  switch (messageType) {
+    case 'payment':
+      return 'bg-amber-50 text-amber-900';
+    case 'event':
+      return 'bg-blue-50 text-blue-900';
+    case 'inactive':
+      return 'bg-red-50 text-red-900';
+    case 'info':
+    default:
+      return 'bg-amber-50 text-amber-900';
+  }
+};
+
 // Using memo to prevent unnecessary re-renders
 const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages = [] }) => {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
@@ -33,36 +63,6 @@ const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages =
   
   // Por enquanto, exibe apenas a mensagem atual
   const currentMessage = activeMessages[currentMessageIndex];
-  
-  // Seleciona o ícone baseado no tipo da mensagem
-  const renderIcon = () => {
-    switch (currentMessage.type) {
-      case 'payment':
-        return <Bell className="h-4 w-4 mr-2 flex-shrink-0" />;
-      case 'event':
-        return <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />;
-      case 'inactive':
-        return <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />;
-      case 'info':
-      default:
-        return <Bell className="h-4 w-4 mr-2 flex-shrink-0" />;
-    }
-  };
-  
-  // Define a cor de fundo baseada no tipo da mensagem
-  const getBgColor = () => {
-    switch (currentMessage.type) {
-      case 'payment':
-        return 'bg-amber-50 text-amber-900';
-      case 'event':
-        return 'bg-blue-50 text-blue-900';
-      case 'inactive':
-        return 'bg-red-50 text-red-900';
-      case 'info':
-      default:
-        return 'bg-amber-50 text-amber-900';
-    }
-  };
   
   const handleActionClick = () => {
     if (currentMessage.action && currentMessage.action.url) {
@@ -89,10 +89,10 @@ const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages =
   };
 
   return (
-    <div className={`w-full ${getBgColor()} py-2 px-4 flex items-center justify-center relative transition-all`}>
+    <div className={`w-full ${getBgColor(currentMessage.type)} py-2 px-4 flex items-center justify-center relative transition-all`}>
       {/* Message content */}
       <div className="flex items-center justify-center flex-1 max-w-4xl">
-        {renderIcon()}
+        {renderIcon(currentMessage.type)}
         <p className="text-center text-sm">{currentMessage.text}</p>
         {currentMessage.action && (
           <button 

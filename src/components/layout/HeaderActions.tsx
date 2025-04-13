@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MessageSquare, HelpCircle } from 'lucide-react';
 import UserProfileMenu from '../auth/UserProfileMenu';
 import {
@@ -19,6 +19,18 @@ import NotificationsDropdown from '../notifications/NotificationsDropdown';
 import { Link } from 'react-router-dom';
 import { useMessages } from '../mensagens/hooks/useMessages';
 
+// Helper function to format dates in a relative way
+const formatRelativeDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return 'Hoje';
+  if (diffDays === 1) return 'Ontem';
+  if (diffDays < 7) return `${diffDays} dias atrás`;
+  return date.toLocaleDateString('pt-BR');
+};
+
 const HeaderActions: React.FC = () => {
   const isMobile = useIsMobile();
   const { unreadCount, messages } = useMessages();
@@ -37,18 +49,6 @@ const HeaderActions: React.FC = () => {
         read: msg.read
       }));
   }, [messages]);
-
-  // Helper function to format dates in a relative way
-  const formatRelativeDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Hoje';
-    if (diffDays === 1) return 'Ontem';
-    if (diffDays < 7) return `${diffDays} dias atrás`;
-    return date.toLocaleDateString('pt-BR');
-  };
 
   return (
     <div className="flex items-center gap-2">
