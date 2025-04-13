@@ -17,20 +17,20 @@ export const useProfileData = (user: any) => {
       
       setIsLoading(true);
       try {
-        // Query profiles table
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
+        // Query user table
+        const { data: userData, error: userError } = await supabase
+          .from('user')
           .select('name, phone, role, avatar_url')
           .eq('id', user.id)
           .single();
           
-        if (profileError) throw profileError;
+        if (userError) throw userError;
         
-        if (profileData) {
-          setName(profileData.name || '');
-          setPhone(profileData.phone || '');
-          setRole(profileData.role || '');
-          setAvatarUrl(profileData.avatar_url);
+        if (userData) {
+          setName(userData.name || '');
+          setPhone(userData.phone || '');
+          setRole(userData.role || '');
+          setAvatarUrl(userData.avatar_url);
         }
       } catch (error: any) {
         toast({

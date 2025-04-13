@@ -58,7 +58,7 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
       const dbRole = mapToDbRole(selectedUser.role as UserRole);
       
       const { error: userError } = await supabase
-        .from('profiles')
+        .from('user')
         .update({
           name: selectedUser.name,
           email: selectedUser.email,
@@ -84,7 +84,7 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
     try {
       // Also update the active status in users
       const { error: userError } = await supabase
-        .from('profiles')
+        .from('user')
         .update({ active })
         .eq('id', userId);
 

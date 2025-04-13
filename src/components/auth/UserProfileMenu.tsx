@@ -30,7 +30,7 @@ const UserProfileMenu = () => {
       
       try {
         const { data, error } = await supabase
-          .from('profiles')
+          .from('user')
           .select('name, avatar_url, tags')
           .eq('id', user.id)
           .single();

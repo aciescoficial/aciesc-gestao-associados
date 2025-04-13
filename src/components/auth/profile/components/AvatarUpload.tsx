@@ -39,9 +39,9 @@ export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadPr
         .from('avatars')
         .getPublicUrl(filePath);
         
-      // Update profile with avatar URL
+      // Update user with avatar URL
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from('user')
         .update({ avatar_url: data.publicUrl })
         .eq('id', user.id);
         

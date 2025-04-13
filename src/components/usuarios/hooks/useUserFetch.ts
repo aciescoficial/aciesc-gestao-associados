@@ -77,7 +77,7 @@ export const useUserFetch = () => {
       
       // Fetch users with role information and join with associados and empresas
       const { data: userData, error: userError } = await supabase
-        .from('profiles')
+        .from('user')
         .select(`
           *,
           associado:associado_id(cpf),

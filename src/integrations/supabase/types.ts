@@ -476,66 +476,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
-        Row: {
-          active: boolean | null
-          associado_id: string | null
-          avatar_url: string | null
-          created_at: string
-          email: string | null
-          empresa_id: string | null
-          id: string
-          name: string | null
-          phone: string | null
-          role: Database["public"]["Enums"]["user_role"]
-          tags: string[] | null
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean | null
-          associado_id?: string | null
-          avatar_url?: string | null
-          created_at?: string
-          email?: string | null
-          empresa_id?: string | null
-          id: string
-          name?: string | null
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          tags?: string[] | null
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean | null
-          associado_id?: string | null
-          avatar_url?: string | null
-          created_at?: string
-          email?: string | null
-          empresa_id?: string | null
-          id?: string
-          name?: string | null
-          phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
-          tags?: string[] | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_associado_id_fkey"
-            columns: ["associado_id"]
-            isOneToOne: false
-            referencedRelation: "associados"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       role_permissions: {
         Row: {
           created_at: string | null
@@ -621,6 +561,66 @@ export type Database = {
           value?: string
         }
         Relationships: []
+      }
+      user: {
+        Row: {
+          active: boolean | null
+          associado_id: string | null
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          empresa_id: string | null
+          id: string
+          name: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          associado_id?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          empresa_id?: string | null
+          id: string
+          name?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          associado_id?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          empresa_id?: string | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_associado_id_fkey"
+            columns: ["associado_id"]
+            isOneToOne: false
+            referencedRelation: "associados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_2fa: {
         Row: {

@@ -80,10 +80,10 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
 
       if (authError) throw authError;
 
-      // Step 2: Update the profile with role, tags, and linked entities
+      // Step 2: Update the user with role, tags, and linked entities
       if (authData && authData.user) {
         const { error: userError } = await supabase
-          .from('profiles')
+          .from('user')
           .update({
             name: newUser.name,
             email: newUser.email,
