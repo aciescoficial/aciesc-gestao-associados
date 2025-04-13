@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Phone, MapPin, ExternalLink } from 'lucide-react';
-import { EmpresaData } from '../EmpresasPesquisa';
+import { EmpresaData } from '../types';
 
 interface EmpresaResultsTableProps {
   results: EmpresaData[];

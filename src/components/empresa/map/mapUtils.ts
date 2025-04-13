@@ -1,5 +1,5 @@
 
-import { EmpresaData } from "../EmpresasPesquisa";
+import { EmpresaData } from "../types";
 
 /**
  * Calculate distance between two points using Haversine formula

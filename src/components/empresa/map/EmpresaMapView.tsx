@@ -4,7 +4,7 @@ import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-map
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Navigation } from 'lucide-react';
-import { EmpresaData } from '../EmpresasPesquisa';
+import { EmpresaData } from '../types';
 
 interface EmpresaMapViewProps {
   apiKey: string;
