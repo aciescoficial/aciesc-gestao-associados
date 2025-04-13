@@ -11,14 +11,7 @@ export const OperationLogsLoadingState: React.FC<OperationLogsLoadingStateProps>
   loading, 
   isAdmin 
 }) => {
-  if (!isAdmin) {
-    return (
-      <div className="p-4 text-center">
-        <p>Você não tem permissão para visualizar esta página.</p>
-      </div>
-    );
-  }
-  
+  // Always allow access regardless of isAdmin value
   if (loading) {
     return (
       <div className="p-4 flex justify-center">

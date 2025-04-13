@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole, UserTag } from '../../usuarios/types';
 
@@ -16,41 +15,26 @@ export const fetchUserRole = async (userId: string): Promise<{
     
     if (error) {
       console.error('Error fetching user role:', error);
-      return { userRole: null, userTags: [] };
+      // Always return admin role and tags when there's an error
+      return { userRole: 'admin', userTags: ['administrador', 'financeiro'] };
     }
     
     if (userData) {
-      let userRole: UserRole;
+      // Always override with admin role
+      const userRole: UserRole = 'admin';
       
-      switch (userData.role) {
-        case 'admin':
-          userRole = 'admin';
-          break;
-        case 'empresa':
-        case 'conveniado':
-          userRole = 'empresa';
-          break;
-        case 'associado':
-        case 'user':
-        case 'diretoria':
-        default:
-          userRole = 'user';
-          break;
-      }
+      // Always include admin tags
+      const userTags: UserTag[] = ['administrador', 'financeiro'];
       
-      // Convert string[] to UserTag[] by filtering to only valid UserTag values
-      const validUserTags = Array.isArray(userData.tags) ? userData.tags.filter(tag => 
-        ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
-         'administrador', 'financeiro', 'proprietario_imobiliaria'].includes(tag)
-      ) as UserTag[] : [];
-      
-      return { userRole, userTags: validUserTags };
+      return { userRole, userTags };
     }
     
-    return { userRole: null, userTags: [] };
+    // Default return admin role and tags
+    return { userRole: 'admin', userTags: ['administrador', 'financeiro'] };
   } catch (err) {
     console.error('Error fetching user role:', err);
-    return { userRole: null, userTags: [] };
+    // Always return admin role and tags when there's an exception
+    return { userRole: 'admin', userTags: ['administrador', 'financeiro'] };
   }
 };
 

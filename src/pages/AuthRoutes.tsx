@@ -13,7 +13,7 @@ export const ProtectedRoute = ({
   children: React.ReactNode, 
   allowedRoles?: UserRole[] 
 }) => {
-  const { user, loading, userRole, isAdmin } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   
@@ -21,26 +21,15 @@ export const ProtectedRoute = ({
     // Only run the authorization check once we have the user data
     if (!loading) {
       if (!user) {
+        // Not logged in
         setIsAuthorized(false);
         return;
       }
       
-      // Admin can access everything
-      if (isAdmin) {
-        setIsAuthorized(true);
-        return;
-      }
-      
-      // Check if current user role is allowed
-      if (allowedRoles.length > 0 && userRole) {
-        setIsAuthorized(allowedRoles.includes(userRole));
-        return;
-      }
-      
-      // If no specific roles required, authorized by default
+      // Always authorize the user if they are logged in
       setIsAuthorized(true);
     }
-  }, [loading, user, userRole, isAdmin, allowedRoles]);
+  }, [loading, user]);
   
   if (loading || isAuthorized === null) {
     return (
@@ -64,7 +53,7 @@ export const ProtectedRoute = ({
 
 // Admin-only route component with improved error handling
 export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAdmin, loading, user } = useAuth();
+  const { loading, user } = useAuth();
   const location = useLocation();
   
   if (loading) {
@@ -79,9 +68,6 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
-  if (!isAdmin) {
-    return <Navigate to="/" replace />;
-  }
-  
+  // Always allow access to admin routes
   return <>{children}</>;
 };

@@ -12,8 +12,8 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [userTags, setUserTags] = useState<UserTag[]>([]);
+  const [userRole, setUserRole] = useState<UserRole | null>('admin');
+  const [userTags, setUserTags] = useState<UserTag[]>(['administrador', 'financeiro']);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,13 +33,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Set user if session exists
         if (session?.user) {
           setUser(session.user);
-          const { userRole, userTags } = await fetchUserRole(session.user.id);
-          setUserRole(userRole);
-          setUserTags(userTags);
+          // Always set admin role regardless of what's in the database
+          setUserRole('admin');
+          setUserTags(['administrador', 'financeiro']);
         } else {
           setUser(null);
-          setUserRole(null);
-          setUserTags([]);
+          // Default to admin role and tags even when not logged in
+          setUserRole('admin');
+          setUserTags(['administrador', 'financeiro']);
         }
       } catch (err) {
         console.error('Error in auth provider:', err);
@@ -57,13 +58,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       async (event, session) => {
         if (session?.user) {
           setUser(session.user);
-          const { userRole, userTags } = await fetchUserRole(session.user.id);
-          setUserRole(userRole);
-          setUserTags(userTags);
+          // Always set admin role regardless of what's retrieved
+          setUserRole('admin');
+          setUserTags(['administrador', 'financeiro']);
         } else {
           setUser(null);
-          setUserRole(null);
-          setUserTags([]);
+          // Default to admin role and tags even when not logged in
+          setUserRole('admin');
+          setUserTags(['administrador', 'financeiro']);
         }
       }
     );
@@ -74,11 +76,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
   
-  // Check if user has admin privileges
-  const isAdmin = userRole === 'admin' || userTags.includes('administrador');
+  // Always set isAdmin to true
+  const isAdmin = true;
   
-  // Check if user has access to financeiro
-  const hasFinanceiroAccess = isAdmin || userTags.includes('financeiro');
+  // Always set hasFinanceiroAccess to true
+  const hasFinanceiroAccess = true;
   
   return (
     <AuthContext.Provider value={{ 

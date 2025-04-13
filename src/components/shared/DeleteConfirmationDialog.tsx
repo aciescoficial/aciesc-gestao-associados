@@ -10,7 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useAdminPermission } from "@/hooks/use-admin-permission";
 
 interface DeleteConfirmationDialogProps {
   isOpen: boolean;
@@ -29,15 +28,9 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   onConfirm,
   entityName,
 }) => {
-  const { checkAdminPermission } = useAdminPermission();
   
   const handleConfirm = async () => {
-    // Only proceed if the user is an admin
-    if (!checkAdminPermission()) {
-      setIsOpen(false);
-      return;
-    }
-    
+    // Remove admin permission check and directly perform the action
     try {
       await onConfirm();
       setIsOpen(false);
