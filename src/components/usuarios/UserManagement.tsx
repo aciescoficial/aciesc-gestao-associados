@@ -11,9 +11,12 @@ import { getRoleBadgeColor, getRoleLabel } from './utils/roleUtils';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const UserManagement: React.FC = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  
   const {
     loading,
     error,
@@ -60,16 +63,34 @@ const UserManagement: React.FC = () => {
     });
     fetchUsers();
   };
+
+  const handleToggleActive = async (userId: string, active: boolean) => {
+    const success = await toggleUserActive(userId, active);
+    if (success) {
+      toast({
+        title: active ? "Usuário ativado" : "Usuário desativado",
+        description: `O usuário foi ${active ? 'ativado' : 'desativado'} com sucesso.`,
+        variant: active ? "default" : "destructive",
+      });
+    } else {
+      toast({
+        title: "Erro ao alterar status",
+        description: "Não foi possível alterar o status do usuário.",
+        variant: "destructive"
+      });
+    }
+  };
   
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex justify-between items-center flex-col sm:flex-row gap-4">
         <h1 className="wp-header">Gerenciamento de Usuários</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button 
             onClick={handleRefresh} 
             variant="outline"
             disabled={loading}
+            className="flex-1 sm:flex-initial"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             {loading ? "Carregando..." : "Atualizar"}
@@ -77,9 +98,10 @@ const UserManagement: React.FC = () => {
           <Button 
             onClick={() => setIsAddUserDialogOpen(true)}
             disabled={loading || connectionStatus === false}
+            className="flex-1 sm:flex-initial"
           >
             <PlusCircle className="h-4 w-4 mr-2" />
-            Novo Usuário
+            {isMobile ? "Novo" : "Novo Usuário"}
           </Button>
         </div>
       </div>
@@ -87,7 +109,7 @@ const UserManagement: React.FC = () => {
       <div className="wp-card space-y-4">
         {/* Mostrar alerta de status de conexão se houver problemas */}
         {connectionStatus === false && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="mb-4 animate-fade-in">
             <WifiOff className="h-4 w-4 mr-2" />
             <AlertTitle>Problema de conexão</AlertTitle>
             <AlertDescription>
@@ -111,14 +133,14 @@ const UserManagement: React.FC = () => {
             placeholder="Pesquisar por nome, email, CPF ou CNPJ..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
+            className="max-w-sm transition-all duration-200 focus:max-w-md"
             disabled={loading}
           />
         </div>
         
         {/* Mensagem de erro */}
         {error && (
-          <Alert variant="destructive" className="mt-4">
+          <Alert variant="destructive" className="mt-4 animate-fade-in">
             <AlertCircle className="h-4 w-4 mr-2" />
             <AlertTitle>Erro ao carregar usuários</AlertTitle>
             <AlertDescription>
@@ -139,12 +161,12 @@ const UserManagement: React.FC = () => {
         {loading && filteredUsers.length === 0 ? (
           <div className="space-y-4">
             {Array(5).fill(0).map((_, i) => (
-              <div key={i} className="grid grid-cols-6 gap-4">
+              <div key={i} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <Skeleton className="h-8 w-full" />
-                <Skeleton className="h-8 w-full col-span-2" />
-                <Skeleton className="h-8 w-full" />
-                <Skeleton className="h-8 w-full" />
-                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-full md:col-span-2" />
+                <Skeleton className="h-8 w-full hidden md:block" />
+                <Skeleton className="h-8 w-full hidden lg:block" />
+                <Skeleton className="h-8 w-16 hidden lg:block" />
               </div>
             ))}
           </div>
@@ -169,9 +191,10 @@ const UserManagement: React.FC = () => {
                   setSelectedUser(user);
                   setIsEditUserDialogOpen(true);
                 }}
-                onToggleActive={toggleUserActive}
+                onToggleActive={handleToggleActive}
                 getRoleBadgeColor={getRoleBadgeColor}
                 getRoleLabel={getRoleLabel}
+                isMobile={isMobile}
               />
             )}
           </>

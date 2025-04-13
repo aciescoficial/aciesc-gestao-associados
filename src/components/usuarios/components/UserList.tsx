@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Table, 
@@ -14,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { User, UserRole, UserTag } from '../types';
 import { getTagBadgeColor } from '../utils/roleUtils';
+import { Edit } from 'lucide-react';
 
 interface UserListProps {
   loading: boolean;
@@ -22,6 +24,7 @@ interface UserListProps {
   onToggleActive: (userId: string, active: boolean) => void;
   getRoleBadgeColor: (role: UserRole) => string;
   getRoleLabel: (role: UserRole) => string;
+  isMobile?: boolean;
 }
 
 const UserList: React.FC<UserListProps> = ({
@@ -30,18 +33,19 @@ const UserList: React.FC<UserListProps> = ({
   onEdit,
   onToggleActive,
   getRoleBadgeColor,
-  getRoleLabel
+  getRoleLabel,
+  isMobile = false
 }) => {
   return (
-    <div className="border rounded-md">
+    <div className="border rounded-md overflow-hidden">
       <Table>
         <TableCaption>Lista de usuários do sistema</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>Nome</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Tags</TableHead>
+            <TableHead className={isMobile ? "hidden md:table-cell" : ""}>Email</TableHead>
+            <TableHead className={isMobile ? "hidden sm:table-cell" : ""}>Tipo</TableHead>
+            <TableHead className={isMobile ? "hidden lg:table-cell" : ""}>Tags</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
@@ -61,15 +65,18 @@ const UserList: React.FC<UserListProps> = ({
             </TableRow>
           ) : (
             filteredUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>
+              <TableRow 
+                key={user.id} 
+                className="transition-colors hover:bg-muted/40 group"
+              >
+                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell className={isMobile ? "hidden md:table-cell" : ""}>{user.email}</TableCell>
+                <TableCell className={isMobile ? "hidden sm:table-cell" : ""}>
                   <Badge className={`font-normal ${getRoleBadgeColor(user.role)}`}>
                     {getRoleLabel(user.role)}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell className={isMobile ? "hidden lg:table-cell" : ""}>
                   <div className="flex flex-wrap gap-1">
                     {user.tags && user.tags.length > 0 ? (
                       user.tags.map((tag) => (
@@ -91,6 +98,7 @@ const UserList: React.FC<UserListProps> = ({
                     <Switch
                       checked={user.active}
                       onCheckedChange={(checked) => onToggleActive(user.id, checked)}
+                      className="transition-opacity opacity-70 group-hover:opacity-100"
                     />
                     <span className="ml-2">{user.active ? 'Ativo' : 'Inativo'}</span>
                   </div>
@@ -100,8 +108,9 @@ const UserList: React.FC<UserListProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(user)}
+                    className="opacity-70 group-hover:opacity-100 transition-opacity"
                   >
-                    Editar
+                    <Edit className="h-4 w-4 mr-1" /> {isMobile ? "" : "Editar"}
                   </Button>
                 </TableCell>
               </TableRow>
