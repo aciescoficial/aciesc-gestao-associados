@@ -47,6 +47,44 @@ export const useAprovacaoInteresse = () => {
     await fetchPendingInterests();
   };
 
+  const sendApprovalEmail = async (email: string, nome: string, sobrenome: string, token: string) => {
+    try {
+      // Generate payment link with token
+      const paymentLink = `${window.location.origin}/associado-signup?token=${token}`;
+      
+      console.log('Sending approval email to:', email, 'with payment link:', paymentLink);
+      
+      // Send email using email template
+      const { error } = await supabase.functions.invoke('send-email', {
+        body: { 
+          to: email,
+          template_id: 'aprovacao_interesse',
+          template_data: {
+            nome: `${nome} ${sobrenome}`,
+            email: email,
+            link_pagamento: paymentLink
+          }
+        },
+      });
+      
+      if (error) {
+        console.error('Error sending approval email:', error);
+        throw new Error(`Erro ao enviar email: ${error.message}`);
+      }
+      
+      console.log('Approval email sent successfully');
+      return true;
+    } catch (error: any) {
+      console.error('Error in sendApprovalEmail:', error);
+      toast({
+        title: 'Erro ao enviar email',
+        description: error.message || 'Ocorreu um erro ao enviar o email de aprovação.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
   const handleApprove = async (id: string, email: string, nome: string, sobrenome: string) => {
     try {
       await updateInterestStatus(id, 'aprovado');
@@ -72,12 +110,18 @@ export const useAprovacaoInteresse = () => {
         throw tokenError;
       }
       
+      // Send approval email
+      const emailSent = await sendApprovalEmail(email, nome, sobrenome, token);
+      
       // Update local state
       setInteresses(prev => prev.filter(item => item.id !== id));
       
       toast({
         title: 'Interesse aprovado',
-        description: `Uma notificação foi enviada para ${nome} ${sobrenome} com instruções para cadastro.`,
+        description: emailSent 
+          ? `Uma notificação foi enviada para ${nome} ${sobrenome} com instruções para cadastro.`
+          : `Interesse aprovado, mas não foi possível enviar o email para ${email}.`,
+        variant: emailSent ? 'default' : 'warning',
       });
     } catch (error) {
       console.error('Error approving interest:', error);

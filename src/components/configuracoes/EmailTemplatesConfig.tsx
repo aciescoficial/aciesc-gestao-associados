@@ -1,11 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Loader2, Save, Send } from 'lucide-react';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
+import { sendTestEmail, getTemplateTestData } from './services/emailService';
 
 interface EmailTemplate {
   id: string;
@@ -55,6 +59,10 @@ const EmailTemplatesConfig: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('');
+  const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
+  const [testEmailTo, setTestEmailTo] = useState('');
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [currentTemplateForTest, setCurrentTemplateForTest] = useState<string | null>(null);
   
   const { toast } = useToast();
   
@@ -151,10 +159,65 @@ const EmailTemplatesConfig: React.FC = () => {
       )
     );
   };
+
+  const openTestEmailDialog = (templateCode: string) => {
+    setCurrentTemplateForTest(templateCode);
+    setIsTestDialogOpen(true);
+  };
+
+  const handleSendTestEmail = async () => {
+    if (!testEmailTo) {
+      toast({
+        title: 'Email obrigatório',
+        description: 'Por favor, informe um email para envio do teste.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsSendingTest(true);
+    try {
+      // Get test data for the specific template
+      const testData = currentTemplateForTest ? getTemplateTestData(currentTemplateForTest) : undefined;
+      
+      await sendTestEmail({
+        to: testEmailTo,
+        template_id: currentTemplateForTest || undefined,
+        test_data: testData
+      });
+      
+      toast({
+        title: 'Email de teste enviado',
+        description: `Um email de teste foi enviado para ${testEmailTo}`
+      });
+      
+      setIsTestDialogOpen(false);
+      setTestEmailTo('');
+    } catch (error: any) {
+      console.error('Erro ao enviar email de teste:', error);
+      toast({
+        title: 'Erro ao enviar email de teste',
+        description: error.message || 'Ocorreu um erro ao enviar o email de teste',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
   
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Templates de Email</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Templates de Email</h2>
+        <Button 
+          variant="outline" 
+          onClick={() => openTestEmailDialog('')}
+          className="flex items-center gap-2"
+        >
+          <Send size={16} />
+          Enviar Email Teste
+        </Button>
+      </div>
       
       {loading ? (
         <div className="flex justify-center p-8">
@@ -210,27 +273,88 @@ const EmailTemplatesConfig: React.FC = () => {
                 </ul>
               </div>
               
-              <Button 
-                onClick={() => handleSave(template)}
-                disabled={saving === template.id}
-                className="mt-4"
-              >
-                {saving === template.id ? (
-                  <>
-                    <Loader2 size={16} className="mr-2 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Save size={16} className="mr-2" />
-                    Salvar alterações
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2 mt-4">
+                <Button 
+                  onClick={() => handleSave(template)}
+                  disabled={saving === template.id}
+                  className="flex items-center gap-2"
+                >
+                  {saving === template.id ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      Salvar alterações
+                    </>
+                  )}
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => openTestEmailDialog(template.codigo)}
+                  className="flex items-center gap-2"
+                >
+                  <Send size={16} />
+                  Testar Template
+                </Button>
+              </div>
             </TabsContent>
           ))}
         </Tabs>
       )}
+
+      {/* Test Email Dialog */}
+      <Dialog open={isTestDialogOpen} onOpenChange={setIsTestDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Enviar Email de Teste</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="test-email" className="col-span-4">
+                Email para envio do teste:
+              </Label>
+              <Input
+                id="test-email"
+                type="email"
+                value={testEmailTo}
+                onChange={(e) => setTestEmailTo(e.target.value)}
+                className="col-span-4"
+                placeholder="exemplo@email.com"
+              />
+            </div>
+            {currentTemplateForTest && (
+              <div className="bg-gray-50 p-3 rounded-md">
+                <p className="text-sm">
+                  <span className="font-medium">Template: </span>
+                  {templates.find(t => t.codigo === currentTemplateForTest)?.nome || currentTemplateForTest}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Será enviado um email de teste usando este template com dados fictícios.
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTestDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSendTestEmail} disabled={isSendingTest}>
+              {isSendingTest ? (
+                <>
+                  <Loader2 size={16} className="mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                'Enviar Teste'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
