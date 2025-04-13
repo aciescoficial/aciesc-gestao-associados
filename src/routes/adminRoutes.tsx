@@ -1,0 +1,124 @@
+
+import React, { Suspense, lazy } from "react";
+import { Route } from "react-router-dom";
+import { AdminRoute, ProtectedRoute } from "../pages/AuthRoutes";
+import PluginLayout from "../components/PluginLayout";
+import AppLoading from "../components/shared/AppLoading";
+
+// Eagerly loaded components
+import Dashboard from "../components/Dashboard";
+
+// Lazily loaded components
+const CadastroAssociado = lazy(() => import("../components/CadastroAssociado"));
+const PesquisaAssociado = lazy(() => import("../components/PesquisaAssociado"));
+const CadastroEmpresa = lazy(() => import("../components/CadastroEmpresa"));
+const PesquisaEmpresa = lazy(() => import("../components/pesquisa-empresa/PesquisaEmpresaRefactored"));
+const AprovacoesPendentes = lazy(() => import("../components/AprovacoesPendentes"));
+const UserManagement = lazy(() => import("../components/usuarios/UserManagement"));
+const PermissionPanel = lazy(() => import("../components/usuarios/permission/PermissionPanel"));
+const ConfiguracoesPage = lazy(() => import("../components/configuracoes/ConfiguracoesPage"));
+const AprovacaoInteressePage = lazy(() => import("../components/associado/AprovacaoInteressePage"));
+const GeradorCarteirinha = lazy(() => import("../components/carteirinha/GeradorCarteirinha"));
+
+// Fallback component with custom loading time
+const PageLoading = () => <AppLoading message="Carregando página..." />;
+
+export const AdminRoutes = [
+  // Admin-only routes
+  <Route key="associados-cadastro" path="/associados/cadastro" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <CadastroAssociado />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="empresas-cadastro" path="/empresas/cadastro" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <CadastroEmpresa />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="empresas-pesquisa" path="/empresas/pesquisa" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <PesquisaEmpresa />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
+  // Admin approval routes
+  <Route key="aprovacoes" path="/aprovacoes" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <AprovacoesPendentes />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="associados-aprovacao" path="/associados/aprovacao" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <AprovacaoInteressePage />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+
+  <Route key="carteirinhas" path="/carteirinhas" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <GeradorCarteirinha />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+
+  // Usuários routes
+  <Route key="usuarios" path="/usuarios" element={
+    <PluginLayout>
+      <Suspense fallback={<PageLoading />}>
+        <UserManagement />
+      </Suspense>
+    </PluginLayout>
+  } />,
+  
+  <Route key="usuarios-gerenciar" path="/usuarios/gerenciar" element={
+    <PluginLayout>
+      <Suspense fallback={<PageLoading />}>
+        <UserManagement />
+      </Suspense>
+    </PluginLayout>
+  } />,
+  
+  <Route key="usuarios-permissoes" path="/usuarios/permissoes" element={
+    <PluginLayout>
+      <Suspense fallback={<PageLoading />}>
+        <PermissionPanel />
+      </Suspense>
+    </PluginLayout>
+  } />,
+  
+  // Configurações route
+  <Route key="configuracoes" path="/configuracoes" element={
+    <AdminRoute>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <ConfiguracoesPage />
+        </Suspense>
+      </PluginLayout>
+    </AdminRoute>
+  } />
+];
