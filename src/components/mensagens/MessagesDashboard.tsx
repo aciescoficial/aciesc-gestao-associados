@@ -1,9 +1,12 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
+import { Send, PlusCircle } from 'lucide-react';
 
 // Types for our messages
 type MessageStatus = 'unread' | 'read' | 'all';
@@ -91,12 +94,13 @@ const MessagesDashboard: React.FC = () => {
     [messages]
   );
 
-  // Mark message as read
-  const markAsRead = (id: string) => {
+  // Mark message as read with useCallback for better performance
+  const markAsRead = useCallback((id: string) => {
     setMessages(prevMessages => prevMessages.map(message => 
       message.id === id ? { ...message, read: true } : message
     ));
-  };
+    toast.success('Mensagem marcada como lida');
+  }, []);
 
   // Get priority badge color
   const getPriorityBadge = (priority: MessagePriority) => {
@@ -110,7 +114,7 @@ const MessagesDashboard: React.FC = () => {
     }
   };
 
-  const renderMessageCard = (message: Message) => (
+  const renderMessageCard = useCallback((message: Message) => (
     <Card key={message.id} className={`p-4 hover:bg-gray-50 ${!message.read ? 'border-l-4 border-l-blue-500' : ''}`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
@@ -136,12 +140,18 @@ const MessagesDashboard: React.FC = () => {
         </div>
       </div>
     </Card>
-  );
+  ), [markAsRead]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="wp-header">Mensagens Recebidas</h1>
+        <Button asChild>
+          <Link to="/mensagens/enviar" className="flex items-center gap-2">
+            <Send className="h-4 w-4" />
+            Enviar Nova Mensagem
+          </Link>
+        </Button>
       </div>
       
       <Tabs defaultValue="all" className="w-full">

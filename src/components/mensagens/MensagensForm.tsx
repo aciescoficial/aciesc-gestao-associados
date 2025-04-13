@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Send } from 'lucide-react';
@@ -35,7 +35,7 @@ const MensagensForm: React.FC = () => {
   const tipoDestinatario = form.watch('destinatario');
   
   // Função para enviar o formulário
-  const onSubmit = async (values: MensagemFormValues) => {
+  const onSubmit = useCallback(async (values: MensagemFormValues) => {
     setIsLoading(true);
     
     try {
@@ -53,7 +53,7 @@ const MensagensForm: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [form]);
 
   return (
     <Form {...form}>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MessageCircle, MessageSquare } from 'lucide-react';
+import { MessageCircle, MessageSquare, SendHorizonal, Inbox } from 'lucide-react';
 import { MenuItem } from '../types/MenuItem';
 
 // Memoize menu items to prevent recreation on every render
@@ -11,7 +11,8 @@ export const getComunicacaoMenuItems = (): MenuItem[] => {
       icon: MessageCircle,
       roles: ['admin', 'user', 'empresa'],
       submenu: [
-        { icon: MessageSquare, label: "Mensagens", path: "/mensagens/enviar", roles: ['admin', 'user', 'empresa'] },
+        { icon: Inbox, label: "Caixa de Entrada", path: "/mensagens", roles: ['admin', 'user', 'empresa'] },
+        { icon: SendHorizonal, label: "Enviar Mensagem", path: "/mensagens/enviar", roles: ['admin', 'user', 'empresa'] },
       ]
     }
   ];
