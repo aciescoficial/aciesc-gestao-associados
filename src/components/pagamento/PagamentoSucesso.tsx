@@ -77,6 +77,9 @@ const PagamentoSucesso: React.FC = () => {
               <Button variant="outline" asChild>
                 <Link to="/">Voltar para o painel</Link>
               </Button>
+              <Button variant="outline" asChild>
+                <a href="https://www.aciesc.com.br">Sair Agora</a>
+              </Button>
             </div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -89,7 +90,12 @@ const FormularioInteresse: React.FC = () => {
         <h2 className="text-2xl font-bold text-green-600 mb-4">Formulário Enviado com Sucesso!</h2>
         <p className="mb-4">Agradecemos seu interesse em se associar à ACIESC.</p>
         <p className="mb-6">Suas informações foram recebidas e nossa equipe irá analisá-las. Entraremos em contato em breve através do e-mail fornecido.</p>
-        <Button onClick={() => setSubmitted(false)}>Enviar outro formulário</Button>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button onClick={() => setSubmitted(false)}>Enviar outro formulário</Button>
+          <Button variant="outline" asChild>
+            <a href="https://www.aciesc.com.br">Sair Agora</a>
+          </Button>
+        </div>
       </div>
     );
   }
