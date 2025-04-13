@@ -121,7 +121,7 @@ export const useAprovacaoInteresse = () => {
         description: emailSent 
           ? `Uma notificação foi enviada para ${nome} ${sobrenome} com instruções para cadastro.`
           : `Interesse aprovado, mas não foi possível enviar o email para ${email}.`,
-        variant: emailSent ? 'default' : 'warning',
+        variant: emailSent ? 'default' : 'destructive',
       });
     } catch (error) {
       console.error('Error approving interest:', error);

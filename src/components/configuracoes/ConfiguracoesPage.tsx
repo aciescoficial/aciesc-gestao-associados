@@ -1,11 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, Map, Users, ClipboardList, Mail, CreditCard, DollarSign, Shield } from 'lucide-react';
 import GoogleMapsConfig from './GoogleMapsConfig';
 import PermissionPanel from '../usuarios/PermissionPanel';
 import { AuditLogSettings } from './AuditLogSettings';
-import EmailTemplatesConfig from './EmailTemplatesConfig';
+import EmailTemplatesConfig from './email-templates/EmailTemplatesConfig';
 import CarteirinhaConfig from './CarteirinhaConfig';
 import IntegracaoFinanceira from '../IntegracaoFinanceira';
 import AdminUserSetup from '../auth/AdminUserSetup';

@@ -17,7 +17,7 @@ export async function sendTestEmail({ to, template_id, test_data }: SendTestEmai
   }
 }
 
-export async function getTemplateTestData(templateCode: string): Record<string, string> {
+export function getTemplateTestData(templateCode: string): Record<string, string> {
   // Return sample data based on template type
   switch (templateCode) {
     case 'aprovacao_interesse':
