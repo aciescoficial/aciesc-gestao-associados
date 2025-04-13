@@ -101,7 +101,7 @@ export const useConveniadoSearch = () => {
   const fetchAssociadoFoto = async (associadoId: string) => {
     try {
       const { data: profileData, error } = await supabase
-        .from('profiles')
+        .from('user')
         .select('avatar_url')
         .eq('id', associadoId)
         .single();

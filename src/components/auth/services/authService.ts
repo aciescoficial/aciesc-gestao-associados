@@ -9,7 +9,7 @@ export const fetchUserRole = async (userId: string): Promise<{
 }> => {
   try {
     const { data: userData, error } = await supabase
-      .from('profiles')
+      .from('user')
       .select('role, tags, email')
       .eq('id', userId)
       .single();

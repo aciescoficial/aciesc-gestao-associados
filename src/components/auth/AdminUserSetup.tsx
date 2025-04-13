@@ -20,7 +20,7 @@ const AdminUserSetup: React.FC = () => {
     const checkRootUser = async () => {
       try {
         const { data, error } = await supabase
-          .from('profiles')
+          .from('user')
           .select('email')
           .eq('email', ROOT_EMAIL)
           .single();
@@ -56,9 +56,9 @@ const AdminUserSetup: React.FC = () => {
       }
 
       if (authData?.user) {
-        // Step 2: Update the profile with admin role and tags
+        // Step 2: Update the user with admin role and tags
         const { error: profileError } = await supabase
-          .from('profiles')
+          .from('user')
           .upsert({
             id: authData.user.id,
             name: "Administrator ROOT",
@@ -75,7 +75,7 @@ const AdminUserSetup: React.FC = () => {
         toast({
           title: "Usuário ROOT criado",
           description: "O usuário ROOT foi criado com sucesso com a senha fornecida.",
-          variant: "default" // Changed from "success" to "default" as only "default" and "destructive" are supported
+          variant: "default"
         });
         
         setCreated(true);

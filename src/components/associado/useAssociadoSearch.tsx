@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,7 +38,6 @@ export const useAssociadoSearch = () => {
   };
 
   const fetchAssociados = async (isSearchAction: boolean = false) => {
-    // If it's a new search action, reset to page 1
     if (isSearchAction) {
       setCurrentPage(1);
     }
@@ -49,7 +47,6 @@ export const useAssociadoSearch = () => {
     try {
       let query = supabase.from('associados').select('*', { count: 'exact' });
       
-      // Apply search term if specified
       if (searchTerm.trim()) {
         if (searchType === 'nome') {
           query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
@@ -58,7 +55,6 @@ export const useAssociadoSearch = () => {
         } else if (searchType === 'creci') {
           query = query.ilike('creci', `%${searchTerm}%`);
         } else if (searchType === 'placa') {
-          // Add search by vehicle plate (primary or secondary)
           query = query.or(`placa_principal.ilike.%${searchTerm}%,placa_secundaria.ilike.%${searchTerm}%`);
         }
       }
@@ -71,7 +67,6 @@ export const useAssociadoSearch = () => {
         query = query.eq('cidade', cidadeFilter);
       }
       
-      // Add pagination if itemsPerPage is not -1 (which means "show all")
       if (itemsPerPage !== -1) {
         const from = (currentPage - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
@@ -89,7 +84,7 @@ export const useAssociadoSearch = () => {
 
       if (!data || data.length === 0) {
         setResults([]);
-        if (searchTerm.trim()) {  // Only show toast if there was a search term
+        if (searchTerm.trim()) {
           toast({
             title: "Nenhum resultado encontrado",
             description: "Não foram encontrados associados com os critérios informados.",
@@ -100,16 +95,14 @@ export const useAssociadoSearch = () => {
       
       setTotalCount(count || 0);
       
-      // Now fetch profile information for avatar URLs
       const associadoIds = data.map(item => item.id);
       const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
+        .from('user')
         .select('id, avatar_url')
         .in('id', associadoIds);
         
       if (profilesError) throw profilesError;
       
-      // Map the data to include profile avatar_url
       const associadosWithAvatars = data.map(associado => {
         const profile = profilesData?.find(p => p.id === associado.id);
         return {
@@ -137,7 +130,6 @@ export const useAssociadoSearch = () => {
     await fetchAssociados(true);
   };
 
-  // Fetch associados when filters or pagination changes
   useEffect(() => {
     fetchAssociados();
   }, [currentPage, itemsPerPage]);
