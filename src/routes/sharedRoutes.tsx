@@ -10,7 +10,6 @@ import Dashboard from "../components/Dashboard";
 
 // Lazily loaded components
 const ProfilePage = lazy(() => import("../components/auth/profile/ProfilePage"));
-const FinanceiroRoutes = lazy(() => import("./financeiroRoutes").then(module => ({ default: module.FinanceiroRoutes })));
 
 // Fallback component with custom loading time
 const PageLoading = () => <AppLoading message="Carregando página..." />;
