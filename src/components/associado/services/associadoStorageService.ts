@@ -95,16 +95,15 @@ export const uploadComprovante = async (id: string, file: File) => {
       throw error;
     }
     
-    // Since we can't update comprovante_url directly, we'll use a custom RPC function
-    // or add the URL to a metadata field that exists
-    // For now, we'll store it using a procedure that works with the existing schema
-    await supabase.rpc('update_associado_metadata', { 
-      associado_id: id,
-      meta_key: 'comprovante_url',
-      meta_value: fileName
+    // Use the Edge Function to update the metadata
+    await supabase.functions.invoke('update-associado-metadata', {
+      body: {
+        associado_id: id,
+        meta_key: 'comprovante_url',
+        meta_value: fileName
+      }
     }).catch(err => {
-      // If the RPC doesn't exist, fallback to a different approach
-      console.warn("RPC not available, using alternative approach:", err);
+      console.warn("Function error, using alternative approach:", err);
       
       // Alternative: Store as part of an existing text field
       return supabase
