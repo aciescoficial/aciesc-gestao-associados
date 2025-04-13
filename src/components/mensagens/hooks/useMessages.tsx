@@ -1,9 +1,10 @@
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 
 export type MessageStatus = 'unread' | 'read' | 'all';
 export type MessagePriority = 'normal' | 'high' | 'urgent';
+export type MessageSortType = 'date' | 'priority' | 'sender';
 
 export interface Message {
   id: string;
@@ -61,20 +62,69 @@ const mockMessages: Message[] = [
     date: '2025-04-01',
     read: true,
     priority: 'urgent'
+  },
+  {
+    id: '6',
+    title: 'Atualização de segurança',
+    content: 'Uma nova atualização de segurança foi aplicada à sua conta. Por favor, verifique suas configurações de privacidade.',
+    sender: 'Segurança',
+    date: '2025-04-11',
+    read: false,
+    priority: 'high'
   }
 ];
 
 export const useMessages = () => {
   const [filter, setFilter] = useState<MessageStatus>('all');
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // Try to get messages from localStorage first
+    const storedMessages = localStorage.getItem('aciesc-messages');
+    if (storedMessages) {
+      try {
+        return JSON.parse(storedMessages);
+      } catch (e) {
+        console.error('Failed to parse stored messages:', e);
+      }
+    }
+    return mockMessages;
+  });
+  const [sortType, setSortType] = useState<MessageSortType>('date');
+  
+  // Save messages to localStorage when they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('aciesc-messages', JSON.stringify(messages));
+    } catch (e) {
+      console.error('Failed to store messages:', e);
+    }
+  }, [messages]);
 
   // Filtered messages
   const filteredMessages = useMemo(() => {
-    if (filter === 'all') return messages;
-    return messages.filter(message => 
-      filter === 'unread' ? !message.read : message.read
-    );
-  }, [filter, messages]);
+    let filtered = messages;
+    
+    // Filter by read status
+    if (filter !== 'all') {
+      filtered = messages.filter(message => 
+        filter === 'unread' ? !message.read : message.read
+      );
+    }
+    
+    // Sort messages
+    return [...filtered].sort((a, b) => {
+      switch (sortType) {
+        case 'priority': {
+          const priorityOrder = { urgent: 3, high: 2, normal: 1 };
+          return priorityOrder[b.priority] - priorityOrder[a.priority];
+        }
+        case 'sender':
+          return a.sender.localeCompare(b.sender);
+        case 'date':
+        default:
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }
+    });
+  }, [filter, messages, sortType]);
 
   // Message counts
   const unreadCount = useMemo(() => 
@@ -109,6 +159,20 @@ export const useMessages = () => {
     toast.success('Mensagem removida com sucesso');
   }, []);
 
+  // Add new message - useful for the messaging form
+  const addMessage = useCallback((message: Omit<Message, 'id' | 'read' | 'date'>) => {
+    const newMessage: Message = {
+      ...message,
+      id: Date.now().toString(),
+      read: false,
+      date: new Date().toISOString().split('T')[0],
+    };
+    
+    setMessages(prev => [newMessage, ...prev]);
+    toast.success('Nova mensagem adicionada');
+    return newMessage;
+  }, []);
+
   return {
     filter,
     setFilter,
@@ -118,7 +182,10 @@ export const useMessages = () => {
     readCount,
     markAsRead,
     markAllAsRead,
-    deleteMessage
+    deleteMessage,
+    addMessage,
+    sortType,
+    setSortType
   };
 };
 

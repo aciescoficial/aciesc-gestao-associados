@@ -1,12 +1,21 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
-import { Send, PlusCircle } from 'lucide-react';
+import { Send, PlusCircle, Search, AlertTriangle, Filter } from 'lucide-react';
 import { useMessages, MessagePriority } from './hooks/useMessages';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const MessagesDashboard: React.FC = () => {
   const { 
@@ -17,8 +26,27 @@ const MessagesDashboard: React.FC = () => {
     readCount, 
     markAsRead, 
     markAllAsRead, 
-    deleteMessage 
+    deleteMessage,
+    messages
   } = useMessages();
+
+  // Local state for search and filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState<MessagePriority | 'all'>('all');
+  
+  // Filtered messages based on search query and priority filter
+  const displayedMessages = React.useMemo(() => {
+    return filteredMessages.filter(message => {
+      const matchesSearch = searchQuery === '' || 
+        message.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        message.sender.toLowerCase().includes(searchQuery.toLowerCase());
+        
+      const matchesPriority = priorityFilter === 'all' || message.priority === priorityFilter;
+      
+      return matchesSearch && matchesPriority;
+    });
+  }, [filteredMessages, searchQuery, priorityFilter]);
 
   // Get priority badge color
   const getPriorityBadge = useCallback((priority: MessagePriority) => {
@@ -32,6 +60,18 @@ const MessagesDashboard: React.FC = () => {
     }
   }, []);
 
+  // Format relative date
+  const formatRelativeDate = useCallback((dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Hoje';
+    if (diffDays === 1) return 'Ontem';
+    if (diffDays < 7) return `${diffDays} dias atrás`;
+    return date.toLocaleDateString('pt-BR');
+  }, []);
+
   const renderMessageCard = useCallback((message) => (
     <Card key={message.id} className={`p-4 hover:bg-gray-50 transition-colors ${!message.read ? 'border-l-4 border-l-blue-500' : ''}`}>
       <div className="flex justify-between items-start">
@@ -41,7 +81,7 @@ const MessagesDashboard: React.FC = () => {
             {!message.read && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
             {getPriorityBadge(message.priority)}
           </div>
-          <p className="text-sm text-gray-500 mt-1">De: {message.sender} • {message.date}</p>
+          <p className="text-sm text-gray-500 mt-1">De: {message.sender} • {formatRelativeDate(message.date)}</p>
           <p className="mt-3">{message.content}</p>
         </div>
         <div className="ml-4 flex flex-col gap-2">
@@ -66,7 +106,7 @@ const MessagesDashboard: React.FC = () => {
         </div>
       </div>
     </Card>
-  ), [getPriorityBadge, markAsRead, deleteMessage]);
+  ), [getPriorityBadge, markAsRead, deleteMessage, formatRelativeDate]);
 
   return (
     <div className="space-y-6">
@@ -91,6 +131,56 @@ const MessagesDashboard: React.FC = () => {
         </div>
       </div>
       
+      {/* Search and filter bar */}
+      <div className="flex gap-4 items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input 
+            placeholder="Buscar mensagens..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Filter className="h-4 w-4" />
+              Prioridade
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuLabel>Filtrar por prioridade</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem 
+              checked={priorityFilter === 'all'}
+              onCheckedChange={() => setPriorityFilter('all')}
+            >
+              Todas
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem 
+              checked={priorityFilter === 'normal'}
+              onCheckedChange={() => setPriorityFilter('normal')}
+            >
+              Normal
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem 
+              checked={priorityFilter === 'high'}
+              onCheckedChange={() => setPriorityFilter('high')}
+            >
+              Alta
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem 
+              checked={priorityFilter === 'urgent'}
+              onCheckedChange={() => setPriorityFilter('urgent')}
+            >
+              Urgente
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="all" onClick={() => setFilter('all')}>
@@ -105,14 +195,20 @@ const MessagesDashboard: React.FC = () => {
         </TabsList>
         
         <TabsContent value={filter} className="space-y-4">
-          {filteredMessages.length > 0 ? (
-            filteredMessages.map(renderMessageCard)
+          {displayedMessages.length > 0 ? (
+            displayedMessages.map(renderMessageCard)
           ) : (
-            <div className="text-center p-8 border rounded-md bg-gray-50">
+            <div className="text-center p-8 border rounded-md bg-gray-50 flex flex-col items-center">
+              <AlertTriangle className="h-10 w-10 text-gray-400 mb-2" />
               <p className="text-gray-500">
-                {filter === 'all' && 'Nenhuma mensagem encontrada'}
-                {filter === 'unread' && 'Nenhuma mensagem não lida'}
-                {filter === 'read' && 'Nenhuma mensagem lida'}
+                {searchQuery 
+                  ? 'Nenhuma mensagem encontrada para esta busca' 
+                  : filter === 'all' 
+                    ? 'Nenhuma mensagem encontrada'
+                    : filter === 'unread' 
+                      ? 'Nenhuma mensagem não lida'
+                      : 'Nenhuma mensagem lida'
+                }
               </p>
             </div>
           )}

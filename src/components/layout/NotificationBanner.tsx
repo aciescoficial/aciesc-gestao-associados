@@ -1,7 +1,8 @@
 
-import React, { memo } from 'react';
-import { Bell, Calendar, AlertTriangle, Link } from 'lucide-react';
+import React, { memo, useState } from 'react';
+import { Bell, Calendar, AlertTriangle, Link, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
 
 export interface NotificationMessage {
   id: string;
@@ -19,13 +20,19 @@ interface NotificationBannerProps {
 
 // Using memo to prevent unnecessary re-renders
 const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages = [] }) => {
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
+  
+  // Filter out dismissed messages
+  const activeMessages = messages.filter(msg => !dismissedMessages.includes(msg.id));
+  
   // Se não houver mensagens, não renderiza o banner
-  if (messages.length === 0) {
+  if (activeMessages.length === 0) {
     return null;
   }
   
-  // Por enquanto, exibe apenas a primeira mensagem importante
-  const currentMessage = messages[0];
+  // Por enquanto, exibe apenas a mensagem atual
+  const currentMessage = activeMessages[currentMessageIndex];
   
   // Seleciona o ícone baseado no tipo da mensagem
   const renderIcon = () => {
@@ -62,20 +69,63 @@ const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages =
       window.location.href = currentMessage.action.url;
     }
   };
+  
+  const dismissMessage = () => {
+    setDismissedMessages(prev => [...prev, currentMessage.id]);
+    
+    // If there are more messages, go to the next one
+    if (currentMessageIndex < activeMessages.length - 1) {
+      setCurrentMessageIndex(prev => prev + 1);
+    }
+  };
+  
+  // Navigate to next message if there are multiple
+  const nextMessage = () => {
+    if (currentMessageIndex < activeMessages.length - 1) {
+      setCurrentMessageIndex(prev => prev + 1);
+    } else {
+      setCurrentMessageIndex(0); // Loop back to first message
+    }
+  };
 
   return (
-    <div className={`w-full ${getBgColor()} py-2 px-4 flex items-center justify-center`}>
-      {renderIcon()}
-      <p className="text-center text-sm">{currentMessage.text}</p>
-      {currentMessage.action && (
-        <button 
-          onClick={handleActionClick}
-          className="ml-2 font-medium underline flex items-center text-sm"
+    <div className={`w-full ${getBgColor()} py-2 px-4 flex items-center justify-center relative transition-all`}>
+      {/* Message content */}
+      <div className="flex items-center justify-center flex-1 max-w-4xl">
+        {renderIcon()}
+        <p className="text-center text-sm">{currentMessage.text}</p>
+        {currentMessage.action && (
+          <button 
+            onClick={handleActionClick}
+            className="ml-2 font-medium underline flex items-center text-sm"
+          >
+            {currentMessage.action.text}
+            <Link className="h-3 w-3 ml-1" />
+          </button>
+        )}
+      </div>
+      
+      {/* Navigation and dismiss controls */}
+      <div className="absolute right-2 flex items-center gap-2">
+        {activeMessages.length > 1 && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={nextMessage}
+            className="h-6 px-2 text-xs"
+          >
+            {currentMessageIndex + 1}/{activeMessages.length}
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={dismissMessage}
+          className="h-6 w-6 p-0 rounded-full"
         >
-          {currentMessage.action.text}
-          <Link className="h-3 w-3 ml-1" />
-        </button>
-      )}
+          <X className="h-3 w-3" />
+        </Button>
+      </div>
     </div>
   );
 });
