@@ -72,6 +72,7 @@ export type Database = {
           cep: string | null
           cidade: string
           complemento: string | null
+          comprovante_url: string | null
           cpf: string
           created_at: string
           creci: string | null
@@ -100,6 +101,7 @@ export type Database = {
           cep?: string | null
           cidade: string
           complemento?: string | null
+          comprovante_url?: string | null
           cpf: string
           created_at?: string
           creci?: string | null
@@ -128,6 +130,7 @@ export type Database = {
           cep?: string | null
           cidade?: string
           complemento?: string | null
+          comprovante_url?: string | null
           cpf?: string
           created_at?: string
           creci?: string | null
@@ -570,6 +573,7 @@ export type Database = {
           created_at: string
           email: string | null
           empresa_id: string | null
+          first_login: boolean | null
           id: string
           name: string | null
           phone: string | null
@@ -584,6 +588,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           empresa_id?: string | null
+          first_login?: boolean | null
           id: string
           name?: string | null
           phone?: string | null
@@ -598,6 +603,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           empresa_id?: string | null
+          first_login?: boolean | null
           id?: string
           name?: string | null
           phone?: string | null

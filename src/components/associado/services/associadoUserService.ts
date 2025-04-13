@@ -49,7 +49,7 @@ export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }
           email,
           role: 'user',
           associado_id: id,
-          tags: ['associado'],
+          tags: ['associado', 'first_login'], // Using 'first_login' tag instead of column
           active: true,
         })
         .eq('id', authData.user.id);

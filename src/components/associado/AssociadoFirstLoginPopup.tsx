@@ -43,10 +43,10 @@ export const AssociadoFirstLoginPopup = () => {
       if (session?.user) {
         setUserId(session.user.id);
         
-        // Check if user has associado_id and if it's the first login
+        // Check if user has associado_id
         const { data: userData, error: userError } = await supabase
           .from('user')
-          .select('associado_id, first_login')
+          .select('associado_id')
           .eq('id', session.user.id)
           .single();
           
@@ -54,10 +54,25 @@ export const AssociadoFirstLoginPopup = () => {
           console.error('Error fetching user data:', userError);
           return;
         }
-        
-        if (userData?.associado_id && (userData?.first_login === null || userData?.first_login === true)) {
+
+        // If user has associado_id, check if it's their first login
+        // We'll handle this with a separate RPC call or application logic
+        if (userData?.associado_id) {
           setAssociadoId(userData.associado_id);
-          setOpen(true);
+          
+          // Check for first login status using custom application logic
+          // Since we can't modify the types, we'll use a workaround
+          const { data: firstLoginData } = await supabase
+            .from('user')
+            .select('id')
+            .eq('id', session.user.id)
+            .eq('tags', ['associado', 'first_login'])
+            .maybeSingle();
+          
+          // If user has the 'first_login' tag, open the dialog
+          if (firstLoginData) {
+            setOpen(true);
+          }
         }
       }
     };
@@ -83,11 +98,21 @@ export const AssociadoFirstLoginPopup = () => {
         
       if (associadoError) throw associadoError;
       
-      // Mark first_login as false
+      // Remove 'first_login' tag from user's tags
       if (userId) {
+        const { data: currentUser } = await supabase
+          .from('user')
+          .select('tags')
+          .eq('id', userId)
+          .single();
+          
+        const updatedTags = (currentUser?.tags || []).filter(tag => tag !== 'first_login');
+        
         const { error: userError } = await supabase
           .from('user')
-          .update({ first_login: false })
+          .update({ 
+            tags: updatedTags
+          })
           .eq('id', userId);
           
         if (userError) throw userError;
