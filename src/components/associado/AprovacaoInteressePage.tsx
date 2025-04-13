@@ -1,26 +1,34 @@
 
 import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AprovacaoInteresse from './AprovacaoInteresse';
-import FormularioInteresseEmbed from './FormularioInteresseEmbed';
+import FluxoAprovacao from './components/FluxoAprovacao';
+import CodigoIncorporacao from './components/CodigoIncorporacao';
 
 const AprovacaoInteressePage: React.FC = () => {
   return (
     <div className="space-y-6">
       <h1 className="wp-header">Aprovação de Associados</h1>
       
-      <div className="wp-notice-info mb-6">
-        <p className="font-medium mb-1">Fluxo de aprovação:</p>
-        <ol className="ml-4 list-decimal text-sm space-y-1">
-          <li>Interessados preenchem o formulário no site</li>
-          <li>Administrador analisa os dados e CRECI</li>
-          <li>Se aprovado, gera link de pagamento pelo Asaas</li>
-          <li>Após pagamento confirmado, usuário finaliza cadastro</li>
-        </ol>
-      </div>
-      
-      <FormularioInteresseEmbed />
-      
-      <AprovacaoInteresse />
+      <Tabs defaultValue="aprovacao" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="aprovacao">Aprovação de Interessados</TabsTrigger>
+          <TabsTrigger value="fluxo">Fluxo de Aprovação</TabsTrigger>
+          <TabsTrigger value="incorporacao">Código de Incorporação</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="aprovacao" className="mt-0">
+          <AprovacaoInteresse />
+        </TabsContent>
+        
+        <TabsContent value="fluxo" className="mt-0">
+          <FluxoAprovacao />
+        </TabsContent>
+        
+        <TabsContent value="incorporacao" className="mt-0">
+          <CodigoIncorporacao />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

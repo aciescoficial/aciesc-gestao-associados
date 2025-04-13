@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Check, X, Info, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { getAssociadoInteresses, updateInterestStatus } from './services/associadoInteressesService';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export interface AssociadoInteresse {
   id: string;
@@ -25,12 +27,12 @@ export interface AssociadoInteresse {
   payment_proof_url: string | null;
 }
 
-// Component to approve or reject associate interest applications
 const AprovacaoInteresse: React.FC = () => {
   const [interesses, setInteresses] = useState<AssociadoInteresse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { isAdmin } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (isAdmin) {
@@ -80,8 +82,6 @@ const AprovacaoInteresse: React.FC = () => {
         throw tokenError;
       }
       
-      // TODO: Send email with signup link
-      
       // Update local state
       setInteresses(prev => prev.filter(item => item.id !== id));
       
@@ -120,6 +120,81 @@ const AprovacaoInteresse: React.FC = () => {
     }
   };
 
+  const renderMobileCard = (interesse: AssociadoInteresse) => {
+    return (
+      <div key={interesse.id} className="bg-white rounded-lg shadow-sm border p-4 mb-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="font-medium text-base">
+              {interesse.nome} {interesse.sobrenome}
+              {interesse.creci && (
+                <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                  CRECI: {interesse.creci}
+                </span>
+              )}
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">{interesse.email}</p>
+          </div>
+          <span className={`px-2 py-1 rounded-full text-xs ${
+            interesse.pagamento_confirmado 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-amber-100 text-amber-800'
+          }`}>
+            {interesse.pagamento_confirmado ? 'Pago' : 'Pendente'}
+          </span>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
+          <div>
+            <p className="text-gray-500">CPF:</p>
+            <p>{interesse.cpf}</p>
+          </div>
+          <div>
+            <p className="text-gray-500">Telefone:</p>
+            <p>{interesse.celular}</p>
+          </div>
+        </div>
+        
+        <div className="mt-2 text-sm">
+          <p className="text-gray-500">Localização:</p>
+          <p>{interesse.cidade}/{interesse.estado}</p>
+        </div>
+        
+        <div className="mt-2 text-sm">
+          <p className="text-gray-500">Data do interesse:</p>
+          <p>{new Date(interesse.created_at).toLocaleDateString('pt-BR')}</p>
+        </div>
+        
+        <div className="flex gap-2 mt-4">
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={() => 
+              handleApprove(
+                interesse.id, 
+                interesse.email,
+                interesse.nome,
+                interesse.sobrenome
+              )
+            }
+          >
+            <UserPlus className="w-4 h-4 mr-1" />
+            Aprovar
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleReject(interesse.id)}
+            className="flex-1"
+          >
+            <X className="w-4 h-4 mr-1" />
+            Rejeitar
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   if (!isAdmin) {
     return (
       <div className="text-center p-6">
@@ -129,11 +204,11 @@ const AprovacaoInteresse: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Aprovação de Interesses</h1>
-        <Button onClick={fetchPendingInterests} variant="outline" disabled={isLoading}>
-          Atualizar
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Solicitações de Interesse</h2>
+        <Button onClick={fetchPendingInterests} variant="outline" size="sm" disabled={isLoading}>
+          {isLoading ? 'Carregando...' : 'Atualizar'}
         </Button>
       </div>
 
@@ -158,80 +233,90 @@ const AprovacaoInteresse: React.FC = () => {
             </AlertDescription>
           </Alert>
           
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="text-left p-3">Nome</th>
-                  <th className="text-left p-3">Email</th>
-                  <th className="text-left p-3">Telefone</th>
-                  <th className="text-left p-3">CPF</th>
-                  <th className="text-left p-3">Cidade/UF</th>
-                  <th className="text-left p-3">Data</th>
-                  <th className="text-left p-3">Pagamento</th>
-                  <th className="text-center p-3">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {interesses.map((interesse) => (
-                  <tr key={interesse.id} className="border-b hover:bg-gray-50">
-                    <td className="p-3">
-                      {interesse.nome} {interesse.sobrenome}
-                      {interesse.creci && (
-                        <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                          CRECI: {interesse.creci}
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-3">{interesse.email}</td>
-                    <td className="p-3">{interesse.celular}</td>
-                    <td className="p-3">{interesse.cpf}</td>
-                    <td className="p-3">
-                      {interesse.cidade}/{interesse.estado}
-                    </td>
-                    <td className="p-3">
-                      {new Date(interesse.created_at).toLocaleDateString('pt-BR')}
-                    </td>
-                    <td className="p-3">
-                      {interesse.pagamento_confirmado ? (
-                        <span className="text-green-600 font-medium">Confirmado</span>
-                      ) : (
-                        <span className="text-amber-600 font-medium">Pendente</span>
-                      )}
-                    </td>
-                    <td className="p-3">
-                      <div className="flex justify-center space-x-2">
-                        <Button
-                          size="sm"
-                          onClick={() => 
-                            handleApprove(
-                              interesse.id, 
-                              interesse.email,
-                              interesse.nome,
-                              interesse.sobrenome
-                            )
-                          }
-                          className="flex items-center"
-                        >
-                          <UserPlus className="w-4 h-4 mr-1" />
-                          Aprovar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleReject(interesse.id)}
-                          className="flex items-center"
-                        >
-                          <X className="w-4 h-4 mr-1" />
-                          Rejeitar
-                        </Button>
-                      </div>
-                    </td>
+          {/* Exibição para dispositivos móveis */}
+          {isMobile && (
+            <div className="md:hidden">
+              {interesses.map(renderMobileCard)}
+            </div>
+          )}
+          
+          {/* Exibição para desktop */}
+          {!isMobile && (
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="text-left p-3">Nome</th>
+                    <th className="text-left p-3">Email</th>
+                    <th className="text-left p-3">Telefone</th>
+                    <th className="text-left p-3">CPF</th>
+                    <th className="text-left p-3">Cidade/UF</th>
+                    <th className="text-left p-3">Data</th>
+                    <th className="text-left p-3">Pagamento</th>
+                    <th className="text-center p-3">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {interesses.map((interesse) => (
+                    <tr key={interesse.id} className="border-b hover:bg-gray-50">
+                      <td className="p-3">
+                        {interesse.nome} {interesse.sobrenome}
+                        {interesse.creci && (
+                          <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                            CRECI: {interesse.creci}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3">{interesse.email}</td>
+                      <td className="p-3">{interesse.celular}</td>
+                      <td className="p-3">{interesse.cpf}</td>
+                      <td className="p-3">
+                        {interesse.cidade}/{interesse.estado}
+                      </td>
+                      <td className="p-3">
+                        {new Date(interesse.created_at).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className="p-3">
+                        {interesse.pagamento_confirmado ? (
+                          <span className="text-green-600 font-medium">Confirmado</span>
+                        ) : (
+                          <span className="text-amber-600 font-medium">Pendente</span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex justify-center space-x-2">
+                          <Button
+                            size="sm"
+                            onClick={() => 
+                              handleApprove(
+                                interesse.id, 
+                                interesse.email,
+                                interesse.nome,
+                                interesse.sobrenome
+                              )
+                            }
+                            className="flex items-center"
+                          >
+                            <UserPlus className="w-4 h-4 mr-1" />
+                            Aprovar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleReject(interesse.id)}
+                            className="flex items-center"
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            Rejeitar
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>
