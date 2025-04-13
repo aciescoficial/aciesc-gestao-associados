@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
-import { FinanceiroRoutes } from "../pages/routes/FinanceiroRoutes";
+import { FinanceiroRoutes } from "./financeiroRoutes";
 import { SharedRoutes } from "./sharedRoutes";
 import { AdminRoutes } from "./adminRoutes";
 import { UserRoutes } from "./userRoutes";
