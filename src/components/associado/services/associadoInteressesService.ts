@@ -38,7 +38,8 @@ export async function getAssociadoInteresses(options: GetInteressesOptions = {})
   
   if (error) throw error;
   
-  return data || [];
+  // Ensure the data matches the AssociadoInteresse type
+  return (data || []) as AssociadoInteresse[];
 }
 
 /**
