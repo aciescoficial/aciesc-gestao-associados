@@ -16,6 +16,7 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      storage: localStorage,
       // Setting up Google OAuth needs to be done in Supabase dashboard
       // The client config is handled automatically by Supabase
     },
@@ -27,12 +28,12 @@ export const supabase = createClient<Database>(
         'x-application-name': 'aciesc-app'
       },
       fetch: (url, options) => {
-        // Reduced timeout from 30s to 15s for faster error detection
+        // Reduce timeout a bit to allow for retry logic
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
           console.log('Supabase request timeout, aborting request to:', url);
           controller.abort('Request timeout');
-        }, 15000); // 15s timeout, reduced from 30s
+        }, 12000); // 12s timeout, adjusted from 15s
         
         return fetch(url, {
           ...options,
@@ -81,7 +82,7 @@ export const handleSupabaseError = (error: any): string => {
   return error?.message || 'Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.';
 };
 
-// New helper function to check database connectivity
+// Helper function to check database connectivity
 export const checkDatabaseConnectivity = async (): Promise<boolean> => {
   try {
     // Simple and quick query to test connectivity
@@ -99,6 +100,24 @@ export const checkDatabaseConnectivity = async (): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Database connectivity check exception:', error);
+    return false;
+  }
+};
+
+// New helper function to check authentication status
+export const isUserAuthenticated = async (): Promise<boolean> => {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error('Authentication check failed:', error);
+      return false;
+    }
+    
+    console.log('Authentication check result:', !!user);
+    return !!user;
+  } catch (error) {
+    console.error('Authentication check exception:', error);
     return false;
   }
 };

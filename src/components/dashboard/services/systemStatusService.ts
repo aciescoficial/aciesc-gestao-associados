@@ -21,12 +21,21 @@ export const checkSystemStatus = async (retries = 1): Promise<SystemStatus> => {
       emails: { active: false, message: 'Verificação falhou' }
     };
     
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.log('No authenticated user found');
+      return defaultStatus;
+    }
+
+    console.log('Authenticated user found, checking system status');
+    
     // Use Promise.race with a timeout
     const timeoutPromise = new Promise<SystemStatus>((resolve) => {
       setTimeout(() => {
         console.log('Status check timed out, using default values');
         resolve(defaultStatus);
-      }, 1500);
+      }, 3500); // Increased from 1500ms to 3500ms
     });
     
     // Create the actual data fetching promise
@@ -59,6 +68,12 @@ export const checkSystemStatus = async (retries = 1): Promise<SystemStatus> => {
         const asaasActive = !!asaasResult.data?.value;
         const stripeActive = !!stripeResult.data?.value;
         const ghlActive = !!ghlResult.data?.value;
+        
+        console.log('System status check results:', {
+          asaasActive,
+          stripeActive,
+          ghlActive
+        });
         
         return {
           asaas: { 

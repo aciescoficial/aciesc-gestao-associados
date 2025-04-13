@@ -9,6 +9,7 @@ import { NotificationMessage } from '@/components/layout/NotificationBanner';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/components/auth/hooks/useAuthContext';
 
 // Example messages are defined once outside the component to avoid recreations
 const exampleMessages: NotificationMessage[] = [
@@ -43,6 +44,7 @@ const exampleMessages: NotificationMessage[] = [
 
 const Dashboard: React.FC = () => {
   const { stats, recentActivity, loading, systemStatus, refreshData } = useDashboardData();
+  const { user } = useAuth();
   
   useEffect(() => {
     // Only set example messages if they don't exist yet to prevent constant writes
@@ -57,6 +59,21 @@ const Dashboard: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  // Force page refresh after a short delay if no user
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (!user) {
+      console.log('No authenticated user, dashboard might not show data');
+      timeoutId = setTimeout(() => {
+        console.log('Triggering refresh to ensure auth state is current');
+        refreshData();
+      }, 1500);
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [user, refreshData]);
 
   return (
     <div className="space-y-6">
@@ -73,6 +90,14 @@ const Dashboard: React.FC = () => {
           {loading ? "Atualizando..." : "Atualizar dados"}
         </Button>
       </div>
+      
+      {/* Auth status debug info - will be helpful for troubleshooting */}
+      {process.env.NODE_ENV !== 'production' && (
+        <div className="p-2 bg-amber-50 text-amber-800 rounded-md text-xs">
+          Status de autenticação: {user ? `Autenticado (${user.email})` : 'Não autenticado'} 
+          {!user && ' - Os dados podem não aparecer sem autenticação'}
+        </div>
+      )}
       
       {/* Stats Grid */}
       <DashboardStats stats={stats} loading={loading} />

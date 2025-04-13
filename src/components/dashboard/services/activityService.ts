@@ -18,12 +18,21 @@ export const fetchRecentActivity = async (retries = 1): Promise<RecentActivity[]
     // Default empty array in case of errors
     const defaultActivity: RecentActivity[] = [];
     
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.log('No authenticated user found');
+      return defaultActivity;
+    }
+
+    console.log('Authenticated user found, fetching recent activity');
+    
     // Use Promise.race with a timeout
     const timeoutPromise = new Promise<RecentActivity[]>((resolve) => {
       setTimeout(() => {
         console.log('Activity query timed out, using default values');
         resolve(defaultActivity);
-      }, 2000);
+      }, 3500); // Increased from 2000ms to 3500ms
     });
     
     // Create the actual data fetching promise
@@ -48,6 +57,11 @@ export const fetchRecentActivity = async (retries = 1): Promise<RecentActivity[]
         
         const recentAssociados = recentAssociadosResult.data || [];
         const recentEmpresas = recentEmpresasResult.data || [];
+
+        console.log('Activity query results:', {
+          associados: recentAssociados.length,
+          empresas: recentEmpresas.length
+        });
 
         // Combine and format recent activity
         const formattedActivity = [

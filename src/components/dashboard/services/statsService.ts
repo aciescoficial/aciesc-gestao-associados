@@ -23,12 +23,21 @@ export const fetchDashboardStats = async (retries = 1): Promise<DashboardStats> 
       carteirasPendentes: 0
     };
     
-    // Use a shorter timeout to improve responsiveness (1500ms instead of 2000ms)
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.log('No authenticated user found');
+      return defaultStats;
+    }
+
+    console.log('Authenticated user found, fetching dashboard stats');
+    
+    // Use a slightly longer timeout to improve chances of successful response
     const timeoutPromise = new Promise<DashboardStats>((resolve) => {
       setTimeout(() => {
         console.log('Stats query timed out, using default values');
         resolve(defaultStats);
-      }, 1500);
+      }, 3500); // Increased from 1500ms to 3500ms
     });
     
     // Create the actual data fetching promise
@@ -57,6 +66,13 @@ export const fetchDashboardStats = async (retries = 1): Promise<DashboardStats> 
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pendente_pagamento')
         ]);
+
+        console.log('Stats query results:', {
+          associados: associadosResult.count,
+          empresas: empresasResult.count,
+          pendentes: pendentesResult.count,
+          carteiras: carteirasResult.count
+        });
 
         return {
           associados: associadosResult.count || 0,
