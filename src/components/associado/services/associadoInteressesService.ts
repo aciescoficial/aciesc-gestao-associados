@@ -38,11 +38,16 @@ export async function getAssociadoInteresses(options: GetInteressesOptions = {})
   
   if (error) throw error;
   
-  // Map database response to AssociadoInteresse type with proper handling of payment_proof_url
-  return (data || []).map(item => ({
-    ...item,
-    payment_proof_url: item.payment_proof_url || null
-  })) as AssociadoInteresse[];
+  // Cast the data to AssociadoInteresse type and ensure payment_proof_url is handled
+  // The database response doesn't include payment_proof_url according to TypeScript
+  return (data || []).map(item => {
+    // Create an object that matches AssociadoInteresse type
+    const interesse: AssociadoInteresse = {
+      ...item,
+      payment_proof_url: null // Set default null for payment_proof_url
+    };
+    return interesse;
+  });
 }
 
 /**
