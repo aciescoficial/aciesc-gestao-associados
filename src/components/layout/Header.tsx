@@ -6,11 +6,13 @@ import HeaderActions from './HeaderActions';
 import NotificationBanner, { NotificationMessage } from './NotificationBanner';
 import { supabase } from '@/integrations/supabase/client';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Header: React.FC = () => {
   const isMobile = useIsMobile();
   const [importantMessages, setImportantMessages] = useState<NotificationMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
   
   // Function to fetch important messages with improved performance
   const fetchImportantMessages = async () => {
@@ -43,12 +45,13 @@ const Header: React.FC = () => {
       // Using the email_templates table as a temporary solution
       // Set a timeout to abort if the query takes too long
       const timeoutPromise = new Promise<null>((_, reject) => {
-        setTimeout(() => reject(new Error("Query timeout")), 3000); // 3 second timeout
+        setTimeout(() => reject(new Error("Query timeout")), 8000); // Increased to 8 second timeout
       });
       
-      const queryPromise = extendedSupabase
+      // Use a simpler query to reduce database load
+      const queryPromise = supabase
         .from('email_templates')
-        .select('*')
+        .select('id, assunto, corpo, codigo')
         .eq('codigo', 'sistema_alerta')
         .limit(5);
         
@@ -73,6 +76,7 @@ const Header: React.FC = () => {
         }));
         
         setImportantMessages(formattedMessages);
+        setHasError(false);
         
         // Cache the messages
         localStorage.setItem('cachedSystemMessages', JSON.stringify(formattedMessages));
@@ -97,6 +101,7 @@ const Header: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching important messages:", error);
+      setHasError(true);
       
       // On error, try to use cached messages or demo messages
       const cachedMessages = localStorage.getItem('cachedSystemMessages');
@@ -128,11 +133,11 @@ const Header: React.FC = () => {
   };
   
   useEffect(() => {
-    // Use a small delay on initial load to prioritize other UI components
-    const initialLoadTimer = setTimeout(fetchImportantMessages, 500);
+    // Use a larger delay on initial load to prioritize other UI components
+    const initialLoadTimer = setTimeout(fetchImportantMessages, 2000);
     
-    // Update messages every 5 minutes
-    const interval = setInterval(fetchImportantMessages, 5 * 60 * 1000);
+    // Update messages every 10 minutes instead of 5
+    const interval = setInterval(fetchImportantMessages, 10 * 60 * 1000);
     
     return () => {
       clearTimeout(initialLoadTimer);
@@ -141,19 +146,53 @@ const Header: React.FC = () => {
   }, []);
 
   return (
-    <>
-      <NotificationBanner messages={importantMessages} />
+    <ErrorBoundary>
+      <header>
+        <NotificationBanner messages={importantMessages} />
+        <div className="bg-aciesc-primary text-white py-3 px-4 flex justify-between items-center shadow-sm">
+          <div className="flex items-center">
+            <div className="flex items-center">
+              <SystemVersion />
+            </div>
+          </div>
+          
+          <HeaderActions />
+        </div>
+      </header>
+    </ErrorBoundary>
+  );
+};
+
+// Simple error boundary component to prevent the entire page from crashing
+const ErrorBoundary: React.FC<{children: React.ReactNode}> = ({children}) => {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const errorHandler = (event: ErrorEvent) => {
+      console.error("Error caught by ErrorBoundary:", event.error);
+      setHasError(true);
+    };
+
+    window.addEventListener('error', errorHandler);
+    return () => {
+      window.removeEventListener('error', errorHandler);
+    };
+  }, []);
+
+  if (hasError) {
+    return (
       <header className="bg-aciesc-primary text-white py-3 px-4 flex justify-between items-center shadow-sm">
         <div className="flex items-center">
           <div className="flex items-center">
             <SystemVersion />
           </div>
         </div>
-        
-        <HeaderActions />
+        <Skeleton className="h-10 w-32" />
       </header>
-    </>
-  );
+    );
+  }
+
+  return <>{children}</>;
 };
 
 export default Header;

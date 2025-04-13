@@ -1,128 +1,203 @@
+
 import React, { lazy, Suspense } from "react";
 import { Route, Routes, Outlet, Navigate } from "react-router-dom";
-import RouteComponents from "./pages/RouteComponents";
 import { ProtectedRoute, AdminRoute } from "./pages/AuthRoutes";
 import { FinanceiroRoutes } from "./pages/routes/FinanceiroRoutes";
 import { SharedRoutes } from "./pages/routes/SharedRoutes";
 import PluginLayout from "./components/PluginLayout";
 import { LoginPage } from "./components/auth"; // Updated import path
 import NotFound from "./pages/NotFound";
-import MessagesDashboard from "./components/mensagens/MessagesDashboard";
-import MensagensPage from "./components/mensagens/MensagensPage";
+import AppLoading from "./components/shared/AppLoading";
 
-// Página de configurações
+// Eagerly loaded components for critical paths
+import Dashboard from "./components/Dashboard";
+
+// Lazily loaded components for better performance
+const RouteComponents = lazy(() => import("./pages/RouteComponents"));
+const MessagesDashboard = lazy(() => import("./components/mensagens/MessagesDashboard"));
+const MensagensPage = lazy(() => import("./components/mensagens/MensagensPage"));
 const ConfiguracoesPage = lazy(() => import("./components/configuracoes/ConfiguracoesPage"));
-// Formulário de interesse
 const FormularioInteressePage = lazy(() => import("./components/associado/FormularioInteressePage"));
-// Página de aprovação de interesse
 const AprovacaoInteressePage = lazy(() => import("./components/associado/AprovacaoInteressePage"));
-// Página de finalização de cadastro
 const AssociadoSignupCompletion = lazy(() => import("./components/associado/AssociadoSignupCompletion"));
+const GeradorCarteirinha = lazy(() => import("./components/carteirinha/GeradorCarteirinha"));
+const SolicitarCarteirinhaPage = lazy(() => import("./components/associado/SolicitarCarteirinhaPage"));
+
+// Fallback component with custom loading time
+const PageLoading = () => <AppLoading message="Carregando página..." />;
 
 const AppRoutes: React.FC = () => {
   return (
-    <Suspense fallback={<div className="p-4">Carregando...</div>}>
-      <Routes>
-        <Route path="/auth/*" element={<RouteComponents.Index />} />
-        <Route path="/login" element={<LoginPage />} />
-        
-        {/* Standaline routes */}
-        <Route path="/formulario-interesse" element={<FormularioInteressePage />} />
-        <Route path="/associado-signup" element={<AssociadoSignupCompletion />} />
-        
-        {/* Redirect from root to dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        
-        {/* Catch-all 404 route */}
-        <Route path="*" element={<NotFound />} />
+    <Routes>
+      <Route path="/auth/*" element={
+        <Suspense fallback={<PageLoading />}>
+          <RouteComponents />
+        </Suspense>
+      } />
+      
+      <Route path="/login" element={<LoginPage />} />
+      
+      {/* Standalone routes */}
+      <Route path="/formulario-interesse" element={
+        <Suspense fallback={<PageLoading />}>
+          <FormularioInteressePage />
+        </Suspense>
+      } />
+      
+      <Route path="/associado-signup" element={
+        <Suspense fallback={<PageLoading />}>
+          <AssociadoSignupCompletion />
+        </Suspense>
+      } />
+      
+      {/* Redirect from root to dashboard */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      
+      {/* Catch-all 404 route */}
+      <Route path="*" element={<NotFound />} />
 
-        {/* Include SharedRoutes */}
-        {SharedRoutes}
+      {/* Include SharedRoutes */}
+      {SharedRoutes}
 
-        {/* Fixed route by using element with children prop properly through Outlet */}
-        <Route path="/" element={<PluginLayout><Outlet /></PluginLayout>}>
-          <Route path="/dashboard" element={<RouteComponents.Dashboard />} />
+      {/* Fixed route by using element with children prop properly through Outlet */}
+      <Route path="/" element={<PluginLayout><Outlet /></PluginLayout>}>
+        {/* Dashboard is eagerly loaded for performance */}
+        <Route path="/dashboard" element={<Dashboard />} />
 
-          {/* Admin-only routes */}
-          <Route path="/associados/cadastro" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+        {/* Admin-only routes */}
+        <Route path="/associados/cadastro" element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <Suspense fallback={<PageLoading />}>
               <RouteComponents.CadastroAssociado />
-            </ProtectedRoute>
-          } />
-          <Route path="/associados/pesquisa" element={
-            <ProtectedRoute allowedRoles={["admin", "user"]}>
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/associados/pesquisa" element={
+          <ProtectedRoute allowedRoles={["admin", "user"]}>
+            <Suspense fallback={<PageLoading />}>
               <RouteComponents.PesquisaAssociado />
-            </ProtectedRoute>
-          } />
-          <Route path="/empresas/cadastro" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/empresas/cadastro" element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <Suspense fallback={<PageLoading />}>
               <RouteComponents.CadastroEmpresa />
-            </ProtectedRoute>
-          } />
-          <Route path="/empresas/pesquisa" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/empresas/pesquisa" element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <Suspense fallback={<PageLoading />}>
               <RouteComponents.PesquisaEmpresa />
-            </ProtectedRoute>
-          } />
-          
-          {/* Admin approval routes */}
-          <Route path="/aprovacoes" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        
+        {/* Admin approval routes */}
+        <Route path="/aprovacoes" element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <Suspense fallback={<PageLoading />}>
               <RouteComponents.AprovacoesPendentes />
-            </ProtectedRoute>
-          } />
-          <Route path="/associados/aprovacao" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/associados/aprovacao" element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <Suspense fallback={<PageLoading />}>
               <AprovacaoInteressePage />
-            </ProtectedRoute>
-          } />
+            </Suspense>
+          </ProtectedRoute>
+        } />
 
-          <Route path="/carteirinhas" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <RouteComponents.GeradorCarteirinha />
-            </ProtectedRoute>
-          } />
+        <Route path="/carteirinhas" element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <Suspense fallback={<PageLoading />}>
+              <GeradorCarteirinha />
+            </Suspense>
+          </ProtectedRoute>
+        } />
 
-          {/* Include Financeiro routes */}
-          {FinanceiroRoutes}
+        {/* Include Financeiro routes with Suspense */}
+        {FinanceiroRoutes}
 
-          {/* Mensagens routes for all users */}
-          <Route path="/mensagens" element={<MessagesDashboard />} />
-          <Route path="/mensagens/enviar" element={<MensagensPage />} />
-          
-          {/* Usuários routes */}
-          <Route path="/usuarios" element={<RouteComponents.UserManagement />} />
-          <Route path="/usuarios/gerenciar" element={<RouteComponents.UserManagement />} />
-          <Route path="/usuarios/permissoes" element={<RouteComponents.PermissionPanel />} />
-          
-          <Route path="/perfil" element={<RouteComponents.ProfilePage />} />
-          
-          {/* User (Associado) specific routes */}
-          <Route path="/meus-pagamentos" element={
-            <ProtectedRoute allowedRoles={["user"]}>
+        {/* Mensagens routes for all users */}
+        <Route path="/mensagens" element={
+          <Suspense fallback={<PageLoading />}>
+            <MessagesDashboard />
+          </Suspense>
+        } />
+        
+        <Route path="/mensagens/enviar" element={
+          <Suspense fallback={<PageLoading />}>
+            <MensagensPage />
+          </Suspense>
+        } />
+        
+        {/* Usuários routes */}
+        <Route path="/usuarios" element={
+          <Suspense fallback={<PageLoading />}>
+            <RouteComponents.UserManagement />
+          </Suspense>
+        } />
+        
+        <Route path="/usuarios/gerenciar" element={
+          <Suspense fallback={<PageLoading />}>
+            <RouteComponents.UserManagement />
+          </Suspense>
+        } />
+        
+        <Route path="/usuarios/permissoes" element={
+          <Suspense fallback={<PageLoading />}>
+            <RouteComponents.PermissionPanel />
+          </Suspense>
+        } />
+        
+        <Route path="/perfil" element={
+          <Suspense fallback={<PageLoading />}>
+            <RouteComponents.ProfilePage />
+          </Suspense>
+        } />
+        
+        {/* User (Associado) specific routes */}
+        <Route path="/meus-pagamentos" element={
+          <ProtectedRoute allowedRoles={["user"]}>
+            <Suspense fallback={<PageLoading />}>
               <RouteComponents.PagamentosAssociadoPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/solicitar-carteirinha" element={
-            <ProtectedRoute allowedRoles={["user"]}>
-              <RouteComponents.SolicitarCarteirinhaPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/empresas-conveniadas" element={
-            <ProtectedRoute allowedRoles={["user"]}>
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/solicitar-carteirinha" element={
+          <ProtectedRoute allowedRoles={["user"]}>
+            <Suspense fallback={<PageLoading />}>
+              <SolicitarCarteirinhaPage />
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/empresas-conveniadas" element={
+          <ProtectedRoute allowedRoles={["user"]}>
+            <Suspense fallback={<PageLoading />}>
               <RouteComponents.EmpresasConveniadasPage />
-            </ProtectedRoute>
-          } />
-          
-          {/* Nova rota para configurações */}
-          <Route path="/configuracoes" element={
-            <AdminRoute>
+            </Suspense>
+          </ProtectedRoute>
+        } />
+        
+        {/* Nova rota para configurações */}
+        <Route path="/configuracoes" element={
+          <AdminRoute>
+            <Suspense fallback={<PageLoading />}>
               <ConfiguracoesPage />
-            </AdminRoute>
-          } />
-        </Route>
-      </Routes>
-    </Suspense>
+            </Suspense>
+          </AdminRoute>
+        } />
+      </Route>
+    </Routes>
   );
 };
 

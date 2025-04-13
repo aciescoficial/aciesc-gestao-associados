@@ -1,5 +1,5 @@
 
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { Bell, Calendar, AlertTriangle, Link, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
@@ -52,20 +52,44 @@ const getBgColor = (messageType: string) => {
 const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages = [] }) => {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [dismissedMessages, setDismissedMessages] = useState<string[]>([]);
+  const [hasError, setHasError] = useState(false);
+
+  // Validate messages to ensure they have required properties
+  useEffect(() => {
+    try {
+      if (!Array.isArray(messages)) {
+        console.error("NotificationBanner: messages is not an array", messages);
+        setHasError(true);
+        return;
+      }
+      
+      const invalidMessages = messages.filter(msg => !msg?.id || !msg?.text);
+      if (invalidMessages.length > 0) {
+        console.error("NotificationBanner: invalid message format", invalidMessages);
+        setHasError(true);
+      } else {
+        setHasError(false);
+      }
+    } catch (error) {
+      console.error("NotificationBanner: error validating messages", error);
+      setHasError(true);
+    }
+  }, [messages]);
   
   // Filter out dismissed messages
-  const activeMessages = messages.filter(msg => !dismissedMessages.includes(msg.id));
+  const activeMessages = !hasError ? 
+    messages.filter(msg => msg && !dismissedMessages.includes(msg.id)) : [];
   
-  // If there are no messages, don't render the banner
+  // If there are no valid messages, don't render the banner
   if (activeMessages.length === 0) {
     return null;
   }
   
-  // Display only the current message
+  // Display only the current message with safety checks
   const currentMessage = activeMessages[currentMessageIndex];
   
-  // Safety check - if currentMessage is undefined, don't render anything
-  if (!currentMessage) {
+  // Safety check - if currentMessage is undefined or invalid, don't render anything
+  if (!currentMessage || !currentMessage.type) {
     return null;
   }
   
@@ -92,47 +116,52 @@ const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages =
       setCurrentMessageIndex(0); // Loop back to first message
     }
   };
-
-  return (
-    <div className={`w-full ${getBgColor(currentMessage.type)} py-2 px-4 flex items-center justify-center relative transition-all`}>
-      {/* Message content */}
-      <div className="flex items-center justify-center flex-1 max-w-4xl">
-        {renderIcon(currentMessage.type)}
-        <p className="text-center text-sm">{currentMessage.text}</p>
-        {currentMessage.action && (
-          <button 
-            onClick={handleActionClick}
-            className="ml-2 font-medium underline flex items-center text-sm"
+  
+  try {
+    return (
+      <div className={`w-full ${getBgColor(currentMessage.type)} py-2 px-4 flex items-center justify-center relative transition-all`}>
+        {/* Message content */}
+        <div className="flex items-center justify-center flex-1 max-w-4xl">
+          {renderIcon(currentMessage.type)}
+          <p className="text-center text-sm">{currentMessage.text}</p>
+          {currentMessage.action && (
+            <button 
+              onClick={handleActionClick}
+              className="ml-2 font-medium underline flex items-center text-sm"
+            >
+              {currentMessage.action.text}
+              <Link className="h-3 w-3 ml-1" />
+            </button>
+          )}
+        </div>
+        
+        {/* Navigation and dismiss controls */}
+        <div className="absolute right-2 flex items-center gap-2">
+          {activeMessages.length > 1 && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={nextMessage}
+              className="h-6 px-2 text-xs"
+            >
+              {currentMessageIndex + 1}/{activeMessages.length}
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={dismissMessage}
+            className="h-6 w-6 p-0 rounded-full"
           >
-            {currentMessage.action.text}
-            <Link className="h-3 w-3 ml-1" />
-          </button>
-        )}
-      </div>
-      
-      {/* Navigation and dismiss controls */}
-      <div className="absolute right-2 flex items-center gap-2">
-        {activeMessages.length > 1 && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={nextMessage}
-            className="h-6 px-2 text-xs"
-          >
-            {currentMessageIndex + 1}/{activeMessages.length}
+            <X className="h-3 w-3" />
           </Button>
-        )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={dismissMessage}
-          className="h-6 w-6 p-0 rounded-full"
-        >
-          <X className="h-3 w-3" />
-        </Button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  } catch (error) {
+    console.error("Error rendering NotificationBanner:", error);
+    return null;
+  }
 });
 
 // Add display name for memo component
