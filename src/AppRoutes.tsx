@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense } from "react";
 import { Route, Routes, Outlet, Navigate } from "react-router-dom";
 import RouteComponents from "./pages/RouteComponents";
@@ -9,6 +8,7 @@ import PluginLayout from "./components/PluginLayout";
 import { LoginPage } from "./components/auth"; // Updated import path
 import NotFound from "./pages/NotFound";
 import MessagesDashboard from "./components/mensagens/MessagesDashboard";
+import MensagensPage from "./components/mensagens/MensagensPage";
 
 // Página de configurações
 const ConfiguracoesPage = lazy(() => import("./components/configuracoes/ConfiguracoesPage"));
@@ -88,7 +88,7 @@ const AppRoutes: React.FC = () => {
 
           {/* Mensagens routes for all users */}
           <Route path="/mensagens" element={<MessagesDashboard />} />
-          <Route path="/mensagens/enviar" element={<RouteComponents.MensagensPage />} />
+          <Route path="/mensagens/enviar" element={<MensagensPage />} />
           
           {/* Usuários routes */}
           <Route path="/usuarios" element={<RouteComponents.UserManagement />} />

@@ -20,7 +20,9 @@ const MessagesDashboard: React.FC = () => {
     readCount, 
     markAsRead, 
     markAllAsRead, 
-    deleteMessage
+    deleteMessage,
+    fetchMessages,
+    isFetching
   } = useMessages();
 
   // Local state for search and filters
@@ -40,6 +42,8 @@ const MessagesDashboard: React.FC = () => {
       <MessageHeader 
         unreadCount={unreadCount}
         markAllAsRead={markAllAsRead}
+        fetchMessages={fetchMessages}
+        isFetching={isFetching}
       />
       
       {/* Search and filter bar */}

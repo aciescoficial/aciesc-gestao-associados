@@ -90,6 +90,7 @@ export const useMessages = () => {
     return mockMessages;
   });
   const [sortType, setSortType] = useState<MessageSortType>('date');
+  const [isFetching, setIsFetching] = useState(false);
   
   // Save messages to localStorage when they change
   useEffect(() => {
@@ -99,6 +100,36 @@ export const useMessages = () => {
       console.error('Failed to store messages:', e);
     }
   }, [messages]);
+
+  // Fetch messages (simulated)
+  const fetchMessages = useCallback(async () => {
+    setIsFetching(true);
+    
+    try {
+      // Simulate API fetch with timeout
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In a real app, this would be an API call
+      // For now, we'll just generate a new random message and refresh existing ones
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        title: `Nova notificação ${Math.floor(Math.random() * 100)}`,
+        content: 'Esta é uma nova notificação gerada automaticamente.',
+        sender: 'Sistema',
+        date: new Date().toISOString().split('T')[0],
+        read: false,
+        priority: Math.random() > 0.8 ? 'high' : 'normal'
+      };
+      
+      setMessages(prev => [newMessage, ...prev]);
+      toast.success('Mensagens atualizadas com sucesso!');
+    } catch (error) {
+      console.error('Erro ao buscar mensagens:', error);
+      toast.error('Não foi possível atualizar as mensagens. Tente novamente.');
+    } finally {
+      setIsFetching(false);
+    }
+  }, []);
 
   // Filtered messages with optimized filtering
   const filteredMessages = useMemo(() => {
@@ -186,7 +217,9 @@ export const useMessages = () => {
     deleteMessage,
     addMessage,
     sortType,
-    setSortType
+    setSortType,
+    fetchMessages,
+    isFetching
   };
 };
 
