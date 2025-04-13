@@ -4,6 +4,7 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/com
 import { ClipboardList } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 interface ActivityLogsTabProps {
   userId: string;
@@ -64,7 +65,7 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsTabProps) => {
       <CardContent>
         {isLoading ? (
           <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <LoadingSpinner size="medium" />
           </div>
         ) : accessLogs.length > 0 ? (
           <div className="space-y-2">

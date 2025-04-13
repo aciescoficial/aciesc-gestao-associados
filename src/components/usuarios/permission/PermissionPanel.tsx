@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { usePermissionData } from './hooks/usePermissionData';
 import PermissionTabs from './PermissionTabs';
 
@@ -23,7 +23,7 @@ const PermissionPanel: React.FC = () => {
         <h1 className="wp-header">Gerenciamento de Permissões</h1>
         <Button onClick={fetchPermissions} disabled={loading || saveInProgress}>
           {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <LoadingSpinner size="small" text="" centered={false} />
           ) : (
             "Atualizar"
           )}
@@ -33,8 +33,7 @@ const PermissionPanel: React.FC = () => {
       <div className="wp-card">
         {loading ? (
           <div className="flex justify-center items-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin mr-2" />
-            <span>Carregando permissões...</span>
+            <LoadingSpinner size="large" text="Carregando permissões..." />
           </div>
         ) : (
           <PermissionTabs

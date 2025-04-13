@@ -2,16 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { LoaderCircle } from 'lucide-react';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { UserRole } from '@/components/usuarios/types';
-
-// Improved loading component with better UX
-const LoadingSpinner = () => (
-  <div className="flex flex-col justify-center items-center h-64">
-    <LoaderCircle className="animate-spin h-8 w-8 text-gray-900 mb-2" />
-    <p className="text-sm text-gray-600">Carregando...</p>
-  </div>
-);
 
 // Protected route component with improved type safety and error handling
 export const ProtectedRoute = ({ 
@@ -51,7 +43,11 @@ export const ProtectedRoute = ({
   }, [loading, user, userRole, isAdmin, allowedRoles]);
   
   if (loading || isAuthorized === null) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex flex-col justify-center items-center h-64">
+        <LoadingSpinner size="large" text="Verificando permissões..." />
+      </div>
+    );
   }
   
   if (!isAuthorized) {
@@ -72,7 +68,11 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex flex-col justify-center items-center h-64">
+        <LoadingSpinner size="large" text="Verificando permissões de administrador..." />
+      </div>
+    );
   }
   
   if (!user) {

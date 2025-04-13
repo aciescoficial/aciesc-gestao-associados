@@ -1,8 +1,8 @@
-
 import React from 'react';
-import { UserCheck, UserX, Clock, RefreshCw } from 'lucide-react';
+import { UserCheck, UserX, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import {
   Table,
   TableBody,
@@ -53,9 +53,7 @@ const ConveniadoResultsTable: React.FC<ConveniadoResultsTableProps> = ({
           {loading ? (
             <TableRow>
               <TableCell colSpan={7} className="h-24 text-center">
-                <div className="flex justify-center items-center">
-                  <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
-                </div>
+                <LoadingSpinner size="medium" />
               </TableCell>
             </TableRow>
           ) : conveniados.length === 0 ? (

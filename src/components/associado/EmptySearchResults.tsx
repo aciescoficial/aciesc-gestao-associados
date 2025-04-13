@@ -1,5 +1,6 @@
 
 import React from 'react';
+import LoadingSpinner from '../shared/LoadingSpinner';
 
 interface EmptySearchResultsProps {
   isSearching: boolean;
@@ -9,8 +10,7 @@ const EmptySearchResults: React.FC<EmptySearchResultsProps> = ({ isSearching }) 
   if (isSearching) {
     return (
       <div className="mt-8 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Buscando associados...</p>
+        <LoadingSpinner size="medium" text="Buscando associados..." />
       </div>
     );
   }

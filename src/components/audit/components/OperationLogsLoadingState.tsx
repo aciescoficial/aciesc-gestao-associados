@@ -1,5 +1,6 @@
 
 import React from 'react';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 interface OperationLogsLoadingStateProps {
   loading: boolean;
@@ -21,7 +22,7 @@ export const OperationLogsLoadingState: React.FC<OperationLogsLoadingStateProps>
   if (loading) {
     return (
       <div className="p-4 flex justify-center">
-        <p>Carregando logs de operações...</p>
+        <LoadingSpinner size="medium" text="Carregando logs de operações..." />
       </div>
     );
   }

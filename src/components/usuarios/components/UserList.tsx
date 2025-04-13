@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Table, 
@@ -12,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Loader2 } from 'lucide-react';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { User, UserRole, UserTag } from '../types';
 import { getTagBadgeColor } from '../utils/roleUtils';
 
@@ -51,10 +50,7 @@ const UserList: React.FC<UserListProps> = ({
           {loading ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-8">
-                <div className="flex justify-center items-center">
-                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                  <span>Carregando usuários...</span>
-                </div>
+                <LoadingSpinner size="medium" text="Carregando usuários..." />
               </TableCell>
             </TableRow>
           ) : filteredUsers.length === 0 ? (

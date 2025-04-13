@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/components/auth/hooks/useAuthContext';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 // Example messages are defined once outside the component to avoid recreations
 const exampleMessages: NotificationMessage[] = [
@@ -86,8 +87,17 @@ const Dashboard: React.FC = () => {
           className="flex items-center gap-2"
           disabled={loading}
         >
-          <RefreshCw size={16} className={loading ? "animate-spin mr-1" : "mr-1"} />
-          {loading ? "Atualizando..." : "Atualizar dados"}
+          {loading ? (
+            <>
+              <LoadingSpinner size="small" text="" centered={false} className="mr-1" />
+              Atualizando...
+            </>
+          ) : (
+            <>
+              <RefreshCw size={16} className="mr-1" />
+              Atualizar dados
+            </>
+          )}
         </Button>
       </div>
       
