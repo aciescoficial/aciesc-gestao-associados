@@ -107,12 +107,12 @@ export const useDashboardData = () => {
     
     fetchDashboardData();
     
-    // Set up an interval to refresh the data every 5 minutes
-    const intervalId = setInterval(fetchDashboardData, 300000);
+    // Temporarily disabled auto-refresh interval
+    // const intervalId = setInterval(fetchDashboardData, 300000);
     
     // Clean up on unmount
     return () => {
-      clearInterval(intervalId);
+      // clearInterval(intervalId);
       clearTimeout(loadingTimeout);
     };
   }, [fetchDashboardData]);
