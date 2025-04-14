@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle, ShieldAlert } from 'lucide-react';
-import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import RecaptchaFormFields from './RecaptchaFormFields';
 import RecaptchaEnabledToggle from './RecaptchaEnabledToggle';
 import { useRecaptchaForm } from './hooks/useRecaptchaForm';
@@ -12,7 +11,7 @@ import { useRecaptchaForm } from './hooks/useRecaptchaForm';
 const RecaptchaConfigForm: React.FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
-  const { toast } = useToast();
+  const toast = useToast();
   
   const { form, isLoading, saveSettings } = useRecaptchaForm({ toast });
 

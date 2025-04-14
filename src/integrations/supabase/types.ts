@@ -260,6 +260,30 @@ export type Database = {
           },
         ]
       }
+      configuracoes: {
+        Row: {
+          configuracoes: Json | null
+          created_at: string | null
+          id: string
+          tipo: string
+          updated_at: string | null
+        }
+        Insert: {
+          configuracoes?: Json | null
+          created_at?: string | null
+          id?: string
+          tipo: string
+          updated_at?: string | null
+        }
+        Update: {
+          configuracoes?: Json | null
+          created_at?: string | null
+          id?: string
+          tipo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
           body: string

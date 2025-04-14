@@ -4,9 +4,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { recaptchaSchema, RecaptchaFormValues } from '../types';
+import { useToast } from '@/hooks/use-toast';
 
 interface UseRecaptchaFormProps {
-  toast: any;
+  toast: ReturnType<typeof useToast>;
 }
 
 export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
@@ -31,7 +32,7 @@ export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
           .from('configuracoes')
           .select('*')
           .eq('tipo', 'recaptcha')
-          .single();
+          .maybeSingle();
           
         if (error) {
           console.error('Erro ao carregar configurações do reCAPTCHA:', error);
@@ -60,24 +61,48 @@ export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
   const saveSettings = async (values: RecaptchaFormValues) => {
     setIsLoading(true);
     try {
-      const { error } = await extendedSupabase
+      // First check if a record exists for this configuration type
+      const { data: existingConfig } = await extendedSupabase
         .from('configuracoes')
-        .upsert({
-          tipo: 'recaptcha',
-          configuracoes: values,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'tipo'
-        });
+        .select('id')
+        .eq('tipo', 'recaptcha')
+        .maybeSingle();
+        
+      let error;
+      
+      if (existingConfig) {
+        // If exists, update it
+        const result = await extendedSupabase
+          .from('configuracoes')
+          .update({
+            configuracoes: values,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('tipo', 'recaptcha');
+          
+        error = result.error;
+      } else {
+        // If not, insert a new record
+        const result = await extendedSupabase
+          .from('configuracoes')
+          .insert({
+            tipo: 'recaptcha',
+            configuracoes: values,
+            updated_at: new Date().toISOString(),
+          });
+          
+        error = result.error;
+      }
         
       if (error) throw error;
       
-      toast({
+      toast.toast({
         title: 'Configurações salvas',
         description: 'As configurações do reCAPTCHA foram salvas com sucesso.',
       });
     } catch (error: any) {
-      toast({
+      console.error('Erro ao salvar configurações:', error);
+      toast.toast({
         title: 'Erro ao salvar configurações',
         description: error.message || 'Ocorreu um erro ao salvar as configurações do reCAPTCHA.',
         variant: 'destructive',
