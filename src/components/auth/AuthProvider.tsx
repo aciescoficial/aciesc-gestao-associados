@@ -101,5 +101,5 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-// Re-export the useAuth hook
+// Export the useAuth hook directly from the AuthProvider file
 export { useAuth } from './hooks/useAuthContext';

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Route, Navigate } from 'react-router-dom';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/components/auth/hooks/useAuthContext';
 import PluginLayout from '@/components/PluginLayout';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
