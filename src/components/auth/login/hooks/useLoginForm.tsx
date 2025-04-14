@@ -27,7 +27,7 @@ export const useLoginForm = (onForgotPassword: () => void) => {
         captchaToken: recaptchaToken 
       } : undefined;
       
-      // Pass email and password, with options as the second argument
+      // Fixed: Changed to pass only email and password, with options as second argument
       const { error } = await signIn(email, password, options);
       
       if (error) {
