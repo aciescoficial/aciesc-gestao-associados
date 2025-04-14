@@ -30,38 +30,74 @@ const LoginForm = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [organizationType, setOrganizationType] = useState<UserRole>('user');
+  const [recaptchaToken, setRecaptchaTokenLocal] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Initialize reCAPTCHA
-  useRecaptcha('login-recaptcha', recaptchaLoaded, setRecaptchaLoaded, setRecaptchaToken);
+  const { isEnabled } = useRecaptcha(
+    'login-recaptcha', 
+    recaptchaLoaded, 
+    setRecaptchaLoaded, 
+    (token: string) => {
+      setRecaptchaTokenLocal(token);
+      setRecaptchaToken(token);
+    }
+  );
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await signIn(email, password);
-    
-    if (error) {
+    try {
+      // Add reCAPTCHA token to options if available
+      const options = recaptchaToken ? { 
+        captchaToken: recaptchaToken 
+      } : undefined;
+      
+      const { error } = await signIn(email, password, options);
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erro ao entrar",
+          description: error.message,
+        });
+      }
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro ao entrar",
-        description: error.message,
+        description: error.message || "Ocorreu um erro durante o login",
       });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     
-    const { error } = await signInWithGoogle();
-    
-    if (error) {
+    try {
+      // Add reCAPTCHA token to options if available
+      const options = recaptchaToken ? { 
+        captchaToken: recaptchaToken 
+      } : undefined;
+      
+      const { error } = await signInWithGoogle(options);
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erro ao entrar com Google",
+          description: error.message,
+        });
+        setIsLoading(false);
+      }
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro ao entrar com Google",
-        description: error.message,
+        description: error.message || "Ocorreu um erro durante o login com Google",
       });
       setIsLoading(false);
     }
@@ -127,18 +163,19 @@ const LoginForm = ({
           </div>
           
           <div id="login-recaptcha" className="flex justify-center">
-            {!recaptchaLoaded && (
+            {isEnabled && !recaptchaLoaded && (
               <div className="border border-gray-200 rounded p-2 bg-gray-50 flex justify-center items-center h-[78px] w-full">
-                <div className="text-sm text-gray-500">reCAPTCHA será carregado aqui</div>
+                <div className="text-sm text-gray-500">Carregando reCAPTCHA...</div>
               </div>
             )}
+            <div className="recaptcha-badge"></div>
           </div>
 
           <div className="space-y-4">
             <Button 
               type="submit" 
               className="w-full"
-              disabled={isLoading}
+              disabled={isLoading || (isEnabled && !recaptchaToken)}
             >
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
@@ -157,7 +194,7 @@ const LoginForm = ({
               variant="outline"
               className="w-full"
               onClick={handleGoogleSignIn}
-              disabled={isLoading}
+              disabled={isLoading || (isEnabled && !recaptchaToken)}
             >
               <Mail className="w-4 h-4 mr-2" />
               Google

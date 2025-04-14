@@ -11,7 +11,7 @@ import { useRecaptchaForm } from './hooks/useRecaptchaForm';
 const RecaptchaConfigForm: React.FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
-  const toast = useToast();
+  const { toast } = useToast();
   
   const { form, isLoading, saveSettings } = useRecaptchaForm({ toast });
 

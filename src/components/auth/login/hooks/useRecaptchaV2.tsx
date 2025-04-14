@@ -29,7 +29,7 @@ export const useRecaptchaV2 = (): UseRecaptchaV2Return => {
           .from('configuracoes')
           .select('*')
           .eq('tipo', 'recaptcha')
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error loading reCAPTCHA configuration:', error);
@@ -50,9 +50,24 @@ export const useRecaptchaV2 = (): UseRecaptchaV2Return => {
             enabled: data.configuracoes.enabled !== undefined ? data.configuracoes.enabled : true,
             threshold: data.configuracoes.threshold || 0.5,
           });
+        } else {
+          // Use default configuration if none exists
+          setConfig({
+            siteKey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+            secretKey: '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe',
+            enabled: true,
+            threshold: 0.5,
+          });
         }
       } catch (error) {
         console.error('Error loading configuration:', error);
+        // Use default configuration if error occurs
+        setConfig({
+          siteKey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+          secretKey: '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe',
+          enabled: true,
+          threshold: 0.5,
+        });
       } finally {
         setIsLoading(false);
       }
@@ -63,7 +78,13 @@ export const useRecaptchaV2 = (): UseRecaptchaV2Return => {
 
   // Initialize reCAPTCHA script
   useEffect(() => {
-    if (!config || isLoading || !config.enabled) return;
+    if (!config || isLoading) return;
+
+    // Skip if reCAPTCHA is disabled in settings
+    if (!config.enabled) {
+      setRecaptchaLoaded(true);
+      return;
+    }
 
     const loadRecaptchaScript = () => {
       if (window.grecaptcha) {
@@ -77,9 +98,15 @@ export const useRecaptchaV2 = (): UseRecaptchaV2Return => {
       script.defer = true;
       script.onload = () => {
         window.grecaptcha?.ready(() => {
+          console.log('reCAPTCHA loaded successfully');
           setRecaptchaLoaded(true);
         });
       };
+      
+      script.onerror = (error) => {
+        console.error('Error loading reCAPTCHA script:', error);
+      };
+      
       document.body.appendChild(script);
     };
 
@@ -100,7 +127,9 @@ export const useRecaptchaV2 = (): UseRecaptchaV2Return => {
     }
 
     try {
+      console.log('Executing reCAPTCHA with site key:', config.siteKey);
       const token = await window.grecaptcha.execute(config.siteKey, { action });
+      console.log('reCAPTCHA token generated:', token.substring(0, 10) + '...');
       return token;
     } catch (error) {
       console.error('Error executing reCAPTCHA:', error);
@@ -114,8 +143,8 @@ export const useRecaptchaV2 = (): UseRecaptchaV2Return => {
     if (!token) return false;
 
     // In a real implementation, this would call an edge function to verify the token
-    // For now, we're just checking if the token exists
-    return token.length > 0;
+    // For now, we're just checking if the token exists and is not empty
+    return token.length > 10;
   }, [config]);
 
   return {

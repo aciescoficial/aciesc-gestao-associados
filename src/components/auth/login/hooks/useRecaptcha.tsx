@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRecaptchaV2 } from './useRecaptchaV2';
 
 /**
@@ -16,22 +16,37 @@ export const useRecaptcha = (
   setRecaptchaLoaded: (loaded: boolean) => void,
   setRecaptchaToken: (token: string) => void
 ) => {
-  const { recaptchaLoaded: apiLoaded, isEnabled, executeRecaptcha } = useRecaptchaV2();
+  const [executionAttempted, setExecutionAttempted] = useState(false);
+  const { 
+    recaptchaLoaded: apiLoaded, 
+    isEnabled, 
+    executeRecaptcha 
+  } = useRecaptchaV2();
 
   // Update parent component when reCAPTCHA loads
   useEffect(() => {
     if (apiLoaded) {
+      console.log('reCAPTCHA API loaded successfully');
       setRecaptchaLoaded(true);
     }
   }, [apiLoaded, setRecaptchaLoaded]);
 
   // Execute reCAPTCHA on mount and store token
   useEffect(() => {
-    if (apiLoaded && isEnabled) {
+    if (apiLoaded && isEnabled && !executionAttempted) {
+      setExecutionAttempted(true);
+      
       const getToken = async () => {
         try {
-          const token = await executeRecaptcha('login_page');
-          setRecaptchaToken(token);
+          console.log(`Executing reCAPTCHA for ${containerId}`);
+          const action = containerId.includes('login') ? 'login_page' : 'register_page';
+          const token = await executeRecaptcha(action);
+          console.log(`reCAPTCHA token received for ${action}: ${token ? 'success' : 'empty'}`);
+          if (token) {
+            setRecaptchaToken(token);
+          } else {
+            console.error('Empty reCAPTCHA token received');
+          }
         } catch (error) {
           console.error('Error executing reCAPTCHA:', error);
         }
@@ -39,10 +54,11 @@ export const useRecaptcha = (
 
       getToken();
     }
-  }, [apiLoaded, isEnabled, executeRecaptcha, setRecaptchaToken]);
+  }, [apiLoaded, isEnabled, containerId, executeRecaptcha, setRecaptchaToken, executionAttempted]);
 
   return {
     containerId,
-    loaded: recaptchaLoaded
+    loaded: recaptchaLoaded,
+    isEnabled
   };
 };

@@ -8,6 +8,7 @@ import RegisterForm from './RegisterForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
+import './recaptcha-styles.css';
 
 // Declare global Google reCAPTCHA
 declare global {
