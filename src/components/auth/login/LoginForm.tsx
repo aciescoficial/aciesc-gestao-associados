@@ -1,14 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, EyeOff, Key, Mail } from "lucide-react";
-import { UserRole } from '@/components/usuarios/types';
 import { useRecaptcha } from './hooks/useRecaptcha';
+import { useLoginForm } from './hooks/useLoginForm';
+import LoginFormFields from './components/LoginFormFields';
+import ForgotPasswordFooter from './components/ForgotPasswordFooter';
 
 interface LoginFormProps {
   onForgotPassword: () => void;
@@ -23,14 +19,21 @@ const LoginForm = ({
   setRecaptchaLoaded,
   setRecaptchaToken
 }: LoginFormProps) => {
-  const { signIn, signInWithGoogle } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [organizationType, setOrganizationType] = useState<UserRole>('user');
   const [recaptchaToken, setRecaptchaTokenLocal] = useState<string | null>(null);
-  const { toast } = useToast();
+  
+  const {
+    email,
+    setEmail,
+    password, 
+    setPassword,
+    isLoading,
+    showPassword,
+    setShowPassword,
+    organizationType,
+    setOrganizationType,
+    handleSignIn,
+    handleGoogleSignIn
+  } = useLoginForm(onForgotPassword);
 
   // Initialize reCAPTCHA
   const { isEnabled } = useRecaptcha(
@@ -43,61 +46,8 @@ const LoginForm = ({
     }
   );
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      // Add reCAPTCHA token to options if available
-      const options = recaptchaToken ? { 
-        captchaToken: recaptchaToken 
-      } : undefined;
-      
-      // Fixed: Changed to pass only email and password, with options as second argument
-      const { error } = await signIn(email, password, options);
-      
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Erro ao entrar",
-          description: error.message,
-        });
-      }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao entrar",
-        description: error.message || "Ocorreu um erro durante o login",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    
-    try {
-      // Fixed: Removed passing options to signInWithGoogle if function doesn't accept parameters
-      const { error } = await signInWithGoogle();
-      
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Erro ao entrar com Google",
-          description: error.message,
-        });
-        setIsLoading(false);
-      }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao entrar com Google",
-        description: error.message || "Ocorreu um erro durante o login com Google",
-      });
-      setIsLoading(false);
-    }
-    // No need to set isLoading to false on success as user will be redirected
+  const handleFormSubmit = (e: React.FormEvent) => {
+    handleSignIn(e, recaptchaToken);
   };
 
   return (
@@ -109,104 +59,25 @@ const LoginForm = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label>Tipo de Acesso</Label>
-          <Select 
-            value={organizationType} 
-            onValueChange={(value) => setOrganizationType(value as UserRole)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o tipo de acesso" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="user">Associado</SelectItem>
-              <SelectItem value="empresa">Empresa</SelectItem>
-              <SelectItem value="admin">Administrador</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <form onSubmit={handleSignIn} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
-            <div className="relative">
-              <Input 
-                id="password" 
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required 
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0 h-full px-3"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-          
-          <div id="login-recaptcha" className="flex justify-center">
-            {isEnabled && !recaptchaLoaded && (
-              <div className="border border-gray-200 rounded p-2 bg-gray-50 flex justify-center items-center h-[78px] w-full">
-                <div className="text-sm text-gray-500">Carregando reCAPTCHA...</div>
-              </div>
-            )}
-            <div className="recaptcha-badge"></div>
-          </div>
-
-          <div className="space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isLoading || (isEnabled && !recaptchaToken)}
-            >
-              {isLoading ? "Entrando..." : "Entrar"}
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">Ou continue com</span>
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading || (isEnabled && !recaptchaToken)}
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              Google
-            </Button>
-          </div>
-        </form>
+        <LoginFormFields
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          showPassword={showPassword}
+          setShowPassword={setShowPassword}
+          organizationType={organizationType}
+          setOrganizationType={setOrganizationType}
+          isLoading={isLoading}
+          recaptchaLoaded={recaptchaLoaded}
+          recaptchaToken={recaptchaToken}
+          isRecaptchaEnabled={isEnabled}
+          handleSubmit={handleFormSubmit}
+          handleGoogleSignIn={handleGoogleSignIn}
+        />
       </CardContent>
       <CardFooter className="flex justify-center">
-        <Button
-          variant="link"
-          onClick={onForgotPassword}
-          className="text-blue-600"
-        >
-          <Key className="w-4 h-4 mr-2" />
-          Esqueceu sua senha?
-        </Button>
+        <ForgotPasswordFooter onForgotPassword={onForgotPassword} />
       </CardFooter>
     </Card>
   );
