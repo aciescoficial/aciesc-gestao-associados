@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CardSettings } from './types';
+import { CardSettings, ConveniadoData } from './types';
 import ColorsTab from './tabs/ColorsTab';
 import LayoutTab from './tabs/LayoutTab';
 import BackgroundTab from './tabs/BackgroundTab';
@@ -11,11 +11,13 @@ import FontsTab from './tabs/FontsTab';
 interface CardPersonalizationPanelProps {
   cardSettings: CardSettings;
   updateCardSetting: <K extends keyof CardSettings>(key: K, value: CardSettings[K]) => void;
+  previewData?: ConveniadoData;
 }
 
 const CardPersonalizationPanel: React.FC<CardPersonalizationPanelProps> = ({ 
   cardSettings,
-  updateCardSetting
+  updateCardSetting,
+  previewData
 }) => {
   return (
     <div className="mt-6">

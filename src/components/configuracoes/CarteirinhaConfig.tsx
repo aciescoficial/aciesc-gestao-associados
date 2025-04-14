@@ -37,8 +37,11 @@ const CarteirinhaConfig = () => {
     email: 'joao@exemplo.com',
     telefone: '(48) 99999-9999',
     foto: null,
+    foto_url: undefined,
     validade: '2025-12-31',
-    status: 'ativo'
+    status: 'ativo',
+    tipo_associado: 'Padrão',
+    data_associacao: '2023-01-01'
   };
 
   useEffect(() => {
