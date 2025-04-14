@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Map, Users, ClipboardList, Mail, CreditCard, DollarSign, Shield } from 'lucide-react';
+import { Settings, Map, Users, ClipboardList, Mail, CreditCard, DollarSign, Shield, Lock } from 'lucide-react';
 import GoogleMapsConfig from './GoogleMapsConfig';
 import PermissionPanel from '../usuarios/PermissionPanel';
 import { AuditLogSettings } from './AuditLogSettings';
@@ -8,6 +9,7 @@ import EmailTemplatesConfig from './email-templates/EmailTemplatesConfig';
 import CarteirinhaConfig from './CarteirinhaConfig';
 import IntegracaoFinanceira from '../IntegracaoFinanceira';
 import AdminUserSetup from '../auth/AdminUserSetup';
+import RecaptchaConfig from './RecaptchaConfig';
 import { useLocation } from 'react-router-dom';
 
 const ConfiguracoesPage: React.FC = () => {
@@ -19,7 +21,7 @@ const ConfiguracoesPage: React.FC = () => {
     const queryParams = new URLSearchParams(location.search);
     const tabParam = queryParams.get('tab');
     
-    if (tabParam && ['geral', 'maps', 'carteirinha', 'permissoes', 'logs', 'emails', 'integracoes', 'admin'].includes(tabParam)) {
+    if (tabParam && ['geral', 'maps', 'carteirinha', 'permissoes', 'logs', 'emails', 'integracoes', 'admin', 'recaptcha'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [location]);
@@ -32,7 +34,7 @@ const ConfiguracoesPage: React.FC = () => {
       </h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="wp-card">
-        <TabsList className="grid grid-cols-8 mb-6">
+        <TabsList className="grid grid-cols-9 mb-6">
           <TabsTrigger value="geral" className="flex items-center gap-2">
             <Settings size={16} />
             Geral
@@ -60,6 +62,10 @@ const ConfiguracoesPage: React.FC = () => {
           <TabsTrigger value="integracoes" className="flex items-center gap-2">
             <DollarSign size={16} />
             Integrações
+          </TabsTrigger>
+          <TabsTrigger value="recaptcha" className="flex items-center gap-2">
+            <Lock size={16} />
+            reCAPTCHA
           </TabsTrigger>
           <TabsTrigger value="admin" className="flex items-center gap-2">
             <Shield size={16} />
@@ -96,6 +102,10 @@ const ConfiguracoesPage: React.FC = () => {
         
         <TabsContent value="integracoes">
           <IntegracaoFinanceira />
+        </TabsContent>
+
+        <TabsContent value="recaptcha">
+          <RecaptchaConfig />
         </TabsContent>
 
         <TabsContent value="admin">
