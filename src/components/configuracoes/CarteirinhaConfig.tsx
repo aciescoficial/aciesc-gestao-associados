@@ -1,11 +1,9 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CreditCard, BadgePercent, Truck, MapPin, Store, Palette } from 'lucide-react';
+import { CreditCard, BadgePercent, Truck, Palette } from 'lucide-react';
 import TaxaTab from './carteirinha/TaxaTab';
-import GatewayTab from './carteirinha/GatewayTab';
 import EntregaTab from './carteirinha/EntregaTab';
-import RetiradaTab from './carteirinha/RetiradaTab';
 import VisualTab from './carteirinha/VisualTab';
 import { useCarteirinhaConfig } from './carteirinha/useCarteirinhaConfig';
 
@@ -40,16 +38,10 @@ const CarteirinhaConfig = () => {
       <Tabs defaultValue="taxa">
         <TabsList>
           <TabsTrigger value="taxa" className="flex items-center gap-1">
-            <BadgePercent className="h-4 w-4" /> Taxa de Carteirinha
-          </TabsTrigger>
-          <TabsTrigger value="gateway" className="flex items-center gap-1">
-            <CreditCard className="h-4 w-4" /> Gateway de Pagamento
+            <BadgePercent className="h-4 w-4" /> Configurações Financeiras
           </TabsTrigger>
           <TabsTrigger value="entrega" className="flex items-center gap-1">
             <Truck className="h-4 w-4" /> Configurações de Entrega
-          </TabsTrigger>
-          <TabsTrigger value="retirada" className="flex items-center gap-1">
-            <Store className="h-4 w-4" /> Pontos de Retirada
           </TabsTrigger>
           <TabsTrigger value="visual" className="flex items-center gap-1">
             <Palette className="h-4 w-4" /> Personalização Visual
@@ -60,13 +52,6 @@ const CarteirinhaConfig = () => {
           <TaxaTab
             carteirinhaFee={carteirinhaFee}
             setCarteirinhaFee={setCarteirinhaFee}
-            saveConfig={saveConfig}
-            isLoading={isLoading}
-          />
-        </TabsContent>
-        
-        <TabsContent value="gateway" className="pt-4">
-          <GatewayTab
             paymentGateway={paymentGateway}
             setPaymentGateway={setPaymentGateway}
             saveConfig={saveConfig}
@@ -80,13 +65,6 @@ const CarteirinhaConfig = () => {
             setPermiteEntrega={setPermiteEntrega}
             permiteRetirada={permiteRetirada}
             setPermiteRetirada={setPermiteRetirada}
-            saveConfig={saveConfig}
-            isLoading={isLoading}
-          />
-        </TabsContent>
-        
-        <TabsContent value="retirada" className="pt-4">
-          <RetiradaTab
             graficaEndereco={graficaEndereco}
             setGraficaEndereco={setGraficaEndereco}
             aciescEndereco={aciescEndereco}
