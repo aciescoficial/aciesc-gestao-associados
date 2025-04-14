@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuthContext';
 import { useToast } from "@/hooks/use-toast";
@@ -22,13 +21,9 @@ export const useLoginForm = (onForgotPassword: () => void) => {
     setIsLoading(true);
     
     try {
-      // Modify options to be optional and only include if recaptchaToken exists
-      const options: LoginFormOptions | undefined = recaptchaToken ? { 
-        captchaToken: recaptchaToken 
-      } : undefined;
-      
-      // Fixed: signIn now receives only 2 arguments - we're passing email, password as a single object instead of separately
-      const { error } = await signIn(email, password, options);
+      // The signIn function only accepts two arguments: email and password
+      // We need to remove the third argument (options)
+      const { error } = await signIn(email, password);
       
       if (error) {
         toast({
