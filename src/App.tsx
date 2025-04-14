@@ -5,15 +5,18 @@ import AppRoutes from './AppRoutes';
 import { Toaster } from '@/components/ui/toaster';
 import { AssociadoFirstLoginPopup } from './components/associado/AssociadoFirstLoginPopup';
 import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from './components/auth/AuthProvider';
 
 function App() {
   return (
     <BrowserRouter>
-      <div className="App">
-        <AppRoutes />
-        <Toaster />
-        <AssociadoFirstLoginPopup />
-      </div>
+      <AuthProvider>
+        <div className="App">
+          <AppRoutes />
+          <Toaster />
+          <AssociadoFirstLoginPopup />
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
