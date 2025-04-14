@@ -11,6 +11,7 @@ import IntegracaoFinanceira from '../IntegracaoFinanceira';
 import AdminUserSetup from '../auth/AdminUserSetup';
 import RecaptchaConfig from './recaptcha/RecaptchaConfig';
 import { useLocation } from 'react-router-dom';
+import SystemConfig from './system/SystemConfig';
 
 const ConfiguracoesPage: React.FC = () => {
   const location = useLocation();
@@ -74,10 +75,7 @@ const ConfiguracoesPage: React.FC = () => {
         </TabsList>
         
         <TabsContent value="geral">
-          <div className="p-4">
-            <h2 className="text-xl font-semibold mb-4">Configurações Gerais</h2>
-            <p>Configurações gerais do sistema estarão disponíveis aqui.</p>
-          </div>
+          <SystemConfig />
         </TabsContent>
         
         <TabsContent value="maps">

@@ -13,9 +13,66 @@ const Header: React.FC = () => {
   const [importantMessages, setImportantMessages] = useState<NotificationMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [showSystemMessages, setShowSystemMessages] = useState(true);
+  
+  // Load system configuration
+  useEffect(() => {
+    const loadSystemConfig = async () => {
+      try {
+        // Try localStorage first for immediate effect
+        const storedConfig = localStorage.getItem('systemConfig');
+        if (storedConfig) {
+          const config = JSON.parse(storedConfig);
+          setShowSystemMessages(config.showSystemMessages ?? true);
+          return;
+        }
+        
+        // Fall back to database
+        const { data, error } = await extendedSupabase
+          .from('configuracoes')
+          .select('*')
+          .eq('tipo', 'sistema')
+          .single();
+        
+        if (error) {
+          console.warn('No system config found, using defaults');
+          return;
+        }
+        
+        if (data?.configuracoes) {
+          setShowSystemMessages(data.configuracoes.showSystemMessages ?? true);
+          // Store for future use
+          localStorage.setItem('systemConfig', JSON.stringify(data.configuracoes));
+        }
+      } catch (error) {
+        console.error('Error loading system config:', error);
+      }
+    };
+    
+    loadSystemConfig();
+    
+    // Listen for config updates
+    const handleConfigUpdate = (event: CustomEvent) => {
+      if (event.detail && typeof event.detail.showSystemMessages === 'boolean') {
+        setShowSystemMessages(event.detail.showSystemMessages);
+      }
+    };
+    
+    window.addEventListener('system-config-updated', handleConfigUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('system-config-updated', handleConfigUpdate as EventListener);
+    };
+  }, []);
   
   // Function to fetch important messages with improved performance
   const fetchImportantMessages = async () => {
+    // Skip if system messages are disabled
+    if (!showSystemMessages) {
+      setImportantMessages([]);
+      return;
+    }
+    
     // Check if we're already loading data to prevent duplicate requests
     if (isLoading) return;
     
@@ -133,17 +190,22 @@ const Header: React.FC = () => {
   };
   
   useEffect(() => {
-    // Use a larger delay on initial load to prioritize other UI components
-    const initialLoadTimer = setTimeout(fetchImportantMessages, 2000);
-    
-    // Update messages every 10 minutes instead of 5
-    const interval = setInterval(fetchImportantMessages, 10 * 60 * 1000);
-    
-    return () => {
-      clearTimeout(initialLoadTimer);
-      clearInterval(interval);
-    };
-  }, []);
+    if (showSystemMessages) {
+      // Use a larger delay on initial load to prioritize other UI components
+      const initialLoadTimer = setTimeout(fetchImportantMessages, 2000);
+      
+      // Update messages every 10 minutes instead of 5
+      const interval = setInterval(fetchImportantMessages, 10 * 60 * 1000);
+      
+      return () => {
+        clearTimeout(initialLoadTimer);
+        clearInterval(interval);
+      };
+    } else {
+      // Clear messages if disabled
+      setImportantMessages([]);
+    }
+  }, [showSystemMessages]);
 
   return (
     <ErrorBoundary>
