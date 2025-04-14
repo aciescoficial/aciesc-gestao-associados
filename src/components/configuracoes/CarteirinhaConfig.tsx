@@ -27,15 +27,18 @@ const CarteirinhaConfig = () => {
   const { cardSettings, updateCardSetting } = useCardSettings();
   const { toast } = useToast();
   
-  // Amostra de dados para previsualização
+  // Create a complete ConveniadoData object for preview
   const previewData: ConveniadoData = {
     id: '1',
     nome: 'João',
     sobrenome: 'Silva',
     creci: '12345',
     cpf: '123.456.789-00',
+    email: 'joao@exemplo.com',
+    telefone: '(48) 99999-9999',
     foto: null,
-    validade: '2025-12-31'
+    validade: '2025-12-31',
+    status: 'ativo'
   };
 
   useEffect(() => {
@@ -86,6 +89,15 @@ const CarteirinhaConfig = () => {
   const saveConfig = async () => {
     try {
       setIsLoading(true);
+      
+      // Save card visual settings first
+      if (cardSettings) {
+        await updateCarteirinhaConfig({
+          vizualizacao: cardSettings
+        });
+      }
+      
+      // Then save other configurations
       await updateCarteirinhaConfig({
         fee: carteirinhaFee,
         paymentGateway
@@ -288,6 +300,7 @@ const CarteirinhaConfig = () => {
               <CardPersonalizationPanel 
                 cardSettings={cardSettings} 
                 updateCardSetting={updateCardSetting} 
+                previewData={previewData}
               />
               
               <div className="mt-6">

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { SystemConfigValues } from '../../types/systemConfig';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useSystemConfig = () => {
   const [config, setConfig] = useState<SystemConfigValues | null>(null);
@@ -13,18 +14,33 @@ export const useSystemConfig = () => {
       try {
         setIsLoading(true);
         
-        const { data, error } = await extendedSupabase
-          .from('configuracoes')
-          .select('*')
-          .eq('tipo', 'sistema')
-          .single();
+        // First try to fetch from configuracoes table
+        try {
+          const { data, error } = await extendedSupabase
+            .from('configuracoes')
+            .select('*')
+            .eq('tipo', 'sistema')
+            .single();
 
-        if (error) {
-          throw error;
+          if (data) {
+            setConfig(data.configuracoes as SystemConfigValues);
+            return;
+          }
+        } catch (configError) {
+          console.warn('Error fetching from configuracoes table, falling back to system_config:', configError);
         }
-
-        if (data) {
-          setConfig(data.configuracoes as SystemConfigValues);
+        
+        // Fall back to system_config table
+        const { data: systemConfigData } = await supabase
+          .from('system_config')
+          .select('*')
+          .eq('key', 'SHOW_SYSTEM_MESSAGES')
+          .single();
+        
+        if (systemConfigData) {
+          setConfig({
+            showSystemMessages: systemConfigData.value === 'true'
+          });
         } else {
           // Default configuration if none exists
           setConfig({
@@ -49,34 +65,47 @@ export const useSystemConfig = () => {
 
   const saveConfig = async (values: SystemConfigValues): Promise<void> => {
     try {
-      // Check if config already exists
-      const { data: existingConfig } = await extendedSupabase
-        .from('configuracoes')
-        .select('id')
-        .eq('tipo', 'sistema')
-        .single();
-
-      if (existingConfig) {
-        // Update existing configuration
-        const { error } = await extendedSupabase
+      // Save to system_config table first for compatibility
+      const { error: systemConfigError } = await supabase
+        .from('system_config')
+        .upsert({
+          key: 'SHOW_SYSTEM_MESSAGES',
+          value: values.showSystemMessages.toString()
+        });
+      
+      if (systemConfigError) {
+        console.error('Error saving to system_config:', systemConfigError);
+      }
+      
+      // Try to save to configuracoes table if it exists
+      try {
+        // Check if config already exists
+        const { data: existingConfig } = await extendedSupabase
           .from('configuracoes')
-          .update({
-            configuracoes: values,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingConfig.id);
+          .select('id')
+          .eq('tipo', 'sistema')
+          .single();
 
-        if (error) throw error;
-      } else {
-        // Create new configuration
-        const { error } = await extendedSupabase
-          .from('configuracoes')
-          .insert({
-            tipo: 'sistema',
-            configuracoes: values,
-          });
-
-        if (error) throw error;
+        if (existingConfig) {
+          // Update existing configuration
+          await extendedSupabase
+            .from('configuracoes')
+            .update({
+              configuracoes: values,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingConfig.id);
+        } else {
+          // Create new configuration
+          await extendedSupabase
+            .from('configuracoes')
+            .insert({
+              tipo: 'sistema',
+              configuracoes: values,
+            });
+        }
+      } catch (configError) {
+        console.warn('Error saving to configuracoes table, but saved to system_config:', configError);
       }
 
       // Update local state

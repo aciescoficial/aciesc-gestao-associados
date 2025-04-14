@@ -84,9 +84,22 @@ export const usePermissionData = () => {
       
       setMenuPermissions(updatedPermissions);
       
-      // Save to database
-      const { error } = await savePermissions(role, updatedPermissions[role]);
-      if (error) throw error;
+      // Save to database in background, but don't await here
+      // to prevent UI from freezing while waiting for response
+      savePermissions(role, updatedPermissions[role])
+        .then(({ error }) => {
+          if (error) {
+            console.error("Background save error:", error);
+            throw error;
+          }
+        })
+        .catch(error => {
+          console.error("Background save error caught:", error);
+          // Handle background save error silently
+        })
+        .finally(() => {
+          setSaveLoading(prev => ({ ...prev, [permKey]: false }));
+        });
       
       toast({
         title: "Permissão atualizada",
@@ -99,7 +112,6 @@ export const usePermissionData = () => {
         description: "Não foi possível salvar a alteração.",
         variant: "destructive"
       });
-    } finally {
       setSaveLoading(prev => ({ ...prev, [permKey]: false }));
     }
   };
@@ -134,9 +146,18 @@ export const usePermissionData = () => {
       
       setMenuPermissions(updatedPermissions);
       
-      // Save to database
-      const { error } = await savePermissions(role, updatedPermissions[role]);
-      if (error) throw error;
+      // Save to database in background
+      savePermissions(role, updatedPermissions[role])
+        .then(({ error }) => {
+          if (error) throw error;
+        })
+        .catch(error => {
+          console.error("Background save error:", error);
+          // Handle background save error silently
+        })
+        .finally(() => {
+          setSaveLoading(prev => ({ ...prev, [permKey]: false }));
+        });
       
       toast({
         title: "Permissão atualizada",
@@ -149,7 +170,6 @@ export const usePermissionData = () => {
         description: "Não foi possível salvar a alteração.",
         variant: "destructive"
       });
-    } finally {
       setSaveLoading(prev => ({ ...prev, [permKey]: false }));
     }
   };
@@ -161,9 +181,15 @@ export const usePermissionData = () => {
       // Save each role's permissions
       const roles: UserRole[] = ['admin', 'user', 'empresa', 'diretoria'];
       
-      for (const role of roles) {
-        const { error } = await savePermissions(role, menuPermissions[role]);
-        if (error) throw error;
+      const savePromises = roles.map(role => savePermissions(role, menuPermissions[role]));
+      
+      const results = await Promise.allSettled(savePromises);
+      
+      // Check for any failures
+      const failures = results.filter(r => r.status === 'rejected');
+      
+      if (failures.length > 0) {
+        throw new Error(`Falha ao salvar ${failures.length} papéis`);
       }
       
       toast({

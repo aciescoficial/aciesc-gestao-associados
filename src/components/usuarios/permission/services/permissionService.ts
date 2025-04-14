@@ -3,6 +3,7 @@ import { UserRole } from '../../types';
 import { MenuPermission } from '../types';
 import { getDefaultMenus } from '../data/defaultMenus';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
+import { supabase } from '@/integrations/supabase/client';
 
 // Creates a copy of menu permissions with specified enabled state
 export const createRoleMenuPermissions = (
@@ -94,7 +95,7 @@ export const savePermissions = async (
     };
 
     // First, check if permissions for this role already exist
-    const { data: existingPermissions } = await extendedSupabase
+    const { data: existingPermissions } = await supabase
       .from('role_permissions')
       .select('*')
       .eq('role', role)
@@ -102,16 +103,25 @@ export const savePermissions = async (
 
     // Update or insert based on existence
     if (existingPermissions) {
-      const { error } = await extendedSupabase
+      // Update with only the fields we need to update
+      const { error } = await supabase
         .from('role_permissions')
-        .update(permissionsData)
+        .update({
+          enabled_menus: permissionsData.enabled_menus,
+          enabled_permissions: permissionsData.enabled_permissions,
+          updated_at: new Date().toISOString()
+        })
         .eq('role', role);
       
       return { error };
     } else {
-      const { error } = await extendedSupabase
+      const { error } = await supabase
         .from('role_permissions')
-        .insert(permissionsData);
+        .insert({
+          role: permissionsData.role,
+          enabled_menus: permissionsData.enabled_menus,
+          enabled_permissions: permissionsData.enabled_permissions
+        });
       
       return { error };
     }
@@ -124,7 +134,7 @@ export const savePermissions = async (
 // Fetch permissions from Supabase
 export const fetchPermissionsFromDB = async (): Promise<{ data: Record<UserRole, MenuPermission[]> | null, error: any | null }> => {
   try {
-    const { data, error } = await extendedSupabase
+    const { data, error } = await supabase
       .from('role_permissions')
       .select('*');
     
@@ -141,12 +151,17 @@ export const fetchPermissionsFromDB = async (): Promise<{ data: Record<UserRole,
 
     data.forEach((roleData: RolePermissionData) => {
       const role = roleData.role as UserRole;
+      
+      // Make sure arrays are defined, even if they're empty in the database
+      const enabledMenus = roleData.enabled_menus || [];
+      const enabledPermissions = roleData.enabled_permissions || [];
+      
       permissionsMap[role] = defaultMenus.map(menu => ({
         ...menu,
-        enabled: roleData.enabled_menus.includes(menu.id),
+        enabled: enabledMenus.includes(menu.id),
         subPermissions: menu.subPermissions.map(perm => ({
           ...perm,
-          enabled: roleData.enabled_permissions.includes(perm.id)
+          enabled: enabledPermissions.includes(perm.id)
         }))
       }));
     });

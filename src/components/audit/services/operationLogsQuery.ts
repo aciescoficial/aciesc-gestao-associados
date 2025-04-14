@@ -17,6 +17,18 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
       endDate,
     } = options;
 
+    // First check if the table exists
+    const { error: checkError } = await supabase
+      .from('operation_logs')
+      .select('id')
+      .limit(1);
+    
+    if (checkError && checkError.code === '42P01') { // 42P01 is PostgreSQL's code for "relation does not exist"
+      console.error('Operation logs table does not exist:', checkError);
+      return { logs: [], count: 0, error: 'Table operation_logs does not exist' };
+    }
+
+    // Proceed with the actual query
     let query = supabase
       .from('operation_logs')
       .select(`
@@ -29,9 +41,13 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
         created_at, 
         user_id,
         user:user_id (name)
-      `)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false });
+    
+    // Add pagination if not fetching all logs
+    if (limit > 0) {
+      query = query.range(offset, offset + limit - 1);
+    }
 
     // Apply filters if provided
     if (user_id) query = query.eq('user_id', user_id);
@@ -40,9 +56,12 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
     if (startDate) query = query.gte('created_at', startDate);
     if (endDate) query = query.lte('created_at', endDate);
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching operation logs:', error);
+      return { logs: [], count: 0, error: error.message };
+    }
 
     // Format data for display
     const formattedLogs: OperationLog[] = data?.map(log => {
@@ -74,9 +93,17 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
       };
     }) || [];
 
-    return { logs: formattedLogs || [], count: formattedLogs?.length || 0 };
-  } catch (error) {
-    console.error('Error fetching operation logs:', error);
-    throw error;
+    return { 
+      logs: formattedLogs || [], 
+      count: count || 0,
+      error: null 
+    };
+  } catch (error: any) {
+    console.error('Error in getOperationLogs:', error);
+    return { 
+      logs: [], 
+      count: 0, 
+      error: error.message || 'Erro desconhecido ao buscar logs' 
+    };
   }
 }
