@@ -4,10 +4,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { recaptchaSchema, RecaptchaFormValues } from '../types';
-import { useToast } from '@/hooks/use-toast';
+import { Toast } from '@/components/ui/toast';
 
 interface UseRecaptchaFormProps {
-  toast: ReturnType<typeof useToast>;
+  toast: (props: Toast) => { id: string; dismiss: () => void; update: (props: any) => void };
 }
 
 export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
@@ -96,13 +96,13 @@ export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
         
       if (error) throw error;
       
-      toast.toast({
+      toast({
         title: 'Configurações salvas',
         description: 'As configurações do reCAPTCHA foram salvas com sucesso.',
       });
     } catch (error: any) {
       console.error('Erro ao salvar configurações:', error);
-      toast.toast({
+      toast({
         title: 'Erro ao salvar configurações',
         description: error.message || 'Ocorreu um erro ao salvar as configurações do reCAPTCHA.',
         variant: 'destructive',
