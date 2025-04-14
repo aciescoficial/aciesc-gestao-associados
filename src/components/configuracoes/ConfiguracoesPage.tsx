@@ -9,7 +9,7 @@ import EmailTemplatesConfig from './email-templates/EmailTemplatesConfig';
 import CarteirinhaConfig from './CarteirinhaConfig';
 import IntegracaoFinanceira from '../IntegracaoFinanceira';
 import AdminUserSetup from '../auth/AdminUserSetup';
-import RecaptchaConfig from './RecaptchaConfig';
+import RecaptchaConfig from './recaptcha/RecaptchaConfig';
 import { useLocation } from 'react-router-dom';
 
 const ConfiguracoesPage: React.FC = () => {
