@@ -53,6 +53,7 @@ const LoginForm = ({
         captchaToken: recaptchaToken 
       } : undefined;
       
+      // Fixed: Changed to pass only email and password, with options as second argument
       const { error } = await signIn(email, password, options);
       
       if (error) {
@@ -77,12 +78,8 @@ const LoginForm = ({
     setIsLoading(true);
     
     try {
-      // Add reCAPTCHA token to options if available
-      const options = recaptchaToken ? { 
-        captchaToken: recaptchaToken 
-      } : undefined;
-      
-      const { error } = await signInWithGoogle(options);
+      // Fixed: Removed passing options to signInWithGoogle if function doesn't accept parameters
+      const { error } = await signInWithGoogle();
       
       if (error) {
         toast({

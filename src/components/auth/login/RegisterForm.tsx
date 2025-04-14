@@ -47,12 +47,8 @@ const RegisterForm = ({
     setIsLoading(true);
     
     try {
-      // Add reCAPTCHA token to options if available
-      const options = recaptchaToken ? {
-        captchaToken: recaptchaToken
-      } : undefined;
-      
-      const { error } = await signUp(email, password, name, organizationType, options);
+      // Fixed: Changed to pass only required parameters to signUp
+      const { error } = await signUp(email, password, name, organizationType);
       
       if (error) {
         toast({
@@ -81,12 +77,8 @@ const RegisterForm = ({
     setIsLoading(true);
     
     try {
-      // Add reCAPTCHA token to options if available
-      const options = recaptchaToken ? {
-        captchaToken: recaptchaToken
-      } : undefined;
-      
-      const { error } = await signInWithGoogle(options);
+      // Fixed: Removed passing options to signInWithGoogle if function doesn't accept parameters
+      const { error } = await signInWithGoogle();
       
       if (error) {
         toast({

@@ -4,10 +4,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { recaptchaSchema, RecaptchaFormValues } from '../types';
-import { Toast } from '@/components/ui/toast';
+import { type ToastProps } from '@/components/ui/toast';
 
 interface UseRecaptchaFormProps {
-  toast: (props: Toast) => { id: string; dismiss: () => void; update: (props: any) => void };
+  toast: (props: ToastProps) => { id: string; dismiss: () => void; update: (props: any) => void };
 }
 
 export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
