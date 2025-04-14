@@ -17,17 +17,16 @@ export const useLoginForm = (onForgotPassword: () => void) => {
   const [organizationType, setOrganizationType] = useState<UserRole>('user');
   const { toast } = useToast();
   
-  const handleSignIn = async (e: React.FormEvent, recaptchaToken: string | null) => {
+  const handleSignIn = async (e: React.FormEvent, recaptchaToken: string | null = null) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // Add reCAPTCHA token to options if available
+      // Modify options to be optional and only include if recaptchaToken exists
       const options: LoginFormOptions | undefined = recaptchaToken ? { 
         captchaToken: recaptchaToken 
       } : undefined;
       
-      // Fixed: Changed to pass only email and password, with options as second argument
       const { error } = await signIn(email, password, options);
       
       if (error) {
@@ -52,7 +51,6 @@ export const useLoginForm = (onForgotPassword: () => void) => {
     setIsLoading(true);
     
     try {
-      // signInWithGoogle doesn't accept parameters in this implementation
       const { error } = await signInWithGoogle();
       
       if (error) {
@@ -71,7 +69,6 @@ export const useLoginForm = (onForgotPassword: () => void) => {
       });
       setIsLoading(false);
     }
-    // No need to set isLoading to false on success as user will be redirected
   };
 
   return {
