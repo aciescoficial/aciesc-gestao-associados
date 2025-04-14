@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { CardPersonalizationPanel } from '@/components/carteirinha/CardPersonalizationPanel';
+import CardPersonalizationPanel from '@/components/carteirinha/CardPersonalizationPanel';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { CardSettings, ConveniadoData } from '@/components/carteirinha/types';
 
