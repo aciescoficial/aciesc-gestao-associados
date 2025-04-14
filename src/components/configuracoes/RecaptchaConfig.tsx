@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +9,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Loader2, CheckCircle, ShieldAlert } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 
 const recaptchaSchema = z.object({
   siteKey: z.string().min(1, 'Chave do site é obrigatória'),
@@ -44,7 +43,7 @@ const RecaptchaConfig = () => {
     const loadRecaptchaSettings = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data, error } = await extendedSupabase
           .from('configuracoes')
           .select('*')
           .eq('tipo', 'recaptcha')
@@ -77,7 +76,7 @@ const RecaptchaConfig = () => {
   const onSubmit = async (values: RecaptchaFormValues) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await extendedSupabase
         .from('configuracoes')
         .upsert({
           tipo: 'recaptcha',

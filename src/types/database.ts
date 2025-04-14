@@ -1,4 +1,3 @@
-
 import { Database as OriginalDatabase } from "@/integrations/supabase/types";
 
 // Extended Database type with additional tables
@@ -63,6 +62,32 @@ export interface ExtendedDatabase {
           created_at?: string | null;
           updated_at?: string | null;
           payment_proof_url?: string | null;
+        };
+        Relationships: [];
+      };
+      
+      // Add the new configuracoes table
+      configuracoes: {
+        Row: {
+          id: string;
+          tipo: string;
+          configuracoes: Record<string, any>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tipo: string;
+          configuracoes?: Record<string, any>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tipo?: string;
+          configuracoes?: Record<string, any>;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };

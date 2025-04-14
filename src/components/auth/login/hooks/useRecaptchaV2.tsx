@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 
 interface RecaptchaConfig {
   siteKey: string;
@@ -17,7 +18,7 @@ export const useRecaptchaV2 = () => {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await extendedSupabase
           .from('configuracoes')
           .select('*')
           .eq('tipo', 'recaptcha')
