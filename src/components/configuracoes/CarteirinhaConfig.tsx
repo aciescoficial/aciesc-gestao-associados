@@ -6,12 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CreditCard, BadgePercent, Truck, MapPin, Store } from 'lucide-react';
+import { CreditCard, BadgePercent, Truck, MapPin, Store, Palette } from 'lucide-react';
 import { getCarteirinhaConfig, updateCarteirinhaConfig } from '@/components/carteirinha/services/carteirinhaService';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
+import CardPersonalizationPanel from '@/components/carteirinha/CardPersonalizationPanel';
+import { useCardSettings } from '@/components/carteirinha/hooks/useCardSettings';
+import { ConveniadoData } from '@/components/carteirinha/types';
 
 const CarteirinhaConfig = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +24,19 @@ const CarteirinhaConfig = () => {
   const [aciescEndereco, setAciescEndereco] = useState<string>('Avenida Principal, 456');
   const [permiteRetirada, setPermiteRetirada] = useState<boolean>(true);
   const [permiteEntrega, setPermiteEntrega] = useState<boolean>(true);
+  const { cardSettings, updateCardSetting } = useCardSettings();
   const { toast } = useToast();
+  
+  // Amostra de dados para previsualização
+  const previewData: ConveniadoData = {
+    id: '1',
+    nome: 'João',
+    sobrenome: 'Silva',
+    creci: '12345',
+    cpf: '123.456.789-00',
+    foto: null,
+    validade: '2025-12-31'
+  };
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -124,6 +139,9 @@ const CarteirinhaConfig = () => {
           </TabsTrigger>
           <TabsTrigger value="retirada" className="flex items-center gap-1">
             <Store className="h-4 w-4" /> Pontos de Retirada
+          </TabsTrigger>
+          <TabsTrigger value="visual" className="flex items-center gap-1">
+            <Palette className="h-4 w-4" /> Personalização Visual
           </TabsTrigger>
         </TabsList>
         
@@ -255,6 +273,33 @@ const CarteirinhaConfig = () => {
             <CardFooter>
               <Button onClick={saveConfig} disabled={isLoading}>
                 {isLoading ? 'Salvando...' : 'Salvar Pontos de Retirada'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="visual" className="pt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Personalização Visual da Carteirinha</CardTitle>
+              <CardDescription>Configure a aparência padrão das carteirinhas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CardPersonalizationPanel 
+                cardSettings={cardSettings} 
+                updateCardSetting={updateCardSetting} 
+              />
+              
+              <div className="mt-6">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Essas configurações definem a aparência padrão de novas carteirinhas geradas no sistema.
+                  Os usuários ainda podem personalizar a aparência ao gerar carteirinhas individuais.
+                </p>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={saveConfig} disabled={isLoading}>
+                {isLoading ? 'Salvando...' : 'Salvar Configurações Visuais'}
               </Button>
             </CardFooter>
           </Card>

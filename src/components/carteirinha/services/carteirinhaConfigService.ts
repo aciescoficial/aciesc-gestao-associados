@@ -7,7 +7,14 @@ export interface CarteirinhaConfig {
   graficaEndereco: string,
   aciescEndereco: string,
   permiteRetirada: boolean,
-  permiteEntrega: boolean
+  permiteEntrega: boolean,
+  vizualizacao?: {
+    primaryColor: string,
+    secondaryColor: string,
+    textColor: string,
+    fontFamily: string,
+    cardLayout: string
+  }
 }
 
 export async function getCarteirinhaConfig(): Promise<CarteirinhaConfig> {
@@ -20,7 +27,8 @@ export async function getCarteirinhaConfig(): Promise<CarteirinhaConfig> {
       'GRAFICA_ENDERECO',
       'ACIESC_ENDERECO',
       'PERMITE_RETIRADA',
-      'PERMITE_ENTREGA'
+      'PERMITE_ENTREGA',
+      'CARD_VISUAL_SETTINGS'
     ]);
     
   if (error) throw error;
@@ -31,6 +39,7 @@ export async function getCarteirinhaConfig(): Promise<CarteirinhaConfig> {
   const aciescConfig = data?.find(item => item.key === 'ACIESC_ENDERECO');
   const permiteRetiradaConfig = data?.find(item => item.key === 'PERMITE_RETIRADA');
   const permiteEntregaConfig = data?.find(item => item.key === 'PERMITE_ENTREGA');
+  const vizualizacaoConfig = data?.find(item => item.key === 'CARD_VISUAL_SETTINGS');
   
   return {
     fee: feeConfig ? parseFloat(feeConfig.value) : 15.00,
@@ -38,7 +47,8 @@ export async function getCarteirinhaConfig(): Promise<CarteirinhaConfig> {
     graficaEndereco: graficaConfig?.value || 'Rua das Impressões, 123',
     aciescEndereco: aciescConfig?.value || 'Avenida Principal, 456',
     permiteRetirada: permiteRetiradaConfig ? permiteRetiradaConfig.value === 'true' : true,
-    permiteEntrega: permiteEntregaConfig ? permiteEntregaConfig.value === 'true' : true
+    permiteEntrega: permiteEntregaConfig ? permiteEntregaConfig.value === 'true' : true,
+    vizualizacao: vizualizacaoConfig ? JSON.parse(vizualizacaoConfig.value) : undefined
   };
 }
 
@@ -49,7 +59,8 @@ export async function updateCarteirinhaConfig(config: Partial<CarteirinhaConfig>
     graficaEndereco,
     aciescEndereco,
     permiteRetirada,
-    permiteEntrega
+    permiteEntrega,
+    vizualizacao
   } = config;
   
   // Prepare updates array
@@ -77,6 +88,10 @@ export async function updateCarteirinhaConfig(config: Partial<CarteirinhaConfig>
   
   if (permiteEntrega !== undefined) {
     updates.push({ key: 'PERMITE_ENTREGA', value: permiteEntrega.toString() });
+  }
+  
+  if (vizualizacao !== undefined) {
+    updates.push({ key: 'CARD_VISUAL_SETTINGS', value: JSON.stringify(vizualizacao) });
   }
   
   if (updates.length > 0) {
