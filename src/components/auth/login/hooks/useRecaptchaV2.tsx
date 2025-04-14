@@ -1,20 +1,27 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
+import { RecaptchaFormValues } from '@/components/configuracoes/recaptcha/types';
 
-interface RecaptchaConfig {
+interface UseRecaptchaV2Return {
+  recaptchaLoaded: boolean;
+  isLoading: boolean;
+  isEnabled: boolean;
   siteKey: string;
-  enabled: boolean;
-  threshold: number;
+  executeRecaptcha: (action?: string) => Promise<string>;
+  verifyRecaptcha: (token: string) => Promise<boolean>;
 }
 
-export const useRecaptchaV2 = () => {
+/**
+ * Hook for interacting with Google reCAPTCHA v2 implementation
+ * @returns Methods and state for reCAPTCHA operations
+ */
+export const useRecaptchaV2 = (): UseRecaptchaV2Return => {
   const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
-  const [config, setConfig] = useState<RecaptchaConfig | null>(null);
+  const [config, setConfig] = useState<RecaptchaFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carregar configurações do reCAPTCHA do banco de dados
+  // Load reCAPTCHA configuration from database
   useEffect(() => {
     const loadConfig = async () => {
       try {
@@ -25,25 +32,27 @@ export const useRecaptchaV2 = () => {
           .single();
 
         if (error) {
-          console.error('Erro ao carregar configurações do reCAPTCHA:', error);
-          // Usar configurações padrão
+          console.error('Error loading reCAPTCHA configuration:', error);
+          // Use default configuration if none exists
           setConfig({
-            siteKey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', // Chave de teste do Google
+            siteKey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', // Google test key
+            secretKey: '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe', // Google test secret
             enabled: true,
             threshold: 0.5,
           });
           return;
         }
 
-        if (data) {
+        if (data && data.configuracoes) {
           setConfig({
-            siteKey: data.configuracoes?.siteKey || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
-            enabled: data.configuracoes?.enabled !== undefined ? data.configuracoes.enabled : true,
-            threshold: data.configuracoes?.threshold || 0.5,
+            siteKey: data.configuracoes.siteKey || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+            secretKey: data.configuracoes.secretKey || '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe',
+            enabled: data.configuracoes.enabled !== undefined ? data.configuracoes.enabled : true,
+            threshold: data.configuracoes.threshold || 0.5,
           });
         }
       } catch (error) {
-        console.error('Erro ao carregar configurações:', error);
+        console.error('Error loading configuration:', error);
       } finally {
         setIsLoading(false);
       }
@@ -52,42 +61,41 @@ export const useRecaptchaV2 = () => {
     loadConfig();
   }, []);
 
-  // Inicializar reCAPTCHA quando as configurações forem carregadas
+  // Initialize reCAPTCHA script
   useEffect(() => {
     if (!config || isLoading || !config.enabled) return;
 
-    // Inicializar reCAPTCHA
-    const loadRecaptcha = () => {
+    const loadRecaptchaScript = () => {
       if (window.grecaptcha) {
-        window.onRecaptchaLoad = () => {
-          setRecaptchaLoaded(true);
-        };
+        setRecaptchaLoaded(true);
+        return;
       }
-    };
 
-    // Carregar o script do reCAPTCHA se ainda não estiver carregado
-    if (!window.grecaptcha) {
       const script = document.createElement('script');
       script.src = `https://www.google.com/recaptcha/api.js?render=${config.siteKey}`;
       script.async = true;
       script.defer = true;
-      script.onload = () => loadRecaptcha();
+      script.onload = () => {
+        window.grecaptcha?.ready(() => {
+          setRecaptchaLoaded(true);
+        });
+      };
       document.body.appendChild(script);
-    } else {
-      loadRecaptcha();
-    }
+    };
+
+    loadRecaptchaScript();
 
     return () => {
-      // Cleanup
+      // Cleanup function
       window.onRecaptchaLoad = () => {};
     };
   }, [config, isLoading]);
 
-  // Função para executar o reCAPTCHA
+  // Execute reCAPTCHA verification
   const executeRecaptcha = useCallback(async (action = 'login'): Promise<string> => {
     if (!config?.enabled) return 'recaptcha-disabled';
     if (!recaptchaLoaded || !window.grecaptcha) {
-      console.warn('reCAPTCHA não está carregado ainda');
+      console.warn('reCAPTCHA not loaded yet');
       return '';
     }
 
@@ -95,18 +103,18 @@ export const useRecaptchaV2 = () => {
       const token = await window.grecaptcha.execute(config.siteKey, { action });
       return token;
     } catch (error) {
-      console.error('Erro ao executar reCAPTCHA:', error);
+      console.error('Error executing reCAPTCHA:', error);
       return '';
     }
   }, [recaptchaLoaded, config]);
 
-  // Função para verificar o token do reCAPTCHA (deve ser chamada no backend)
+  // Verify reCAPTCHA token on the backend
   const verifyRecaptcha = useCallback(async (token: string): Promise<boolean> => {
     if (!config?.enabled) return true;
     if (!token) return false;
 
-    // Normalmente, essa verificação seria feita no backend
-    // Esta é apenas uma simulação para fins de exemplo
+    // In a real implementation, this would call an edge function to verify the token
+    // For now, we're just checking if the token exists
     return token.length > 0;
   }, [config]);
 
@@ -120,7 +128,7 @@ export const useRecaptchaV2 = () => {
   };
 };
 
-// Tipo para o objeto grecaptcha no window
+// Type declaration for global grecaptcha object
 declare global {
   interface Window {
     grecaptcha: {
