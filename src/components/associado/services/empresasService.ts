@@ -19,7 +19,7 @@ export const buscarUltimasEmpresas = async (limite: number = 3): Promise<Empresa
     const { data, error } = await supabase
       .from('empresas')
       .select('id, nome_fantasia, razao_social, cnpj, cidade, desconto, nicho, logo_url, created_at')
-      .eq('status', 'aprovado')
+      .eq('status', 'ativo')
       .order('created_at', { ascending: false })
       .limit(limite);
       
@@ -44,7 +44,7 @@ export const listarEmpresasConveniadas = async (
     const { count: total, error: countError } = await supabase
       .from('empresas')
       .select('id', { count: 'exact', head: true })
-      .eq('status', 'aprovado');
+      .eq('status', 'ativo');
       
     if (countError) throw countError;
     
@@ -52,7 +52,7 @@ export const listarEmpresasConveniadas = async (
     const { data, error } = await supabase
       .from('empresas')
       .select('id, nome_fantasia, razao_social, cnpj, cidade, desconto, nicho, logo_url, created_at')
-      .eq('status', 'aprovado')
+      .eq('status', 'ativo')
       .order('nome_fantasia', { ascending: true })
       .range(inicio, inicio + itensPorPagina - 1);
       

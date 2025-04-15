@@ -66,6 +66,59 @@ export interface ExtendedDatabase {
         Relationships: [];
       };
       
+      pagamentos_associado: {
+        Row: {
+          id: string;
+          associado_id: string;
+          valor: number;
+          data_pagamento: string;
+          status: string;
+          metodo: string | null;
+          origem: string;
+          comprovante_url: string | null;
+          descricao: string | null;
+          ano_referencia: number;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          associado_id: string;
+          valor: number;
+          data_pagamento: string;
+          status?: string;
+          metodo?: string | null;
+          origem?: string;
+          comprovante_url?: string | null;
+          descricao?: string | null;
+          ano_referencia: number;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          associado_id?: string;
+          valor?: number;
+          data_pagamento?: string;
+          status?: string;
+          metodo?: string | null;
+          origem?: string;
+          comprovante_url?: string | null;
+          descricao?: string | null;
+          ano_referencia?: number;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pagamentos_associado_associado_id_fkey";
+            columns: ["associado_id"];
+            referencedRelation: "associados";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      
       // Add the new configuracoes table
       configuracoes: {
         Row: {

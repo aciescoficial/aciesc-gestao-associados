@@ -59,7 +59,7 @@ export const verificarSituacaoPagamento = async (associadoId: string): Promise<S
     
     return { 
       emDia, 
-      ultimoPagamento, 
+      ultimoPagamento: ultimoPagamento as Pagamento, 
       proximoVencimento: dataValidade.toISOString(),
       diasRestantes
     };

@@ -4,7 +4,12 @@ import { User as SupabaseUser } from '@supabase/supabase-js';
 import { UserRole, UserTag } from '../../usuarios/types';
 
 export interface AuthContextType {
-  user: SupabaseUser | null;
+  user: (SupabaseUser & { 
+    role?: UserRole; 
+    associado_id?: string; 
+    empresa_id?: string;
+    userTags?: UserTag[];
+  }) | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{
     error: Error | null;

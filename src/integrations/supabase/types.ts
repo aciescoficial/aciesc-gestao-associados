@@ -503,6 +503,59 @@ export type Database = {
         }
         Relationships: []
       }
+      pagamentos_associado: {
+        Row: {
+          ano_referencia: number
+          associado_id: string
+          comprovante_url: string | null
+          created_at: string | null
+          data_pagamento: string
+          descricao: string | null
+          id: string
+          metodo: string | null
+          origem: string
+          status: string
+          updated_at: string | null
+          valor: number
+        }
+        Insert: {
+          ano_referencia: number
+          associado_id: string
+          comprovante_url?: string | null
+          created_at?: string | null
+          data_pagamento: string
+          descricao?: string | null
+          id?: string
+          metodo?: string | null
+          origem?: string
+          status?: string
+          updated_at?: string | null
+          valor: number
+        }
+        Update: {
+          ano_referencia?: number
+          associado_id?: string
+          comprovante_url?: string | null
+          created_at?: string | null
+          data_pagamento?: string
+          descricao?: string | null
+          id?: string
+          metodo?: string | null
+          origem?: string
+          status?: string
+          updated_at?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamentos_associado_associado_id_fkey"
+            columns: ["associado_id"]
+            isOneToOne: false
+            referencedRelation: "associados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           created_at: string | null
@@ -755,7 +808,7 @@ export type Database = {
         | "Tecnologia"
         | "Outro"
       payment_method: "cartao" | "pix" | "boleto"
-      status_type: "ativo" | "pendente" | "inativo"
+      status_type: "ativo" | "pendente" | "inativo" | "aprovado"
       user_role:
         | "admin"
         | "user"
@@ -890,7 +943,7 @@ export const Constants = {
         "Outro",
       ],
       payment_method: ["cartao", "pix", "boleto"],
-      status_type: ["ativo", "pendente", "inativo"],
+      status_type: ["ativo", "pendente", "inativo", "aprovado"],
       user_role: [
         "admin",
         "user",
