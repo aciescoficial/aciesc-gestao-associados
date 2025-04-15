@@ -63,6 +63,11 @@ export const useRecaptchaV2 = () => {
             // Now safely access the properties
             setIsEnabled(!!config.enabled);
             setSiteKey(config.siteKey || '');
+            
+            console.log('reCAPTCHA config loaded:', { 
+              enabled: config.enabled, 
+              siteKey: config.siteKey 
+            });
           } else {
             console.error('Invalid reCAPTCHA config format:', configData);
           }
@@ -85,22 +90,30 @@ export const useRecaptchaV2 = () => {
     script.src = `https://www.google.com/recaptcha/api.js?render=explicit`;
     script.async = true;
     script.defer = true;
-    script.onload = () => setIsLoaded(true);
+    script.onload = () => {
+      console.log('reCAPTCHA script loaded');
+      setIsLoaded(true);
+    };
     document.head.appendChild(script);
 
     return () => {
-      document.head.removeChild(script);
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
     };
   }, [isEnabled, siteKey]);
 
   // Function to execute reCAPTCHA
   const executeRecaptcha = async (action = 'login'): Promise<string> => {
     if (!isLoaded || !siteKey || !window.grecaptcha) {
+      console.log('Cannot execute reCAPTCHA: loaded=', isLoaded, 'siteKey=', siteKey?.substring(0, 5) + '...');
       return '';
     }
     
     try {
+      console.log('Executing reCAPTCHA with action:', action);
       const token = await window.grecaptcha.execute(siteKey, { action });
+      console.log('reCAPTCHA token received:', token ? 'success' : 'empty');
       setRecaptchaToken(token);
       return token;
     } catch (error) {

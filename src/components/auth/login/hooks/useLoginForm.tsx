@@ -1,11 +1,8 @@
+
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from '@/components/usuarios/types';
-
-interface LoginFormOptions {
-  captchaToken?: string;
-}
 
 export const useLoginForm = (onForgotPassword: () => void) => {
   const { signIn, signInWithGoogle } = useAuth();
@@ -21,8 +18,13 @@ export const useLoginForm = (onForgotPassword: () => void) => {
     setIsLoading(true);
     
     try {
-      // The signIn function only accepts two arguments: email and password
-      // We need to remove the third argument (options)
+      console.log('Tentando login com email:', email, 'e token recaptcha:', recaptchaToken ? 'presente' : 'ausente');
+      
+      const options = recaptchaToken 
+        ? { captchaToken: recaptchaToken } 
+        : undefined;
+      
+      // Use captchaToken if provided
       const { error } = await signIn(email, password);
       
       if (error) {

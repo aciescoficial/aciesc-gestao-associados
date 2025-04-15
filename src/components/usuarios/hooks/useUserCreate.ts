@@ -61,41 +61,63 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
   };
 
   const addUser = useCallback(async () => {
+    console.log("Tentando adicionar usuário:", newUser);
+    
     try {
+      if (!newUser.email || !newUser.name) {
+        throw new Error('Email e nome são obrigatórios');
+      }
+      
+      // Generate a random password
+      const tempPassword = `temp${Math.random().toString(36).slice(2, 10)}`;
+      
+      console.log("Criando usuário com email:", newUser.email);
+      
       // Step 1: Create the user in auth.users
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newUser.email!,
-        password: `temp${Math.random().toString(36).slice(2, 10)}`, // Generate random temp password
-        options: {
-          data: {
-            name: newUser.name,
-            role: mapToDbRole(newUser.role as UserRole),
-            tags: newUser.tags,
-            active: true,
-            associado_id: newUser.associado_id,
-            empresa_id: newUser.empresa_id
-          }
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: newUser.email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          name: newUser.name,
+          role: mapToDbRole(newUser.role as UserRole),
+          tags: newUser.tags,
+          active: true,
+          associado_id: newUser.associado_id,
+          empresa_id: newUser.empresa_id
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error("Auth error:", authError);
+        throw authError;
+      }
+
+      console.log("Usuário Auth criado:", authData);
 
       // Step 2: Update the user with role, tags, and linked entities
       if (authData && authData.user) {
+        const userData = {
+          id: authData.user.id,
+          name: newUser.name,
+          email: newUser.email,
+          role: mapToDbRole(newUser.role as UserRole),
+          tags: newUser.tags || [],
+          active: true,
+          associado_id: newUser.associado_id,
+          empresa_id: newUser.empresa_id
+        };
+        
+        console.log("Atualizando dados do usuário:", userData);
+        
         const { error: userError } = await supabase
           .from('user')
-          .update({
-            name: newUser.name,
-            email: newUser.email,
-            role: mapToDbRole(newUser.role as UserRole),
-            tags: newUser.tags || [],
-            active: true,
-            associado_id: newUser.associado_id,
-            empresa_id: newUser.empresa_id
-          })
-          .eq('id', authData.user.id);
+          .upsert(userData);
 
-        if (userError) throw userError;
+        if (userError) {
+          console.error("User update error:", userError);
+          throw userError;
+        }
 
         // Return the created user to the caller
         onSuccess({

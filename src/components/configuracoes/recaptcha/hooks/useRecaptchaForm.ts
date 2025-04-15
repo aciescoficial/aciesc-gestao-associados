@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/integrations/supabase/client';
-import { RecaptchaFormValues, RecaptchaConfigValues } from '../types';
+import { RecaptchaFormValues, RecaptchaConfigValues, recaptchaSchema } from '../types';
 
 interface UseRecaptchaFormOptions {
   toast?: any;
@@ -19,14 +19,6 @@ export const useRecaptchaForm = (options?: UseRecaptchaFormOptions) => {
     secretKey: '',
     version: 'v2',
     scoreThreshold: 0.5,
-  });
-
-  const recaptchaSchema = z.object({
-    siteKey: z.string().min(1, 'Chave do site é obrigatória'),
-    secretKey: z.string().min(1, 'Chave secreta é obrigatória'),
-    enabled: z.boolean().default(true),
-    threshold: z.number().min(0).max(1).default(0.5),
-    version: z.enum(['v2', 'v3']).default('v2'),
   });
 
   const form = useForm<RecaptchaFormValues>({
@@ -84,14 +76,21 @@ export const useRecaptchaForm = (options?: UseRecaptchaFormOptions) => {
           if (typeof configData === 'object' && configData !== null) {
             const configObj = configData as Record<string, any>;
             
+            // Validate version is one of the accepted values
+            let version: 'v2' | 'v3' = 'v2';
+            if (configObj.version === 'v3') {
+              version = 'v3';
+            }
+            
             const safeConfig: RecaptchaConfigValues = {
               enabled: !!configObj.enabled,
               siteKey: configObj.siteKey || '',
               secretKey: configObj.secretKey || '',
-              version: (configObj.version === 'v3' ? 'v3' : 'v2') as 'v2' | 'v3',
+              version: version,
               scoreThreshold: Number(configObj.scoreThreshold) || 0.5,
             };
             
+            console.log('Fetched reCAPTCHA config:', safeConfig);
             setConfig(safeConfig);
             
             form.reset({
@@ -137,6 +136,8 @@ export const useRecaptchaForm = (options?: UseRecaptchaFormOptions) => {
         version: values.version,
         scoreThreshold: values.threshold,
       };
+      
+      console.log('Saving reCAPTCHA config:', configData);
       
       const { error } = await supabase
         .from('configuracoes')
