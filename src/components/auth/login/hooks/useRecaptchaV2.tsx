@@ -1,7 +1,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/types/database';
+
+// Define our own Json type since it's not available from the database types
+type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 // Define interface for the recaptcha configuration from the database JSONB field
 export interface RecaptchaConfigData {
