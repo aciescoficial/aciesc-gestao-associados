@@ -64,7 +64,7 @@ export const useRegisterForm = () => {
     setIsLoading(true);
     
     try {
-      console.log("Tentando registrar com email:", email);
+      console.log("Tentando registrar com email:", email, "e tipo:", organizationType);
       
       // Direct sign-up with no captcha verification
       const { data, error } = await signUp(email, password, name, organizationType);
@@ -74,8 +74,10 @@ export const useRegisterForm = () => {
         
         let errorMessage = error.message;
         
-        if (error.message.includes('already registered')) {
+        if (error.message.includes('already registered') || error.message.includes('já está registrado')) {
           errorMessage = "Este email já está registrado. Tente fazer login.";
+        } else if (error.message.includes('rate limit') || error.message.includes('limite')) {
+          errorMessage = "Limite de cadastros excedido. Por favor, tente novamente mais tarde.";
         }
         
         toast({
@@ -83,7 +85,8 @@ export const useRegisterForm = () => {
           title: "Erro ao criar conta",
           description: errorMessage,
         });
-      } else {
+      } else if (data) {
+        // Se não houver mensagem de erro mas temos dados, significa que deu certo
         toast({
           title: "Conta criada com sucesso",
           description: "Sua conta foi criada. Você já pode fazer login.",

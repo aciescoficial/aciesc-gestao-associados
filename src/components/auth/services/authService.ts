@@ -65,8 +65,9 @@ export const signInWithGoogle = async () => {
 
 export const signUp = async (email: string, password: string, name: string, role: UserRole = 'user') => {
   try {
-    console.log("Signup attempt with:", email, name);
+    console.log("Signup attempt with:", email, name, role);
     
+    // Configurar para não enviar o email de confirmação
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -75,30 +76,45 @@ export const signUp = async (email: string, password: string, name: string, role
           name,
           role
         },
-        emailRedirectTo: `${window.location.origin}/login`
+        // Removido emailRedirectTo para evitar envio de emails de confirmação
+        emailRedirectTo: undefined
       }
     });
     
-    // If signup was successful but we need to create the user in the user table as well
+    // Se o signup foi bem-sucedido, criar o usuário na tabela user também
     if (data?.user && !error) {
       try {
-        console.log("Creating user profile:", data.user.id);
-        // Insert the user into the public.user table
-        const { error: profileError } = await supabase.from('user').upsert({
+        console.log("Creating user profile:", data.user.id, email, name, role);
+        
+        // Inserir o usuário na tabela public.user
+        const { error: profileError } = await supabase.from('user').insert({
           id: data.user.id,
           email: email,
           name: name,
           role: role,
-          active: true
+          active: true,
+          tags: role === 'diretoria' ? ['diretoria_aciesc'] : []
         });
         
         if (profileError) {
           console.error('Error creating user profile:', profileError);
+          return { data, error: profileError };
         } else {
           console.log("User profile created successfully");
         }
       } catch (profileError) {
         console.error('Exception creating user profile:', profileError);
+        return { data, error: profileError };
+      }
+    } else if (error) {
+      // Tratar erros específicos do Supabase
+      if (error.message.includes('rate limit')) {
+        return { 
+          data: null, 
+          error: { 
+            message: 'Limite de cadastros excedido. Por favor, tente novamente mais tarde.' 
+          } 
+        };
       }
     }
     
