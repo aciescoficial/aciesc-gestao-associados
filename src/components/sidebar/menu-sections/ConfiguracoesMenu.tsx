@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings, Shield, Database, Code, Lock } from 'lucide-react';
+import { Settings, Shield, Database, Code } from 'lucide-react';
 import { MenuItem } from '../types/MenuItem';
 
 export const getConfiguracoesMenuItems = (): MenuItem[] => {
@@ -11,8 +11,7 @@ export const getConfiguracoesMenuItems = (): MenuItem[] => {
       roles: ['admin'],
       submenu: [
         { icon: Settings, label: "Configurações Gerais", path: "/configuracoes", roles: ['admin'] },
-        { icon: Lock, label: "reCAPTCHA", path: "/configuracoes?tab=recaptcha", roles: ['admin'] },
-        { icon: Shield, label: "Administração", path: "/configuracoes?tab=admin", roles: ['admin'] },
+        { icon: Shield, label: "Segurança", path: "/configuracoes?tab=seguranca", roles: ['admin'] },
         { icon: Database, label: "Integração API", path: "/configuracoes?tab=api", roles: ['admin'] },
         { icon: Code, label: "Sistema", path: "/configuracoes?tab=sistema", roles: ['admin'] },
       ]

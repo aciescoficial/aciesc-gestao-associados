@@ -5,14 +5,14 @@ import { Settings } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import RecaptchaConfigForm from './RecaptchaConfigForm';
 import RecaptchaIntegrationGuide from './RecaptchaIntegrationGuide';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/components/auth/context/AuthContext';
 
 const RecaptchaConfig: React.FC = () => {
-  const { session } = useAuth();
+  const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
   // Check if user is authenticated
-  if (!session?.user) {
+  if (!user) {
     return (
       <div className="p-6 space-y-6">
         <Alert variant="destructive">
