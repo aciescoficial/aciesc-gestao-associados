@@ -17,12 +17,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { UserTag } from '../usuarios/types';
 import { getTagBadgeColor, getUserTags } from '../usuarios/utils/roleUtils';
+import { useToast } from '@/hooks/use-toast';
 
 const UserProfileMenu = () => {
   const { user, signOut, isAdmin } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>('');
   const [userTags, setUserTags] = useState<UserTag[]>([]);
+  const { toast } = useToast();
   
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -33,7 +35,7 @@ const UserProfileMenu = () => {
           .from('user')
           .select('name, avatar_url, tags')
           .eq('id', user.id)
-          .single();
+          .maybeSingle(); // Using maybeSingle instead of single
           
         if (error) {
           console.error('Error fetching user profile:', error);
@@ -50,6 +52,27 @@ const UserProfileMenu = () => {
           ) as UserTag[] : [];
           
           setUserTags(validUserTags);
+        } else {
+          // No data found, create a new user entry
+          const { error: insertError } = await supabase
+            .from('user')
+            .insert({
+              id: user.id,
+              email: user.email,
+              name: user.user_metadata?.name || '',
+              role: 'user'
+            });
+            
+          if (insertError) {
+            console.error('Error creating user record:', insertError);
+            toast({
+              variant: "destructive",
+              title: "Erro de perfil",
+              description: "Não foi possível criar seu perfil. Por favor, atualize suas informações."
+            });
+          } else {
+            setUserName(user.user_metadata?.name || '');
+          }
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -57,7 +80,7 @@ const UserProfileMenu = () => {
     };
     
     fetchUserProfile();
-  }, [user]);
+  }, [user, toast]);
   
   if (!user) {
     return (
@@ -98,7 +121,7 @@ const UserProfileMenu = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="flex flex-col">
-          <span>{userName}</span>
+          <span>{userName || user.email}</span>
           <span className="text-xs text-muted-foreground">{user.email}</span>
           
           {userTags && userTags.length > 0 && (

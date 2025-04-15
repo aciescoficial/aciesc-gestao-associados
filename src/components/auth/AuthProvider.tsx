@@ -22,12 +22,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .from('user')
         .select('role, tags, active, id')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single
       
       if (error) {
         console.error("Error fetching user data:", error);
-        setUserRole('user');
+        setUserRole('user'); // Default role
         setUserTags([]);
+        
+        // Try to create a new user record if none exists
+        const authUserResponse = await supabase.auth.getUser();
+        if (authUserResponse.data.user) {
+          const { error: insertError } = await supabase
+            .from('user')
+            .insert({
+              id: userId,
+              email: authUserResponse.data.user.email,
+              name: authUserResponse.data.user.user_metadata?.name || '',
+              role: 'user'
+            });
+            
+          if (insertError) {
+            console.error("Error creating user record:", insertError);
+          }
+        }
         return;
       }
       
@@ -39,6 +56,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Process user tags
         processUserTags(data.tags);
+      } else {
+        // No user data found, set defaults
+        setUserRole('user');
+        setUserTags([]);
+        
+        // Try to create a new user record
+        const authUserResponse = await supabase.auth.getUser();
+        if (authUserResponse.data.user) {
+          const { error: insertError } = await supabase
+            .from('user')
+            .insert({
+              id: userId,
+              email: authUserResponse.data.user.email,
+              name: authUserResponse.data.user.user_metadata?.name || '',
+              role: 'user'
+            });
+            
+          if (insertError) {
+            console.error("Error creating user record:", insertError);
+          }
+        }
       }
     } catch (error) {
       console.error("Error in fetchUserData:", error);

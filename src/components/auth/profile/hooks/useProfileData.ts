@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 
 export const useProfileData = (user: any) => {
@@ -17,12 +17,12 @@ export const useProfileData = (user: any) => {
       
       setIsLoading(true);
       try {
-        // Query user table
+        // Query user table - using maybeSingle() instead of single() to handle case when no row is found
         const { data: userData, error: userError } = await supabase
           .from('user')
           .select('name, phone, role, avatar_url')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
           
         if (userError) throw userError;
         
@@ -31,8 +31,32 @@ export const useProfileData = (user: any) => {
           setPhone(userData.phone || '');
           setRole(userData.role || '');
           setAvatarUrl(userData.avatar_url);
+        } else {
+          // No user found, create a new user record
+          const { error: insertError } = await supabase
+            .from('user')
+            .insert({
+              id: user.id,
+              email: user.email,
+              name: user.user_metadata?.name || '',
+              role: 'user'
+            });
+            
+          if (insertError) {
+            console.error('Error creating user record:', insertError);
+            toast({
+              variant: "destructive",
+              title: "Erro ao criar perfil",
+              description: "Não foi possível criar seu perfil. Por favor, tente novamente mais tarde."
+            });
+          } else {
+            // Set defaults after creating user
+            setName(user.user_metadata?.name || '');
+            setRole('user');
+          }
         }
       } catch (error: any) {
+        console.error('Error fetching profile:', error);
         toast({
           variant: "destructive",
           title: "Erro ao carregar perfil",
