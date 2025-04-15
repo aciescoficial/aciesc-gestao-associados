@@ -29,7 +29,7 @@ export const signInWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: `${window.location.origin}/login`,
       }
     });
     
@@ -42,6 +42,8 @@ export const signInWithGoogle = async () => {
 
 export const signUp = async (email: string, password: string, name: string, role: UserRole = 'user') => {
   try {
+    console.log("Signup attempt with:", email, name);
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -57,16 +59,23 @@ export const signUp = async (email: string, password: string, name: string, role
     // If signup was successful but we need to create the user in the user table as well
     if (data?.user && !error) {
       try {
+        console.log("Creating user profile:", data.user.id);
         // Insert the user into the public.user table
-        await supabase.from('user').insert({
+        const { error: profileError } = await supabase.from('user').upsert({
           id: data.user.id,
           email: email,
           name: name,
           role: role,
           active: true
         });
+        
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+        } else {
+          console.log("User profile created successfully");
+        }
       } catch (profileError) {
-        console.error('Error creating user profile:', profileError);
+        console.error('Exception creating user profile:', profileError);
       }
     }
     
@@ -80,6 +89,7 @@ export const signUp = async (email: string, password: string, name: string, role
 export const signOut = async () => {
   try {
     await supabase.auth.signOut();
+    console.log("User signed out");
   } catch (error) {
     console.error('Error during sign out:', error);
   }
@@ -101,18 +111,22 @@ export const resetPassword = async (email: string) => {
 
 export const fetchUserRole = async (userId: string) => {
   try {
-    // Using the hasRole function or direct query
+    // Using direct query to user table
     const { data, error } = await supabase
       .from('user')
       .select('role')
       .eq('id', userId)
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching user role:', error);
+      throw error;
+    }
     
+    console.log('Fetched user role:', data?.role);
     return data?.role;
   } catch (error) {
-    console.error('Error fetching user role:', error);
+    console.error('Exception fetching user role:', error);
     return null;
   }
 };

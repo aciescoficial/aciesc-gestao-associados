@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from '@/components/usuarios/types';
+import { useNavigate } from 'react-router-dom';
 
 export const useRegisterForm = () => {
   const { signUp } = useAuth();
@@ -16,6 +17,7 @@ export const useRegisterForm = () => {
   const [passwordsMatch, setPasswordsMatch] = useState(true);
   const [organizationType, setOrganizationType] = useState<UserRole>('user');
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Check if passwords match whenever either password field changes
   useEffect(() => {
@@ -29,12 +31,32 @@ export const useRegisterForm = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate form fields
+    if (!name || !email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+      });
+      return;
+    }
+    
     // Validate passwords match
     if (password !== confirmPassword) {
       toast({
         variant: "destructive",
         title: "Senhas não coincidem",
         description: "Por favor, verifique se as senhas digitadas são iguais.",
+      });
+      return;
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres.",
       });
       return;
     }
@@ -45,18 +67,26 @@ export const useRegisterForm = () => {
       console.log("Tentando registrar com email:", email);
       
       // Direct sign-up with no captcha verification
-      const { error } = await signUp(email, password, name, organizationType);
+      const { data, error } = await signUp(email, password, name, organizationType);
       
       if (error) {
+        console.error("Signup error:", error);
+        
+        let errorMessage = error.message;
+        
+        if (error.message.includes('already registered')) {
+          errorMessage = "Este email já está registrado. Tente fazer login.";
+        }
+        
         toast({
           variant: "destructive",
           title: "Erro ao criar conta",
-          description: error.message,
+          description: errorMessage,
         });
       } else {
         toast({
           title: "Conta criada com sucesso",
-          description: "Verifique seu email para confirmar sua conta.",
+          description: "Sua conta foi criada. Você já pode fazer login.",
         });
         
         // Reset form fields on success
@@ -65,8 +95,12 @@ export const useRegisterForm = () => {
         setConfirmPassword('');
         setName('');
         setOrganizationType('user');
+        
+        // Navigate to login page
+        navigate('/login');
       }
     } catch (error: any) {
+      console.error("Exception during signup:", error);
       toast({
         variant: "destructive",
         title: "Erro ao criar conta",

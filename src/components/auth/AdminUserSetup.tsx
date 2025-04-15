@@ -19,21 +19,35 @@ const AdminUserSetup: React.FC = () => {
   useEffect(() => {
     const checkRootUser = async () => {
       try {
-        // First check auth.users by fetching user with specific email
+        // Check for admin user in user table
         const { data, error } = await supabase
           .from('user')
           .select('email')
           .eq('email', ROOT_EMAIL)
-          .single();
+          .maybeSingle();
           
-        if (data) {
+        if (data && data.email === ROOT_EMAIL) {
+          console.log("Found ROOT user in user table");
           setRootExists(true);
           return;
         }
 
-        if (error && error.code !== 'PGRST116') { // Not found error code
-          console.error("Error checking user:", error);
+        // If no direct match in user table, try to query by role
+        if (!data) {
+          const { data: adminUsers, error: roleError } = await supabase
+            .from('user')
+            .select('email, role')
+            .eq('role', 'admin')
+            .limit(1);
+            
+          if (adminUsers && adminUsers.length > 0) {
+            console.log("Found admin user:", adminUsers[0]);
+            setRootExists(true);
+            return;
+          }
         }
+
+        console.log("No ROOT user found");
       } catch (error) {
         console.error("Error checking root user:", error);
       }
@@ -46,8 +60,9 @@ const AdminUserSetup: React.FC = () => {
     setLoading(true);
     
     try {
+      console.log("Creating ROOT user...");
+      
       // Step 1: Create auth user using signUp instead of admin.createUser
-      // This is more reliable for setting up initial users
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: ROOT_EMAIL,
         password: ROOT_PASSWORD,
@@ -64,6 +79,8 @@ const AdminUserSetup: React.FC = () => {
       }
 
       if (authData?.user) {
+        console.log("Auth user created:", authData.user.id);
+        
         // Step 2: Update the user with admin role and tags
         const { error: profileError } = await supabase
           .from('user')
@@ -77,19 +94,17 @@ const AdminUserSetup: React.FC = () => {
           });
 
         if (profileError) {
+          console.error("Profile update error:", profileError);
           throw profileError;
         }
 
         // Attempt to confirm the email directly if possible
         try {
-          const { error: confirmError } = await supabase.auth.admin.updateUserById(
+          console.log("Confirming user email...");
+          await supabase.auth.admin.updateUserById(
             authData.user.id,
             { email_confirm: true }
           );
-          
-          if (confirmError) {
-            console.warn("Could not confirm email automatically:", confirmError);
-          }
         } catch (confirmErr) {
           console.warn("Email confirmation is not available:", confirmErr);
         }
