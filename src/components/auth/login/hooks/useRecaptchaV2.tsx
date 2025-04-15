@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { RecaptchaFormValues } from '@/components/configuracoes/recaptcha/types';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 interface UseRecaptchaV2Return {
   recaptchaLoaded: boolean;
@@ -20,6 +21,7 @@ export const useRecaptchaV2 = (): UseRecaptchaV2Return => {
   const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
   const [config, setConfig] = useState<RecaptchaFormValues | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { session } = useAuth();
 
   // Load reCAPTCHA configuration from database
   useEffect(() => {

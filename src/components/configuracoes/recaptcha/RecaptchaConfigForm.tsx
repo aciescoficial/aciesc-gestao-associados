@@ -8,12 +8,25 @@ import RecaptchaFormFields from './RecaptchaFormFields';
 import RecaptchaEnabledToggle from './RecaptchaEnabledToggle';
 import { useRecaptchaForm } from './hooks/useRecaptchaForm';
 
-const RecaptchaConfigForm: React.FC = () => {
+interface RecaptchaConfigFormProps {
+  onError?: (error: string | null) => void;
+}
+
+const RecaptchaConfigForm: React.FC<RecaptchaConfigFormProps> = ({ onError }) => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
   const { toast } = useToast();
   
   const { form, isLoading, saveSettings } = useRecaptchaForm({ toast });
+
+  const handleSaveSettings = async (values: any) => {
+    try {
+      if (onError) onError(null);
+      await saveSettings(values);
+    } catch (error: any) {
+      if (onError) onError(error.message || 'Erro ao salvar configurações');
+    }
+  };
 
   const testRecaptcha = async () => {
     setIsTesting(true);
@@ -50,7 +63,7 @@ const RecaptchaConfigForm: React.FC = () => {
         </CardContent>
       </Card>
 
-      <form onSubmit={form.handleSubmit(saveSettings)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSaveSettings)} className="space-y-6">
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-4">

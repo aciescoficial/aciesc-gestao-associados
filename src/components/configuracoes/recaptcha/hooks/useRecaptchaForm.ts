@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { recaptchaSchema, RecaptchaFormValues } from '../types';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 interface UseRecaptchaFormProps {
   toast: {
@@ -17,6 +18,7 @@ interface UseRecaptchaFormProps {
 
 export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { session } = useAuth();
   
   const form = useForm<RecaptchaFormValues>({
     resolver: zodResolver(recaptchaSchema),
@@ -31,6 +33,12 @@ export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
   // Carregar configurações do reCAPTCHA
   useEffect(() => {
     const loadRecaptchaSettings = async () => {
+      // Skip if not authenticated
+      if (!session?.user) {
+        console.log('Usuário não autenticado, usando valores padrão');
+        return;
+      }
+
       setIsLoading(true);
       try {
         const { data, error } = await extendedSupabase
@@ -41,6 +49,11 @@ export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
           
         if (error) {
           console.error('Erro ao carregar configurações do reCAPTCHA:', error);
+          toast({
+            title: "Erro ao carregar configurações",
+            description: "Não foi possível carregar as configurações do reCAPTCHA. " + error.message,
+            variant: "destructive",
+          });
           return;
         }
         
@@ -61,9 +74,19 @@ export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
     };
     
     loadRecaptchaSettings();
-  }, [form]);
+  }, [form, session, toast]);
 
   const saveSettings = async (values: RecaptchaFormValues) => {
+    // Skip if not authenticated
+    if (!session?.user) {
+      toast({
+        title: "Erro ao salvar configurações",
+        description: "Você precisa estar autenticado para salvar as configurações.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     try {
       // First check if a record exists for this configuration type
@@ -99,18 +122,26 @@ export const useRecaptchaForm = ({ toast }: UseRecaptchaFormProps) => {
         error = result.error;
       }
         
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao salvar configurações:', error);
+        toast({
+          title: "Erro ao salvar configurações",
+          description: error.message || "Ocorreu um erro ao salvar as configurações do reCAPTCHA.",
+          variant: "destructive",
+        });
+        throw error;
+      }
       
       toast({
-        title: 'Configurações salvas',
-        description: 'As configurações do reCAPTCHA foram salvas com sucesso.',
+        title: "Configurações salvas",
+        description: "As configurações do reCAPTCHA foram salvas com sucesso.",
       });
     } catch (error: any) {
       console.error('Erro ao salvar configurações:', error);
       toast({
-        title: 'Erro ao salvar configurações',
-        description: error.message || 'Ocorreu um erro ao salvar as configurações do reCAPTCHA.',
-        variant: 'destructive',
+        title: "Erro ao salvar configurações",
+        description: error.message || "Ocorreu um erro ao salvar as configurações do reCAPTCHA.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);

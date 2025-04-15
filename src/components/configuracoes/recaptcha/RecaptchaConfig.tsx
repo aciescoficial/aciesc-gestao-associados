@@ -1,10 +1,30 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Settings } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import RecaptchaConfigForm from './RecaptchaConfigForm';
 import RecaptchaIntegrationGuide from './RecaptchaIntegrationGuide';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 const RecaptchaConfig: React.FC = () => {
+  const { session } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+
+  // Check if user is authenticated
+  if (!session?.user) {
+    return (
+      <div className="p-6 space-y-6">
+        <Alert variant="destructive">
+          <AlertTitle>Acesso negado</AlertTitle>
+          <AlertDescription>
+            Você precisa estar autenticado para acessar esta página.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -16,6 +36,13 @@ const RecaptchaConfig: React.FC = () => {
         </div>
       </div>
       
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTitle>Erro</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
       <Tabs defaultValue="configuracoes">
         <TabsList>
           <TabsTrigger value="configuracoes">Configurações</TabsTrigger>
@@ -23,7 +50,7 @@ const RecaptchaConfig: React.FC = () => {
         </TabsList>
         
         <TabsContent value="configuracoes" className="space-y-6">
-          <RecaptchaConfigForm />
+          <RecaptchaConfigForm onError={(msg) => setError(msg)} />
         </TabsContent>
         
         <TabsContent value="integracao" className="space-y-6">
