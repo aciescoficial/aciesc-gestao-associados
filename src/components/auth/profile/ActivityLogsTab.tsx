@@ -28,26 +28,39 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
         setIsLoading(true);
         
         // First check if is_login column exists
-        const { data: columnInfo } = await supabase
+        const { data: columnInfo, error: columnError } = await supabase
           .from('user_access_logs')
           .select('is_login')
           .limit(1);
           
+        if (columnError) {
+          console.error('Error checking column existence:', columnError);
+          // Continue with a safe fallback
+        }
+        
         const hasLoginField = columnInfo && columnInfo.length > 0 && 'is_login' in columnInfo[0];
         
         // Fetch logs with conditional selection of is_login field
         const { data, error } = await supabase
           .from('user_access_logs')
-          .select(hasLoginField ? '*' : 'id, user_id, event, created_at')
+          .select(hasLoginField ? 'id, user_id, event, created_at, is_login' : 'id, user_id, event, created_at')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(50);
           
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
         
-        setLogs(data || []);
+        if (data && Array.isArray(data)) {
+          setLogs(data as ActivityLog[]);
+        } else {
+          // If no data or invalid format, set empty array
+          setLogs([]);
+        }
       } catch (error) {
         console.error('Error fetching activity logs:', error);
+        setLogs([]); // Set empty array on error
       } finally {
         setIsLoading(false);
       }
