@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
   
-  // Check if user is admin
+  // Check if user is admin or has the diretoria role
   const isAdmin = userRole === 'admin' || userRole === 'diretoria';
   
   // Check if user has financeiro access
