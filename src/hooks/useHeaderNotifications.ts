@@ -1,6 +1,6 @@
 
-import { useState, useEffect, useMemo } from 'react';
-import { NotificationMessage, HeaderNotificationsOptions, NotificationsState } from '@/components/layout/types/NotificationTypes';
+import { useMemo, useEffect } from 'react';
+import { HeaderNotificationsOptions, NotificationsState } from '@/components/layout/types/NotificationTypes';
 import { useSystemConfig } from './notifications/useSystemConfig';
 import { useNotificationFetcher } from './notifications/useNotificationFetcher';
 import { getCacheStatus } from './notifications/notificationUtils';
