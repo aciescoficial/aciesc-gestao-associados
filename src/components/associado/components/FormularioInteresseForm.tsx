@@ -84,7 +84,7 @@ const FormularioInteresseForm: React.FC<FormularioInteresseFormProps> = ({
             name="creci"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>CRECI (se aplicável)</FormLabel>
+                <FormLabel>CRECI *</FormLabel>
                 <FormControl>
                   <Input placeholder="Número do CRECI" {...field} />
                 </FormControl>

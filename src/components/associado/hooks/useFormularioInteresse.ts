@@ -19,7 +19,7 @@ export const useFormularioInteresse = () => {
           nome: data.nome,
           sobrenome: data.sobrenome,
           cpf: data.cpf,
-          creci: data.creci,
+          creci: data.creci, // Now this will always have a value since it's required
           email: data.email,
           celular: data.celular,
           cidade: data.cidade,

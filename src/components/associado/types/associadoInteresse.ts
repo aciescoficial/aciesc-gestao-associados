@@ -8,7 +8,7 @@ export interface AssociadoInteresse {
   cidade: string;
   estado: string;
   cpf: string;
-  creci: string | null;
+  creci: string; // Changed from string | null to string
   motivo_interesse: string | null;
   status: string;
   created_at: string;

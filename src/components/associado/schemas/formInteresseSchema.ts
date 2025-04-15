@@ -5,7 +5,7 @@ export const formInteresseSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
   sobrenome: z.string().min(1, "Sobrenome é obrigatório"),
   cpf: z.string().min(11, "CPF inválido").max(14, "CPF inválido"),
-  creci: z.string().optional(),
+  creci: z.string().min(1, "CRECI é obrigatório"), // Changed from optional to required
   email: z.string().email("Email inválido"),
   celular: z.string().min(1, "Telefone é obrigatório"),
   cidade: z.string().min(1, "Cidade é obrigatória"),
