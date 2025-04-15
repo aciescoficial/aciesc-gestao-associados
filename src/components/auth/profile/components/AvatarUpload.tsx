@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { logUserActivity } from '@/components/audit/services/userActivityService';
+import { ImageCropper } from './ImageCropper';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface AvatarUploadProps {
   user: any;
@@ -14,34 +16,49 @@ interface AvatarUploadProps {
 
 export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadProps) => {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [croppingImage, setCroppingImage] = useState<string | null>(null);
+  const [fileToCrop, setFileToCrop] = useState<File | null>(null);
+  const [showSizeAlert, setShowSizeAlert] = useState(false);
   const { toast } = useToast();
   
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB
+  const RECOMMENDED_SIZE = "400x400";
+  
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files.length) return;
     
     const file = e.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    const fileName = `avatar.${fileExt}`;
-    const filePath = `${user.id}/${fileName}`;
     
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao atualizar foto",
-        description: "O arquivo é muito grande. Limite máximo: 5MB.",
-      });
+    // Validate file size
+    if (file.size > FILE_SIZE_LIMIT) {
+      setShowSizeAlert(true);
       return;
     }
     
+    // Create object URL for the cropper
+    const objectUrl = URL.createObjectURL(file);
+    setCroppingImage(objectUrl);
+    setFileToCrop(file);
+  };
+  
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!fileToCrop) return;
+    
     setIsUploadingAvatar(true);
+    setCroppingImage(null);
     
     try {
+      // Create a new file from the cropped blob
+      const fileExt = fileToCrop.name.split('.').pop();
+      const fileName = `avatar.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+      const croppedFile = new File([croppedBlob], fileName, { type: `image/${fileExt}` });
+      
       // Upload file to Supabase storage
       const { error: uploadError } = await supabase
         .storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, croppedFile, { upsert: true });
         
       if (uploadError) throw uploadError;
       
@@ -77,7 +94,19 @@ export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadPr
       });
     } finally {
       setIsUploadingAvatar(false);
+      // Clean up object URL
+      if (croppingImage) {
+        URL.revokeObjectURL(croppingImage);
+      }
     }
+  };
+  
+  const handleCropCancel = () => {
+    if (croppingImage) {
+      URL.revokeObjectURL(croppingImage);
+    }
+    setCroppingImage(null);
+    setFileToCrop(null);
   };
 
   return (
@@ -99,12 +128,40 @@ export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadPr
             type="file" 
             accept="image/*" 
             className="hidden" 
-            onChange={handleAvatarUpload}
+            onChange={handleFileSelect}
             disabled={isUploadingAvatar}
           />
         </label>
       </div>
+      
       {isUploadingAvatar && <p className="text-xs text-muted-foreground">Enviando...</p>}
+      
+      <p className="text-xs text-muted-foreground">
+        Tamanho recomendado: {RECOMMENDED_SIZE} pixels. Máx: 5MB
+      </p>
+      
+      {croppingImage && (
+        <ImageCropper 
+          imageUrl={croppingImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspectRatio={1}
+        />
+      )}
+      
+      <AlertDialog open={showSizeAlert} onOpenChange={setShowSizeAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Arquivo muito grande</AlertDialogTitle>
+            <AlertDialogDescription>
+              O arquivo selecionado é muito grande. Por favor, escolha uma imagem com até 5MB.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowSizeAlert(false)}>Entendi</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
