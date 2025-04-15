@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,6 +14,7 @@ import { User, UserTag } from '../types';
 import { useUserForm } from './hooks/useUserForm';
 import { NameField, EmailField, RoleSelect, UserTagsField } from './form-fields/UserFormFields';
 import { UserLinkTabs } from './form-fields/UserLinkTabs';
+import { Loader2 } from 'lucide-react';
 
 interface EditUserDialogProps {
   isOpen: boolean;
@@ -42,6 +43,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   fetchAssociados,
   fetchEmpresas
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const {
     isDiretoria,
     handleTagToggle,
@@ -55,22 +58,34 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     fetchEmpresas,
     isOpen
   });
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+    
+    setIsSubmitting(true);
+    try {
+      const success = await onUpdateUser();
+      if (success) {
+        onOpenChange(false);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!selectedUser) return null;
-  
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && onOpenChange(open)}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Usuário</DialogTitle>
           <DialogDescription>
-            Altere os dados do usuário abaixo.
+            Atualize os dados do usuário abaixo.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          onUpdateUser();
-        }}>
+        <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <NameField 
               id="edit-name"
@@ -110,10 +125,24 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancelar
             </Button>
-            <Button type="submit">Salvar Alterações</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                "Salvar Alterações"
+              )}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

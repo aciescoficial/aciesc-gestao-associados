@@ -1,129 +1,132 @@
 
-import { UserRole, UserTag } from '../types';
+import React from 'react';
+import { UserRole, UserTag, RoleInfo, TagInfo } from '../types';
+import { Shield, User, Building2, Users, UserCog } from 'lucide-react';
 
-// Original database role types 
-export type DatabaseUserRole = 'admin' | 'user' | 'associado' | 'diretoria' | 'conveniado' | 'empresa';
-
-// Map frontend simplified role to database role
-export const mapToDbRole = (role: UserRole): DatabaseUserRole => {
-  switch (role) {
-    case 'admin':
-      return 'admin';
-    case 'user':
-      return 'associado';
-    case 'empresa':
-      return 'empresa';
-    case 'diretoria':
-      return 'diretoria';
-    default:
-      return 'associado';
-  }
-};
-
-// Map database role to frontend simplified role
-export const mapFromDbRole = (dbRole: DatabaseUserRole | string): UserRole => {
-  switch (dbRole) {
-    case 'admin':
-      return 'diretoria';
-    case 'associado':
-    case 'user':
-      return 'user';
-    case 'conveniado':
-    case 'empresa':
-      return 'empresa';
-    case 'diretoria':
-      return 'diretoria';
-    default:
-      return 'user';
-  }
-};
-
-// Get role label (display name)
-export const getRoleLabel = (role: UserRole): string => {
-  switch (role) {
-    case 'admin':
-      return 'Diretoria';
-    case 'user':
-      return 'Associado';
-    case 'empresa':
-      return 'Empresa';
-    case 'diretoria':
-      return 'Diretoria';
-    default:
-      return 'Usuário';
-  }
-};
-
-// Get role badge color
+// Map role to badge color
 export const getRoleBadgeColor = (role: UserRole): string => {
   switch (role) {
     case 'admin':
-      return 'bg-red-100 text-red-800 border-red-200';
-    case 'user':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'empresa':
-      return 'bg-amber-100 text-amber-800 border-amber-200';
+      return 'bg-red-100 text-red-800 border-red-300';
     case 'diretoria':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
+      return 'bg-purple-100 text-purple-800 border-purple-300';
+    case 'empresa':
+      return 'bg-blue-100 text-blue-800 border-blue-300';
+    case 'user':
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-green-100 text-green-800 border-green-300';
   }
 };
 
-// Get all available user tags
-export const getUserTags = (): { id: UserTag; name: string }[] => {
-  return [
-    { id: 'corretor', name: 'Corretor' },
-    { id: 'corretor_autonomo', name: 'Corretor Autônomo' },
-    { id: 'empresa_conveniada', name: 'Empresa Conveniada' },
-    { id: 'diretoria_aciesc', name: 'Diretoria ACIESC' },
-    { id: 'administrador', name: 'Administrador' },
-    { id: 'financeiro', name: 'Financeiro' },
-    { id: 'proprietario_imobiliaria', name: 'Proprietário de Imobiliária' },
-    { id: 'imobiliaria', name: 'Imobiliária' },
-    { id: 'aciesc', name: 'ACIESC' },
-  ];
-};
-
-// Get tag badge color
-export const getTagBadgeColor = (tag: UserTag): string => {
-  switch (tag) {
-    case 'corretor':
-      return 'bg-green-100 text-green-800 border-green-200';
-    case 'corretor_autonomo':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    case 'empresa_conveniada':
-      return 'bg-cyan-100 text-cyan-800 border-cyan-200';
-    case 'diretoria_aciesc':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    case 'administrador':
-      return 'bg-red-100 text-red-800 border-red-200';
-    case 'financeiro':
-      return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-    case 'proprietario_imobiliaria':
-      return 'bg-orange-100 text-orange-800 border-orange-200';
-    case 'imobiliaria':
-      return 'bg-amber-100 text-amber-800 border-amber-200';
-    case 'aciesc':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
+// Map role to label
+export const getRoleLabel = (role: UserRole): string => {
+  switch (role) {
+    case 'admin':
+      return 'Administrador';
+    case 'diretoria':
+      return 'Diretoria';
+    case 'empresa':
+      return 'Empresa';
+    case 'user':
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'Associado';
   }
 };
 
-// Check if user has a specific tag
-export const hasTag = (userTags: UserTag[] | undefined, tag: UserTag): boolean => {
-  return userTags ? userTags.includes(tag) : false;
+// Map db role to UI role (if needed)
+export const mapFromDbRole = (dbRole: string): UserRole => {
+  switch (dbRole) {
+    case 'admin':
+      return 'admin';
+    case 'diretoria':
+      return 'diretoria';
+    case 'empresa':
+      return 'empresa';
+    case 'user':
+    default:
+      return 'user';
+  }
 };
 
-// Check if user has admin privileges (either admin role or administrador tag)
-export const isAdminOrFinanceiro = (userRole: UserRole | null, userTags: UserTag[] | undefined): boolean => {
-  if (userRole === 'admin') return true;
-  return hasTag(userTags, 'administrador') || hasTag(userTags, 'financeiro');
+// Map UI role to db role
+export const mapToDbRole = (uiRole: UserRole): string => {
+  // If the roles are the same in UI and DB, just return the UI role
+  return uiRole;
 };
 
-// Check if user has access to financeiro
-export const hasFinanceiroAccess = (userRole: UserRole | null, userTags: UserTag[] | undefined): boolean => {
-  if (userRole === 'admin') return true;
-  return hasTag(userTags, 'financeiro');
-};
+// Get available roles with info
+export const getRoles = (): RoleInfo[] => [
+  {
+    id: 'admin',
+    name: 'Administrador',
+    description: 'Acesso completo ao sistema',
+    icon: <Shield className="h-4 w-4" />
+  },
+  {
+    id: 'user',
+    name: 'Associado',
+    description: 'Acesso a funcionalidades de associado',
+    icon: <User className="h-4 w-4" />
+  },
+  {
+    id: 'empresa',
+    name: 'Empresa',
+    description: 'Acesso a funcionalidades de empresa',
+    icon: <Building2 className="h-4 w-4" />
+  },
+  {
+    id: 'diretoria',
+    name: 'Diretoria',
+    description: 'Acesso a funcionalidades da diretoria',
+    icon: <Users className="h-4 w-4" />
+  }
+];
+
+// Get available user tags
+export const getUserTags = (): TagInfo[] => [
+  {
+    id: 'corretor',
+    name: 'Corretor',
+    description: 'Usuário é um corretor'
+  },
+  {
+    id: 'corretor_autonomo',
+    name: 'Corretor Autônomo',
+    description: 'Usuário é um corretor autônomo'
+  },
+  {
+    id: 'empresa_conveniada',
+    name: 'Empresa Conveniada',
+    description: 'Usuário é de uma empresa conveniada'
+  },
+  {
+    id: 'diretoria_aciesc',
+    name: 'Diretoria ACIESC',
+    description: 'Usuário é um membro da diretoria da ACIESC'
+  },
+  {
+    id: 'administrador',
+    name: 'Administrador',
+    description: 'Usuário tem privilégios de administrador'
+  },
+  {
+    id: 'financeiro',
+    name: 'Financeiro',
+    description: 'Usuário tem acesso a funcionalidades financeiras'
+  },
+  {
+    id: 'proprietario_imobiliaria',
+    name: 'Proprietário Imobiliária',
+    description: 'Usuário é um proprietário de imobiliária'
+  },
+  {
+    id: 'imobiliaria',
+    name: 'Imobiliária',
+    description: 'Usuário está associado a uma imobiliária'
+  },
+  {
+    id: 'aciesc',
+    name: 'ACIESC',
+    description: 'Usuário associado à ACIESC'
+  }
+];

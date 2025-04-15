@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,13 +14,14 @@ import { User, UserTag } from '../types';
 import { useUserForm } from './hooks/useUserForm';
 import { NameField, EmailField, RoleSelect, UserTagsField } from './form-fields/UserFormFields';
 import { UserLinkTabs } from './form-fields/UserLinkTabs';
+import { Loader2 } from 'lucide-react';
 
 interface AddUserDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   newUser: Partial<User>;
   onNewUserChange: (field: string, value: any) => void;
-  onAddUser: () => void;
+  onAddUser: () => Promise<boolean>;
   associados: Array<{id: string, cpf: string, nome: string, sobrenome: string}>;
   empresas: Array<{id: string, cnpj: string, nome_fantasia: string}>;
   loadingAssociados: boolean;
@@ -42,6 +43,8 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
   fetchAssociados,
   fetchEmpresas
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const {
     isDiretoria,
     handleTagToggle,
@@ -56,8 +59,21 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
     isOpen
   });
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const success = await onAddUser();
+      if (success) {
+        onOpenChange(false);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && onOpenChange(open)}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Adicionar Usuário</DialogTitle>
@@ -65,10 +81,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
             Preencha os dados do novo usuário abaixo.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          onAddUser();
-        }}>
+        <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <NameField 
               id="add-name"
@@ -108,10 +121,24 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancelar
             </Button>
-            <Button type="submit">Adicionar Usuário</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adicionando...
+                </>
+              ) : (
+                "Adicionar Usuário"
+              )}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

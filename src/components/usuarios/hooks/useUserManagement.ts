@@ -5,7 +5,7 @@ import { useUserFetch } from './useUserFetch';
 import { useUserCreate } from './useUserCreate';
 import { useUserEdit } from './useUserEdit';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 export const useUserManagement = () => {
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
@@ -23,14 +23,10 @@ export const useUserManagement = () => {
     connectionStatus 
   } = useUserFetch();
 
-  const handleUserCreated = async (newUser: User) => {
-    toast({
-      title: "Usuário criado",
-      description: "O usuário foi criado com sucesso."
-    });
+  const handleUserCreated = useCallback((newUser: User) => {
     setIsAddUserDialogOpen(false);
-    await fetchUsers(); // Refresh the user list
-  };
+    fetchUsers(); // Refresh the user list
+  }, [fetchUsers]);
 
   const { 
     newUser, 
@@ -44,14 +40,10 @@ export const useUserManagement = () => {
     fetchEmpresas: fetchCreateEmpresas
   } = useUserCreate(handleUserCreated);
 
-  const handleUserUpdated = async (updatedUser: User) => {
-    toast({
-      title: "Usuário atualizado",
-      description: "O usuário foi atualizado com sucesso."
-    });
+  const handleUserUpdated = useCallback((updatedUser: User) => {
     setIsEditUserDialogOpen(false);
-    await fetchUsers(); // Refresh the user list
-  };
+    fetchUsers(); // Refresh the user list
+  }, [fetchUsers]);
 
   const {
     selectedUser,

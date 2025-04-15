@@ -1,8 +1,8 @@
 
 import { useState, useCallback } from 'react';
-import { User, UserRole, UserTag } from '../types';
+import { User, UserRole } from '../types';
 import { supabase } from '@/integrations/supabase/client';
-import { mapToDbRole } from '../utils/roleUtils';
+import { useToast } from '@/hooks/use-toast';
 
 export const useUserEdit = (onSuccess: (user: User) => void) => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -10,7 +10,8 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
   const [empresas, setEmpresas] = useState<Array<{id: string, cnpj: string, nome_fantasia: string}>>([]);
   const [loadingAssociados, setLoadingAssociados] = useState(false);
   const [loadingEmpresas, setLoadingEmpresas] = useState(false);
-
+  const { toast } = useToast();
+  
   const fetchAssociados = useCallback(async () => {
     setLoadingAssociados(true);
     try {
@@ -45,57 +46,88 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
     }
   }, []);
 
-  const handleSelectedUserChange = (field: string, value: any) => {
-    if (!selectedUser) return;
-    setSelectedUser({ ...selectedUser, [field]: value });
-  };
+  const handleSelectedUserChange = useCallback((field: string, value: any) => {
+    setSelectedUser(prev => prev ? ({ ...prev, [field]: value }) : null);
+  }, []);
 
   const updateUser = useCallback(async () => {
     if (!selectedUser) return false;
-
+    
     try {
-      // Update the user's metadata and user data
-      const dbRole = mapToDbRole(selectedUser.role as UserRole);
+      console.log("Updating user:", selectedUser);
       
+      // Update user table
       const { error: userError } = await supabase
         .from('user')
         .update({
           name: selectedUser.name,
           email: selectedUser.email,
-          role: dbRole,
+          role: selectedUser.role,
           tags: selectedUser.tags || [],
-          active: selectedUser.active,
           associado_id: selectedUser.associado_id,
-          empresa_id: selectedUser.empresa_id
+          empresa_id: selectedUser.empresa_id,
+          active: selectedUser.active
         })
         .eq('id', selectedUser.id);
 
-      if (userError) throw userError;
-
+      if (userError) {
+        console.error("Error updating user:", userError);
+        toast({
+          title: "Erro ao atualizar usuário",
+          description: userError.message,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      // Return the updated user to the caller
       onSuccess(selectedUser);
+      
+      toast({
+        title: "Usuário atualizado",
+        description: "As informações do usuário foram atualizadas com sucesso."
+      });
+      
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating user:", error);
+      toast({
+        title: "Erro ao atualizar usuário",
+        description: error.message || "Ocorreu um erro inesperado",
+        variant: "destructive"
+      });
       return false;
     }
-  }, [selectedUser, onSuccess]);
+  }, [selectedUser, onSuccess, toast]);
 
   const toggleUserActive = useCallback(async (userId: string, active: boolean) => {
     try {
-      // Also update the active status in users
-      const { error: userError } = await supabase
+      const { error } = await supabase
         .from('user')
         .update({ active })
         .eq('id', userId);
 
-      if (userError) throw userError;
-
+      if (error) {
+        console.error("Error toggling user active state:", error);
+        toast({
+          title: "Erro ao alterar status",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
       return true;
-    } catch (error) {
-      console.error("Error toggling user active status:", error);
+    } catch (error: any) {
+      console.error("Error toggling user active state:", error);
+      toast({
+        title: "Erro ao alterar status",
+        description: error.message || "Ocorreu um erro inesperado",
+        variant: "destructive"
+      });
       return false;
     }
-  }, []);
+  }, [toast]);
 
   return {
     selectedUser,

@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { User, UserRole, UserTag } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { mapToDbRole } from '../utils/roleUtils';
+import { useToast } from '@/hooks/use-toast';
 
 export const useUserCreate = (onSuccess: (user: User) => void) => {
   const [newUser, setNewUser] = useState<Partial<User>>({
@@ -21,6 +22,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
   const [empresas, setEmpresas] = useState<Array<{id: string, cnpj: string, nome_fantasia: string}>>([]);
   const [loadingAssociados, setLoadingAssociados] = useState(false);
   const [loadingEmpresas, setLoadingEmpresas] = useState(false);
+  const { toast } = useToast();
 
   const fetchAssociados = useCallback(async () => {
     setLoadingAssociados(true);
@@ -65,7 +67,12 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
     
     try {
       if (!newUser.email || !newUser.name) {
-        throw new Error('Email e nome são obrigatórios');
+        toast({
+          title: "Campos obrigatórios",
+          description: "Email e nome são obrigatórios",
+          variant: "destructive"
+        });
+        return false;
       }
       
       // Generate a random password
@@ -73,35 +80,40 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
       
       console.log("Criando usuário com email:", newUser.email);
       
-      // Step 1: Create the user in auth.users
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Step 1: Create the user in auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: tempPassword,
-        email_confirm: true,
-        user_metadata: {
-          name: newUser.name,
-          role: mapToDbRole(newUser.role as UserRole),
-          tags: newUser.tags,
-          active: true,
-          associado_id: newUser.associado_id,
-          empresa_id: newUser.empresa_id
+        options: {
+          data: {
+            name: newUser.name,
+            role: newUser.role,
+            tags: newUser.tags,
+            associado_id: newUser.associado_id,
+            empresa_id: newUser.empresa_id
+          }
         }
       });
 
       if (authError) {
         console.error("Auth error:", authError);
-        throw authError;
+        toast({
+          title: "Erro ao criar usuário",
+          description: authError.message,
+          variant: "destructive"
+        });
+        return false;
       }
 
       console.log("Usuário Auth criado:", authData);
 
-      // Step 2: Update the user with role, tags, and linked entities
+      // Step 2: Update the user table with additional data
       if (authData && authData.user) {
         const userData = {
           id: authData.user.id,
           name: newUser.name,
           email: newUser.email,
-          role: mapToDbRole(newUser.role as UserRole),
+          role: newUser.role,
           tags: newUser.tags || [],
           active: true,
           associado_id: newUser.associado_id,
@@ -116,7 +128,12 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
 
         if (userError) {
           console.error("User update error:", userError);
-          throw userError;
+          toast({
+            title: "Erro ao atualizar dados do usuário",
+            description: userError.message,
+            variant: "destructive"
+          });
+          return false;
         }
 
         // Return the created user to the caller
@@ -147,14 +164,30 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
           empresa_cnpj: undefined
         });
 
+        toast({
+          title: "Usuário criado com sucesso",
+          description: "Um email com instruções de acesso foi enviado para o usuário.",
+        });
+
         return true;
       }
+      
+      toast({
+        title: "Erro ao criar usuário",
+        description: "Não foi possível obter os dados do usuário criado.",
+        variant: "destructive"
+      });
       return false;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating user:", error);
+      toast({
+        title: "Erro ao criar usuário",
+        description: error.message || "Ocorreu um erro inesperado",
+        variant: "destructive"
+      });
       return false;
     }
-  }, [newUser, onSuccess]);
+  }, [newUser, onSuccess, toast]);
 
   return {
     newUser,
