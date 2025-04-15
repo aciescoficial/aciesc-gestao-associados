@@ -39,8 +39,7 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
         record_count, 
         format, 
         created_at, 
-        user_id,
-        user:user_id (name)
+        user_id
       `, { count: 'exact' })
       .order('created_at', { ascending: false });
     
@@ -63,20 +62,33 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
       return { logs: [], count: 0, error: error.message };
     }
 
+    // Get user names in a separate query for logs with user_id
+    const userIds = data?.filter(log => log.user_id).map(log => log.user_id) || [];
+    
+    let userMap: Record<string, { name: string | null }> = {};
+    
+    if (userIds.length > 0) {
+      try {
+        const { data: userData } = await supabase
+          .from('user')
+          .select('id, name')
+          .in('id', userIds);
+        
+        // Create a map of user_id to user name
+        userMap = (userData || []).reduce((acc, user) => {
+          acc[user.id] = { name: user.name };
+          return acc;
+        }, {} as Record<string, { name: string | null }>);
+      } catch (userError) {
+        console.warn('Error fetching user details:', userError);
+      }
+    }
+
     // Format data for display
     const formattedLogs: OperationLog[] = data?.map(log => {
-      // Safely extract user name with proper null checks
-      let userName = 'Unknown';
-      let userData = null;
-      
-      // Check if user exists and is an object
-      if (log.user !== null && typeof log.user === 'object') {
-        // Use optional chaining to safely access the name property with proper type assertion
-        const userObj = log.user as { name?: string | null };
-        const name = userObj?.name;
-        userName = name || 'Unknown';
-        userData = { name: name || null };
-      }
+      // Get user info from map or default to unknown
+      const userData = log.user_id ? userMap[log.user_id] : null;
+      const userName = userData?.name || 'Unknown';
       
       return {
         id: log.id,
@@ -89,7 +101,7 @@ export async function getOperationLogs(options: OperationLogQuery = {}) {
         userName: userName,
         userId: log.user_id,
         created_at: log.created_at,
-        user: userData
+        user: userData ? { name: userData.name } : null
       };
     }) || [];
 
