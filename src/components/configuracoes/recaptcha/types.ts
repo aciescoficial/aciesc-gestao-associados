@@ -10,10 +10,11 @@ export const recaptchaSchema = z.object({
 });
 
 export type RecaptchaFormValues = z.infer<typeof recaptchaSchema>;
-export type RecaptchaConfigValues = {
+
+export interface RecaptchaConfigValues {
   enabled: boolean;
   siteKey: string;
   secretKey: string;
-  version: string;
+  version: 'v2' | 'v3';
   scoreThreshold: number;
-};
+}

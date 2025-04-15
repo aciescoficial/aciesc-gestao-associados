@@ -2,5 +2,6 @@
 import RecaptchaConfig from './RecaptchaConfig';
 
 export default RecaptchaConfig;
-export * from './types';
-export * from './hooks/useRecaptchaForm';
+// Export types without duplicating RecaptchaConfigValues
+export { RecaptchaFormValues } from './types';
+export { useRecaptchaForm } from './hooks/useRecaptchaForm';

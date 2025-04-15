@@ -1,9 +1,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/types/database';
 
 // Define interface for the recaptcha configuration from the database JSONB field
-interface RecaptchaConfigData {
+export interface RecaptchaConfigData {
   enabled: boolean;
   siteKey: string;
   secretKey: string;
@@ -47,10 +48,16 @@ export const useRecaptchaV2 = () => {
         }
 
         if (data && data.configuracoes) {
-          // Type assertion to handle JSONB data safely
-          const configData = data.configuracoes as RecaptchaConfigData;
-          setIsEnabled(configData.enabled || false);
-          setSiteKey(configData.siteKey || '');
+          // Type assertion with a safer approach - first check if it's an object
+          const configData = data.configuracoes as unknown;
+          if (typeof configData === 'object' && configData !== null) {
+            const config = configData as Record<string, any>;
+            // Now safely access the properties
+            setIsEnabled(!!config.enabled);
+            setSiteKey(config.siteKey || '');
+          } else {
+            console.error('Invalid reCAPTCHA config format:', configData);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch reCAPTCHA config:', error);

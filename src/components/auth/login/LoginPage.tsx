@@ -10,17 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import './recaptcha-styles.css';
 
-// Declare global Google reCAPTCHA
-declare global {
-  interface Window {
-    grecaptcha: {
-      ready: (callback: () => void) => void;
-      execute: (siteKey: string, options: { action: string }) => Promise<string>;
-      render: (container: string | HTMLElement, parameters: any) => number;
-    };
-    onRecaptchaLoad: () => void;
-  }
-}
+// No need to redeclare the global interface here since it's declared in useRecaptchaV2.tsx
+// and will be available throughout the application
 
 const LoginPage = () => {
   const { user } = useAuth();

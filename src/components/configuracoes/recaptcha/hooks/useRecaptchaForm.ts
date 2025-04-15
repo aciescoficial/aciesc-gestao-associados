@@ -1,19 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { RecaptchaFormValues } from '../types';
-import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
-// Define interface for the recaptcha configuration from the database
-export interface RecaptchaConfigValues {
-  enabled: boolean;
-  siteKey: string;
-  secretKey: string;
-  version: string;
-  scoreThreshold: number;
-}
+import { supabase } from '@/integrations/supabase/client';
+import { RecaptchaFormValues, RecaptchaConfigValues } from '../types';
 
 interface UseRecaptchaFormOptions {
   toast?: any;
@@ -87,24 +78,30 @@ export const useRecaptchaForm = (options?: UseRecaptchaFormOptions) => {
         }
 
         if (data && data.configuracoes) {
-          // Type assertion to handle JSONB data safely
-          const configData = data.configuracoes as RecaptchaConfigValues;
+          // Type assertion with a safer approach
+          const configData = data.configuracoes as unknown;
           
-          setConfig({
-            enabled: configData.enabled || false,
-            siteKey: configData.siteKey || '',
-            secretKey: configData.secretKey || '',
-            version: configData.version || 'v2',
-            scoreThreshold: configData.scoreThreshold || 0.5,
-          });
-          
-          form.reset({
-            enabled: configData.enabled || false,
-            siteKey: configData.siteKey || '',
-            secretKey: configData.secretKey || '',
-            threshold: configData.scoreThreshold || 0.5,
-            version: configData.version || 'v2',
-          });
+          if (typeof configData === 'object' && configData !== null) {
+            const configObj = configData as Record<string, any>;
+            
+            const safeConfig: RecaptchaConfigValues = {
+              enabled: !!configObj.enabled,
+              siteKey: configObj.siteKey || '',
+              secretKey: configObj.secretKey || '',
+              version: (configObj.version === 'v3' ? 'v3' : 'v2') as 'v2' | 'v3',
+              scoreThreshold: Number(configObj.scoreThreshold) || 0.5,
+            };
+            
+            setConfig(safeConfig);
+            
+            form.reset({
+              enabled: safeConfig.enabled,
+              siteKey: safeConfig.siteKey,
+              secretKey: safeConfig.secretKey,
+              threshold: safeConfig.scoreThreshold,
+              version: safeConfig.version,
+            });
+          }
         }
       } catch (error: any) {
         console.error('Error fetching reCAPTCHA config:', error);
@@ -137,7 +134,7 @@ export const useRecaptchaForm = (options?: UseRecaptchaFormOptions) => {
         enabled: values.enabled,
         siteKey: values.siteKey,
         secretKey: values.secretKey,
-        version: values.version || 'v2',
+        version: values.version,
         scoreThreshold: values.threshold,
       };
       
