@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuthContext';
 import { useToast } from "@/hooks/use-toast";
@@ -7,7 +7,6 @@ import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
@@ -96,18 +95,6 @@ const LoginPage = () => {
             </TabsContent>
           </Tabs>
         )}
-        
-        <Card className="mt-6 p-4 text-center text-sm text-muted-foreground">
-          <p>
-            Para administradores, acesse a página de{' '}
-            <a 
-              href="/admin/setup" 
-              className="text-primary hover:underline"
-            >
-              configuração inicial
-            </a>
-          </p>
-        </Card>
       </div>
     </div>
   );
