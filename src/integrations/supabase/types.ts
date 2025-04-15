@@ -594,7 +594,10 @@ export type Database = {
           active: boolean | null
           associado_id: string | null
           avatar_url: string | null
+          city: string | null
+          cpf: string | null
           created_at: string
+          creci: string | null
           email: string | null
           empresa_id: string | null
           first_login: boolean | null
@@ -602,6 +605,7 @@ export type Database = {
           name: string | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          state: string | null
           tags: string[] | null
           updated_at: string
         }
@@ -609,7 +613,10 @@ export type Database = {
           active?: boolean | null
           associado_id?: string | null
           avatar_url?: string | null
+          city?: string | null
+          cpf?: string | null
           created_at?: string
+          creci?: string | null
           email?: string | null
           empresa_id?: string | null
           first_login?: boolean | null
@@ -617,6 +624,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          state?: string | null
           tags?: string[] | null
           updated_at?: string
         }
@@ -624,7 +632,10 @@ export type Database = {
           active?: boolean | null
           associado_id?: string | null
           avatar_url?: string | null
+          city?: string | null
+          cpf?: string | null
           created_at?: string
+          creci?: string | null
           email?: string | null
           empresa_id?: string | null
           first_login?: boolean | null
@@ -632,6 +643,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          state?: string | null
           tags?: string[] | null
           updated_at?: string
         }

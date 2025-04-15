@@ -23,26 +23,29 @@ export const useProfileData = (user: any) => {
       
       setIsLoading(true);
       try {
-        // Query user table - using maybeSingle() instead of single() to handle case when no row is found
-        const { data: userData, error: userError } = await supabase
+        // Query user table using maybeSingle to handle potential no-row scenario
+        const { data, error } = await supabase
           .from('user')
           .select('name, phone, role, avatar_url, city, state, cpf, creci, associado_id, empresa_id')
           .eq('id', user.id)
           .maybeSingle();
           
-        if (userError) throw userError;
+        if (error) {
+          console.error('Profile fetch error:', error);
+          throw error;
+        }
         
-        if (userData) {
-          setName(userData.name || '');
-          setPhone(userData.phone || '');
-          setRole(userData.role || '');
-          setAvatarUrl(userData.avatar_url);
-          setCity(userData.city || '');
-          setState(userData.state || '');
-          setCpf(userData.cpf || '');
-          setCreci(userData.creci || '');
-          setAssociadoId(userData.associado_id);
-          setEmpresaId(userData.empresa_id);
+        if (data) {
+          setName(data.name || '');
+          setPhone(data.phone || '');
+          setRole(data.role || '');
+          setAvatarUrl(data.avatar_url);
+          setCity(data.city || '');
+          setState(data.state || '');
+          setCpf(data.cpf || '');
+          setCreci(data.creci || '');
+          setAssociadoId(data.associado_id);
+          setEmpresaId(data.empresa_id);
         } else {
           // No user found, create a new user record
           const { error: insertError } = await supabase
