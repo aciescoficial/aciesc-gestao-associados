@@ -61,3 +61,4 @@ const NotificationBanner: React.FC<NotificationBannerProps> = memo(({ messages =
 NotificationBanner.displayName = 'NotificationBanner';
 
 export default NotificationBanner;
+export type { NotificationMessage };

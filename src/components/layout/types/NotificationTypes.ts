@@ -8,3 +8,6 @@ export interface NotificationMessage {
     text: string;
   };
 }
+
+// Re-export for convenience
+export type { NotificationMessage as default };
