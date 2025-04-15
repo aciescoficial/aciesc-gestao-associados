@@ -10,8 +10,11 @@ import InteresseDesktopTable from './components/InteresseDesktopTable';
 import InteresseMobileCard from './components/InteresseMobileCard';
 import AprovacaoAlertas from './components/AprovacaoAlertas';
 import { Search, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const AprovacaoInteresse: React.FC = () => {
+  const { toast } = useToast();
+  
   const { 
     interesses,
     isLoading, 

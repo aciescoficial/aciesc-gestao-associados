@@ -14,6 +14,10 @@ import SituacaoPagamentoCard from '@/components/associado/dashboard/SituacaoPaga
 import UltimasEmpresas from '@/components/associado/dashboard/UltimasEmpresas';
 import EmpresasDashboard from '@/components/empresa/dashboard/EmpresasDashboard';
 import { Navigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { verificarSituacaoPagamento } from '@/components/associado/services/pagamentoService';
+import { useState } from 'react';
+import { SituacaoPagamento } from '@/components/associado/types/pagamentos';
 
 const exampleMessages: NotificationMessage[] = [
   {
@@ -48,6 +52,27 @@ const exampleMessages: NotificationMessage[] = [
 const Dashboard: React.FC = () => {
   const { stats, recentActivity, loading, systemStatus, refreshData } = useDashboardData();
   const { user } = useAuth();
+  const [pagamentoStatus, setPagamentoStatus] = useState<SituacaoPagamento | null>(null);
+  const [loadingPagamento, setLoadingPagamento] = useState<boolean>(false);
+  
+  useEffect(() => {
+    // Check payment status if user is associate
+    const checkPagamento = async () => {
+      if (user?.role === 'user' && user?.associado_id) {
+        try {
+          setLoadingPagamento(true);
+          const status = await verificarSituacaoPagamento(user.associado_id);
+          setPagamentoStatus(status);
+        } catch (error) {
+          console.error("Error checking payment status:", error);
+        } finally {
+          setLoadingPagamento(false);
+        }
+      }
+    };
+    
+    checkPagamento();
+  }, [user]);
   
   useEffect(() => {
     if (!window.localStorage.getItem('demoMessages')) {
@@ -77,14 +102,78 @@ const Dashboard: React.FC = () => {
     };
   }, [user, handleRefresh]);
 
-  // Redirecionamento para o perfil da empresa se o usuário for empresa
+  // Redirect to company profile if user is company
   if (user?.role === 'empresa') {
     return <EmpresasDashboard />;
   }
 
-  // Verificar se o usuário é um associado
+  // Check if user is an associate
   const isAssociado = user?.role === 'user' && user?.associado_id;
 
+  // For associate users, show different views based on payment status
+  if (isAssociado) {
+    if (loadingPagamento) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <LoadingSpinner size="large" text="Verificando status de pagamento..." />
+        </div>
+      );
+    }
+
+    // If payment is not up to date, only show payment status and user profile update options
+    if (!pagamentoStatus?.emDia) {
+      return (
+        <div className="space-y-6">
+          <h1 className="wp-header">Área do Associado</h1>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <h2 className="text-amber-800 font-medium text-lg mb-2">Atenção! Pagamento Pendente</h2>
+            <p className="text-amber-700 mb-2">
+              Para acessar todas as funcionalidades do sistema, é necessário regularizar o pagamento da sua anuidade.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+              <Button 
+                onClick={() => window.location.href = '/meus-pagamentos'}
+                className="bg-amber-600 hover:bg-amber-700"
+              >
+                Ver meus pagamentos
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.href = '/perfil/atualizar'}
+              >
+                Atualizar meus dados
+              </Button>
+            </div>
+          </div>
+          
+          <SituacaoPagamentoCard />
+        </div>
+      );
+    }
+
+    // If payment is up to date, show full associate dashboard
+    return (
+      <div className="space-y-6">
+        <h1 className="wp-header">Dashboard</h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <SituacaoPagamentoCard />
+          <UltimasEmpresas />
+        </div>
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">Todas as Empresas Conveniadas</h2>
+          <iframe 
+            src="/empresas-conveniadas" 
+            className="w-full h-[600px] border-0 rounded-lg shadow-sm" 
+            title="Empresas Conveniadas"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Dashboard for Administrator
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -117,35 +206,12 @@ const Dashboard: React.FC = () => {
         </div>
       )}
       
-      {/* Dashboard para Administrador */}
-      {!isAssociado && user?.role !== 'user' && (
-        <>
-          <DashboardStats stats={stats} loading={loading} />
-          <RecentActivity recentActivity={recentActivity} loading={loading} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <QuickActions />
-            <SystemStatus systemStatus={systemStatus} />
-          </div>
-        </>
-      )}
-      
-      {/* Dashboard para Associado */}
-      {isAssociado && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SituacaoPagamentoCard />
-            <UltimasEmpresas />
-          </div>
-          <div className="mt-6">
-            <h2 className="text-xl font-semibold mb-4">Todas as Empresas Conveniadas</h2>
-            <iframe 
-              src="/empresas-conveniadas" 
-              className="w-full h-[600px] border-0 rounded-lg shadow-sm" 
-              title="Empresas Conveniadas"
-            />
-          </div>
-        </>
-      )}
+      <DashboardStats stats={stats} loading={loading} />
+      <RecentActivity recentActivity={recentActivity} loading={loading} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <QuickActions />
+        <SystemStatus systemStatus={systemStatus} />
+      </div>
     </div>
   );
 };

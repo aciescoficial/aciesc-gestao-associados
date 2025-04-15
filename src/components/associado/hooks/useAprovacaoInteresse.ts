@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth';
 import { AssociadoInteresse } from '../types/associadoInteresse';
 import { getAssociadoInteresses, updateInterestStatus } from '../services/associadoInteressesService';
+import { createUserForAssociado } from '../services/associadoUserService';
 
 export const useAprovacaoInteresse = () => {
   const [interesses, setInteresses] = useState<AssociadoInteresse[]>([]);
@@ -87,6 +88,7 @@ export const useAprovacaoInteresse = () => {
 
   const handleApprove = async (id: string, email: string, nome: string, sobrenome: string) => {
     try {
+      // Update interest status to approved
       await updateInterestStatus(id, 'aprovado');
       
       // Generate a signup token valid for 7 days
@@ -110,7 +112,27 @@ export const useAprovacaoInteresse = () => {
         throw tokenError;
       }
       
-      // Send approval email
+      // Create a user account for the approved associate
+      try {
+        await createUserForAssociado({
+          id,
+          email,
+          nome,
+          sobrenome,
+          cpf: interesses.find(i => i.id === id)?.cpf || ''
+        });
+        
+        console.log('User created successfully for associate interest:', id);
+      } catch (userError) {
+        console.error('Failed to create user for associate:', userError);
+        toast({
+          title: 'Alerta',
+          description: 'O interesse foi aprovado, mas houve um problema ao criar o usuário. Verifique os logs.',
+          variant: 'warning',
+        });
+      }
+      
+      // Send approval email with payment link
       const emailSent = await sendApprovalEmail(email, nome, sobrenome, token);
       
       // Update local state

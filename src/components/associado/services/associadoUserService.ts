@@ -22,10 +22,10 @@ interface SendEmailParams {
  */
 export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }: CreateUserParams) => {
   try {
-    // Gerar senha temporária
+    // Generate temporary password
     const tempPassword = Math.random().toString(36).slice(2, 10);
     
-    // Criar usuário no auth
+    // Create user in auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password: tempPassword,
@@ -40,7 +40,7 @@ export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }
     
     if (authError) throw authError;
 
-    // Atualizar a tabela user com os dados adicionais
+    // Update user table with additional data
     if (authData && authData.user) {
       const { error: userError } = await supabase
         .from('user')
@@ -56,7 +56,7 @@ export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }
 
       if (userError) throw userError;
 
-      // Enviar e-mail com instruções de login
+      // Send email with login instructions
       await enviarEmailUsuarioCriado({
         email,
         nome,
@@ -83,7 +83,8 @@ const enviarEmailUsuarioCriado = async ({ email, nome, sobrenome, associadoId }:
         template_id: 'usuario_criado',
         template_data: {
           nome: `${nome} ${sobrenome}`,
-          link_login: `${window.location.origin}/auth/login`
+          link_login: `${window.location.origin}/auth/login`,
+          password: 'Enviada separadamente por segurança' // The actual password is not included in the email for security reasons
         }
       }
     });
