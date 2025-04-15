@@ -1,5 +1,5 @@
 
-import { useAuth } from './AuthProvider';
+import { useAuth } from '@/components/auth';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

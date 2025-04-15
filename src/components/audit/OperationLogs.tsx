@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { getOperationLogs, OperationLog } from './services';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/components/auth';
 import { OperationLogsTable } from './components/OperationLogsTable';
 import { OperationLogsLoadingState } from './components/OperationLogsLoadingState';
 import { Button } from '@/components/ui/button';

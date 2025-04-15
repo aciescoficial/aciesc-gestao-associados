@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setTimeout(async () => {
             // Fetch user role from database
             const role = await fetchUserRole(session.user.id);
-            setUserRole(role || 'user');
+            setUserRole(role as UserRole || 'user');
             
             // Fetch user tags
             try {
@@ -34,7 +34,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 .eq('id', session.user.id)
                 .single();
                 
-              setUserTags(data?.tags || []);
+              // Ensure tags are properly cast to UserTag array
+              if (data?.tags && Array.isArray(data.tags)) {
+                const validTags = data.tags.filter(tag => 
+                  ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
+                   'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc']
+                  .includes(tag)
+                ) as UserTag[];
+                setUserTags(validTags);
+              } else {
+                setUserTags([]);
+              }
             } catch (error) {
               console.error('Error fetching user tags:', error);
               setUserTags([]);
@@ -56,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (session?.user) {
           // Fetch user role from database
           const role = await fetchUserRole(session.user.id);
-          setUserRole(role || 'user');
+          setUserRole(role as UserRole || 'user');
           
           // Fetch user tags
           try {
@@ -66,7 +76,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               .eq('id', session.user.id)
               .single();
               
-            setUserTags(data?.tags || []);
+            // Ensure tags are properly cast to UserTag array
+            if (data?.tags && Array.isArray(data.tags)) {
+              const validTags = data.tags.filter(tag => 
+                ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
+                 'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc']
+                .includes(tag)
+              ) as UserTag[];
+              setUserTags(validTags);
+            } else {
+              setUserTags([]);
+            }
           } catch (error) {
             console.error('Error fetching user tags:', error);
             setUserTags([]);

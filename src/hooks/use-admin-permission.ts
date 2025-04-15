@@ -1,6 +1,6 @@
 
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuth } from "@/components/auth";
 
 export function useAdminPermission() {
   const { userRole, userTags } = useAuth();

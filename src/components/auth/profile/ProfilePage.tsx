@@ -1,5 +1,5 @@
 
-import { useAuth } from '../AuthProvider';
+import { useAuth } from '@/components/auth';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PersonalInfoTab } from './PersonalInfoTab';

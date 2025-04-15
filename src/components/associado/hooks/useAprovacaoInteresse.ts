@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/components/auth';
 import { AssociadoInteresse } from '../types/associadoInteresse';
 import { getAssociadoInteresses, updateInterestStatus } from '../services/associadoInteressesService';
 

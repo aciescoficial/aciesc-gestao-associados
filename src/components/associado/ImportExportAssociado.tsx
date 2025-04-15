@@ -1,6 +1,7 @@
+
 import React, { useRef, useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/components/auth';
 import { ImportExportActions } from './ImportExportActions';
 import { ImportDialog } from './ImportDialog';
 import { ImportAssociadoData, ImportValidationData } from './types';

@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { useAuth } from '../auth/AuthProvider';
+import { useAuth } from '@/components/auth';
 import { useSidebarState } from '@/hooks/use-sidebar-state';
 import SidebarMenuItem from './SidebarMenuItem';
 import SidebarSubmenu from './SidebarSubmenu';

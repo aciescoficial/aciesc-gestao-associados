@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/components/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { logOperation } from '@/components/audit/auditLogService';
 import Papa from 'papaparse';

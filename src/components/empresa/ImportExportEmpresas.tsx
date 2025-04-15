@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useImportExport } from './import/useImportExport';
 import ImportPreview from './import/ImportPreview';
 import ImportInstructions from './import/ImportInstructions';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/components/auth';
 import { useToast } from '@/hooks/use-toast';
 import { logOperation } from '@/components/audit/auditLogService';
 

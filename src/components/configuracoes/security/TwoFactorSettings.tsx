@@ -5,7 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { KeyRound, ShieldCheck, Info, Settings } from 'lucide-react';
-import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuth } from '@/components/auth';
 import { useToast } from '@/hooks/use-toast';
 
 const TwoFactorSettings: React.FC = () => {
