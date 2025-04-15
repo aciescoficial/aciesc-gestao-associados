@@ -5,7 +5,7 @@ import { supabase } from './client';
 // Extended client uses the service_role key
 // WARNING: Only use service_role for server-side operations or trusted admin functions
 const SUPABASE_URL = "https://wpcstzjczfgbfwgzwktf.supabase.co";
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || ""; // This should be set in production
+const SUPABASE_SERVICE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_KEY || ""; // Using Vite's environment variable syntax
 
 // Create an extended client with admin privileges for special operations
 // Note: This client should be used VERY carefully and only in appropriate contexts
@@ -65,8 +65,9 @@ export const handleApiError = (error: PostgrestError | null): string => {
 // Add secure delete function for admin operations
 export const secureDelete = async (table: string, id: string): Promise<void> => {
   try {
+    // Cast table to any to bypass TypeScript's strict type checking
     const { error } = await supabase
-      .from(table)
+      .from(table as any)
       .delete()
       .eq('id', id);
       

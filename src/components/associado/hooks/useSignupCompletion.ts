@@ -100,13 +100,11 @@ export const useSignupCompletion = (token: string | null): UseSignupCompletionRe
         setTokenValid(true);
         
         // Extract associado_interesse data and ensure it's typed correctly
-        const interesseData = data.associado_interesse as {
-          id: string;
-          nome: string;
-          sobrenome: string;
-          email: string;
-          cpf: string;
-        };
+        if (!data.associado_interesse) {
+          throw new Error("Dados do associado não encontrados");
+        }
+        
+        const interesseData = data.associado_interesse as SignupData;
         
         setSignupData({
           id: interesseData.id,
