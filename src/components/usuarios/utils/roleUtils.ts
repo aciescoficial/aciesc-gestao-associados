@@ -1,7 +1,6 @@
 
-import React from 'react';
 import { UserRole, UserTag, RoleInfo, TagInfo } from '../types';
-import { Shield, User, Building2, Users, UserCog } from 'lucide-react';
+import { Shield, User, Building2, Users } from 'lucide-react';
 
 // Map role to badge color
 export const getRoleBadgeColor = (role: UserRole): string => {
@@ -55,32 +54,35 @@ export const mapToDbRole = (uiRole: UserRole): string => {
 };
 
 // Get available roles with info
-export const getRoles = (): RoleInfo[] => [
-  {
-    id: 'admin',
-    name: 'Administrador',
-    description: 'Acesso completo ao sistema',
-    icon: <Shield className="h-4 w-4" />
-  },
-  {
-    id: 'user',
-    name: 'Associado',
-    description: 'Acesso a funcionalidades de associado',
-    icon: <User className="h-4 w-4" />
-  },
-  {
-    id: 'empresa',
-    name: 'Empresa',
-    description: 'Acesso a funcionalidades de empresa',
-    icon: <Building2 className="h-4 w-4" />
-  },
-  {
-    id: 'diretoria',
-    name: 'Diretoria',
-    description: 'Acesso a funcionalidades da diretoria',
-    icon: <Users className="h-4 w-4" />
-  }
-];
+export const getRoles = (): RoleInfo[] => {
+  // Import icons as named constructor functions instead of JSX elements
+  return [
+    {
+      id: 'admin',
+      name: 'Administrador',
+      description: 'Acesso completo ao sistema',
+      icon: Shield
+    },
+    {
+      id: 'user',
+      name: 'Associado',
+      description: 'Acesso a funcionalidades de associado',
+      icon: User
+    },
+    {
+      id: 'empresa',
+      name: 'Empresa',
+      description: 'Acesso a funcionalidades de empresa',
+      icon: Building2
+    },
+    {
+      id: 'diretoria',
+      name: 'Diretoria',
+      description: 'Acesso a funcionalidades da diretoria',
+      icon: Users
+    }
+  ];
+};
 
 // Get available user tags
 export const getUserTags = (): TagInfo[] => [
