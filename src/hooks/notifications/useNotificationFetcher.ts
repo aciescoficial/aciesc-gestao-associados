@@ -73,7 +73,7 @@ export function useNotificationFetcher(options: FetcherOptions = {}) {
       // Use a simpler query to reduce database load
       const queryPromise = supabase
         .from('email_templates')
-        .select('id, assunto, corpo, codigo')
+        .select('id, assunto, corpo, codigo, created_at')
         .eq('codigo', 'sistema_alerta')
         .limit(5);
         

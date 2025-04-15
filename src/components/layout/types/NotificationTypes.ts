@@ -3,6 +3,8 @@ export interface NotificationMessage {
   id: string;
   text: string;
   type: 'payment' | 'event' | 'inactive' | 'info';
+  read?: boolean;
+  createdAt?: string;
   action?: {
     url: string;
     text: string;
@@ -29,6 +31,16 @@ export interface NotificationsState {
 export interface NotificationCacheStatus {
   status: 'valid' | 'expired' | 'none';
   timestamp?: number;
+}
+
+// Type for notification center
+export interface NotificationCenterProps {
+  notifications: NotificationMessage[];
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  isLoading: boolean;
+  hasError: boolean;
+  refreshNotifications: () => void;
 }
 
 // Re-export for convenience

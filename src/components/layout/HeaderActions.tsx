@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { HelpCircle } from 'lucide-react';
 import UserProfileMenu from '../auth/UserProfileMenu';
 import {
@@ -15,18 +15,22 @@ import {
 } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
-import NotificationsDropdown from '../notifications/NotificationsDropdown';
+import NotificationCenter from '../notifications/NotificationCenter';
 
 const HeaderActions: React.FC = () => {
   const isMobile = useIsMobile();
   
   return (
     <div className="flex items-center gap-2">
-      {/* Notifications Dropdown */}
-      <NotificationsDropdown />
-      
-      {/* Messages - Temporarily disabled */}
-      {/* Message component code removed for now */}
+      {/* Notification Center */}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NotificationCenter />
+          </TooltipTrigger>
+          <TooltipContent>Notificações</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       
       {/* Help */}
       <TooltipProvider>

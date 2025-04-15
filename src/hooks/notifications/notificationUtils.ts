@@ -98,6 +98,7 @@ export function formatApiMessagesToNotifications(data: any[]): NotificationMessa
     id: template.id || String(Math.random()),
     text: template.assunto || 'Notificação do sistema',
     type: 'info' as const,
+    createdAt: template.created_at || new Date().toISOString(),
     action: template.corpo && template.corpo.includes('http') ? {
       url: template.corpo.match(/https?:\/\/[^\s]+/)?.[0] || '#',
       text: 'Saiba mais'
@@ -109,6 +110,52 @@ export function formatApiMessagesToNotifications(data: any[]): NotificationMessa
  * Load demo messages for development and testing
  */
 export function loadDemoMessages(): NotificationMessage[] | null {
+  // Create demo messages with timestamps for testing
+  const now = new Date();
+  const demoMessages: NotificationMessage[] = [
+    {
+      id: '1',
+      text: 'Bem-vindo ao sistema! Clique aqui para um tour guiado.',
+      type: 'info',
+      createdAt: new Date(now.getTime() - 5 * 60000).toISOString(), // 5 minutes ago
+      action: {
+        url: '#tour',
+        text: 'Iniciar tour'
+      }
+    },
+    {
+      id: '2',
+      text: 'Existem 3 novas empresas aguardando aprovação.',
+      type: 'event',
+      createdAt: new Date(now.getTime() - 2 * 3600000).toISOString(), // 2 hours ago
+      action: {
+        url: '/aprovacoes-pendentes',
+        text: 'Visualizar'
+      }
+    },
+    {
+      id: '3',
+      text: 'Pagamento confirmado para carteirinha #12345.',
+      type: 'payment',
+      createdAt: new Date(now.getTime() - 24 * 3600000).toISOString(), // 1 day ago
+      action: {
+        url: '/financeiro',
+        text: 'Ver detalhes'
+      }
+    },
+    {
+      id: '4',
+      text: 'Seu plano de associação vence em 7 dias.',
+      type: 'inactive',
+      createdAt: new Date(now.getTime() - 3 * 24 * 3600000).toISOString(), // 3 days ago
+      action: {
+        url: '/renovar',
+        text: 'Renovar agora'
+      }
+    }
+  ];
+
+  // Also check if there are stored demo messages
   const storedMessages = window.localStorage.getItem('demoMessages');
   if (storedMessages) {
     try {
@@ -120,5 +167,8 @@ export function loadDemoMessages(): NotificationMessage[] | null {
       console.error("Error parsing demo messages:", e);
     }
   }
-  return null;
+  
+  // Save the demo messages in localStorage for persistence
+  localStorage.setItem('demoMessages', JSON.stringify(demoMessages));
+  return demoMessages;
 }
