@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                    'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc']
                   .includes(tag)
                 ) as UserTag[];
-                setUserTags(validUserTags);
+                setUserTags(validTags);
               } else {
                 setUserTags([]);
               }
@@ -107,12 +107,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
   
   // Check if user is admin
-  const isAdmin = userRole === 'admin' || userRole === 'diretoria';
+  const isAdmin = userRole === 'admin' || userRole === 'diretoria' as UserRole;
   
   // Check if user has financeiro access
   const hasFinanceiroAccess = isAdmin || 
     userTags.some(tag => tag === 'financeiro') || 
-    userRole === 'diretoria';
+    userRole === 'diretoria' as UserRole;
   
   const authContextValue = {
     user,
@@ -134,4 +134,3 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     </AuthContext.Provider>
   );
 };
-
