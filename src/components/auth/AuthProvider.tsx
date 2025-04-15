@@ -28,27 +28,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Defer Supabase calls with setTimeout
           setTimeout(async () => {
             try {
-              // Fetch user role from database
-              const role = await fetchUserRole(session.user.id);
-              console.log("Fetched role:", role);
-              setUserRole(role as UserRole || 'user');
+              console.log("Fetching user data for:", session.user.id);
               
-              // Fetch user tags
-              try {
-                const { data, error } = await supabase
-                  .from('user')
-                  .select('tags')
-                  .eq('id', session.user.id)
-                  .single();
-                  
-                if (error) {
-                  console.error("Error fetching user tags:", error);
-                  setUserTags([]);
-                  return;
-                }
+              // Fetch user data from the user table
+              const { data, error } = await supabase
+                .from('user')
+                .select('role, tags, active, id')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (error) {
+                console.error("Error fetching user data:", error);
+                setUserRole('user');
+                setUserTags([]);
+                return;
+              }
+              
+              console.log("User data fetched:", data);
+              
+              if (data) {
+                setUserRole(data.role as UserRole || 'user');
                 
                 // Ensure tags are properly cast to UserTag array
-                if (data?.tags && Array.isArray(data.tags)) {
+                if (data.tags && Array.isArray(data.tags)) {
                   const validTags = data.tags.filter(tag => 
                     ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
                      'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc']
@@ -60,12 +62,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   console.log("No tags found or invalid tags format");
                   setUserTags([]);
                 }
-              } catch (error) {
-                console.error('Error fetching user tags:', error);
-                setUserTags([]);
               }
             } catch (error) {
               console.error("Error in auth state change handler:", error);
+              setUserRole('user');
+              setUserTags([]);
             }
           }, 0);
         } else {
@@ -86,28 +87,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user role from database
+          // Fetch user data from database
           try {
-            const role = await fetchUserRole(session.user.id);
-            console.log("Fetched role for existing session:", role);
-            setUserRole(role as UserRole || 'user');
+            console.log("Fetching user data for existing session:", session.user.id);
             
-            // Fetch user tags
-            try {
-              const { data, error } = await supabase
-                .from('user')
-                .select('tags')
-                .eq('id', session.user.id)
-                .single();
-                
-              if (error) {
-                console.error("Error fetching user tags for existing session:", error);
-                setUserTags([]);
-                return;
-              }
-                
+            const { data, error } = await supabase
+              .from('user')
+              .select('role, tags, active')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (error) {
+              console.error("Error fetching user data for existing session:", error);
+              setUserRole('user');
+              setUserTags([]);
+              return;
+            }
+            
+            console.log("User data for existing session:", data);
+            
+            if (data) {
+              setUserRole(data.role as UserRole || 'user');
+              
               // Ensure tags are properly cast to UserTag array
-              if (data?.tags && Array.isArray(data.tags)) {
+              if (data.tags && Array.isArray(data.tags)) {
                 const validTags = data.tags.filter(tag => 
                   ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
                    'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc']
@@ -119,12 +122,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 console.log("No tags found or invalid tags format for existing session");
                 setUserTags([]);
               }
-            } catch (error) {
-              console.error('Error fetching user tags for existing session:', error);
-              setUserTags([]);
             }
           } catch (error) {
-            console.error("Error fetching user role for existing session:", error);
+            console.error("Error fetching user data for existing session:", error);
+            setUserRole('user');
+            setUserTags([]);
           }
         }
       } catch (error) {
@@ -143,12 +145,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
   
   // Check if user is admin
-  const isAdmin = userRole === 'admin' || userRole === 'diretoria' as UserRole;
+  const isAdmin = userRole === 'admin' || userRole === 'diretoria';
   
   // Check if user has financeiro access
   const hasFinanceiroAccess = isAdmin || 
     userTags.some(tag => tag === 'financeiro') || 
-    userRole === 'diretoria' as UserRole;
+    userRole === 'diretoria';
   
   const authContextValue = {
     user,

@@ -4,7 +4,7 @@ import { UserRole } from '@/components/usuarios/types';
 
 export const signIn = async (email: string, password: string) => {
   try {
-    console.log('SignIn attempt with:', email);
+    console.log('SignIn attempt with email:', email);
     
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -13,11 +13,34 @@ export const signIn = async (email: string, password: string) => {
     
     if (error) {
       console.error('SignIn error:', error);
-    } else {
-      console.log('SignIn successful:', data?.user?.id);
+      return { data: null, error };
+    } 
+    
+    console.log('SignIn successful, user ID:', data?.user?.id);
+    console.log('User metadata:', data?.user?.user_metadata);
+    
+    // Check if the user exists in the user table
+    if (data?.user?.id) {
+      const { data: userData, error: userError } = await supabase
+        .from('user')
+        .select('role, tags, active')
+        .eq('id', data.user.id)
+        .single();
+        
+      if (userError) {
+        console.error('Error fetching user data:', userError);
+      } else if (userData) {
+        console.log('User role:', userData.role);
+        console.log('User tags:', userData.tags);
+        console.log('User active status:', userData.active);
+        
+        if (!userData.active) {
+          return { data: null, error: { message: 'Conta desativada. Por favor, contate o administrador.' } };
+        }
+      }
     }
     
-    return { data, error };
+    return { data, error: null };
   } catch (error: any) {
     console.error('Exception during sign in:', error);
     return { data: null, error };

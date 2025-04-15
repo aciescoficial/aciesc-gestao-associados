@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuthContext';
 import { useToast } from "@/hooks/use-toast";
 import LoginForm from './LoginForm';
@@ -8,6 +8,8 @@ import RegisterForm from './RegisterForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const LoginPage = () => {
   const { user, loading } = useAuth();
@@ -15,17 +17,24 @@ const LoginPage = () => {
   const [activeTab, setActiveTab] = useState('login');
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [loginError, setLoginError] = useState<string | null>(null);
   
   useEffect(() => {
     // Check for registration success query param
     const params = new URLSearchParams(location.search);
     const registered = params.get('registered');
+    const error = params.get('error');
     
     if (registered === 'true') {
       toast({
         title: "Registro concluído",
         description: "Sua conta foi criada com sucesso. Agora você pode fazer login.",
       });
+    }
+    
+    if (error) {
+      setLoginError(decodeURIComponent(error));
     }
     
     // Check if we should show the register tab
@@ -45,7 +54,9 @@ const LoginPage = () => {
 
   // Redirect if already logged in
   if (user) {
-    return <Navigate to="/" />;
+    // Get the intended destination from location state or default to dashboard
+    const from = location.state?.from?.pathname || "/dashboard";
+    return <Navigate to={from} />;
   }
 
   return (
@@ -55,6 +66,13 @@ const LoginPage = () => {
           <h1 className="text-2xl font-bold">ACIESC</h1>
           <p className="text-muted-foreground">Gestão de Associados</p>
         </div>
+
+        {loginError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{loginError}</AlertDescription>
+          </Alert>
+        )}
 
         {showForgotPassword ? (
           <ForgotPasswordForm 

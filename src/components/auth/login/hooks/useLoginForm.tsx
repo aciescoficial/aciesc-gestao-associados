@@ -20,7 +20,7 @@ export const useLoginForm = (onForgotPassword: () => void) => {
     setIsLoading(true);
     
     try {
-      console.log('Tentando login com email:', email);
+      console.log('Tentando login com email:', email, 'e tipo de organização:', organizationType);
       
       if (!email || !password) {
         toast({
@@ -51,13 +51,13 @@ export const useLoginForm = (onForgotPassword: () => void) => {
           description: errorMessage,
         });
       } else if (data) {
-        console.log('Login bem sucedido');
+        console.log('Login bem sucedido:', data);
         toast({
           title: "Login realizado",
           description: "Você foi autenticado com sucesso.",
         });
         
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error: any) {
       console.error('Exception during login:', error);
