@@ -8,7 +8,12 @@ import { UserRole, UserTag } from '../usuarios/types';
 import { logSystemAccess } from '../audit/services/userActivityService';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<(User & { 
+    role?: UserRole; 
+    associado_id?: string; 
+    empresa_id?: string;
+    userTags?: UserTag[];
+  }) | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
@@ -21,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       const { data, error } = await supabase
         .from('user')
-        .select('role, tags, active, id')
+        .select('role, tags, active, id, associado_id, empresa_id')
         .eq('id', userId)
         .maybeSingle(); // Use maybeSingle instead of single
       
@@ -53,7 +58,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (data) {
         // Explicitly cast the role to UserRole type to ensure TypeScript recognizes it
-        setUserRole((data.role as UserRole) || 'user');
+        const userRole = data.role as UserRole;
+        setUserRole(userRole || 'user');
+        
+        // Update user state with extended properties from the user table
+        setUser(prevUser => {
+          if (!prevUser) return null;
+          return {
+            ...prevUser,
+            role: userRole,
+            associado_id: data.associado_id,
+            empresa_id: data.empresa_id,
+            userTags: Array.isArray(data.tags) ? data.tags as UserTag[] : []
+          };
+        });
         
         // Process user tags
         processUserTags(data.tags);
@@ -113,14 +131,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleAuthStateChange = useCallback((event: string, currentSession: Session | null) => {
     console.log("Auth state change:", event);
     setSession(currentSession);
-    setUser(currentSession?.user ?? null);
     
     if (currentSession?.user) {
+      // Update user with extended properties initially
+      const enhancedUser = {
+        ...currentSession.user,
+        role: undefined as UserRole | undefined,
+        associado_id: undefined,
+        empresa_id: undefined,
+        userTags: [] as UserTag[]
+      };
+      
+      setUser(enhancedUser);
+      
       // Defer Supabase calls with setTimeout
       setTimeout(() => {
         fetchUserData(currentSession.user.id);
       }, 0);
     } else {
+      setUser(null);
       setUserRole(null);
       setUserTags([]);
     }
@@ -134,10 +163,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("Existing session:", existingSession ? "found" : "not found");
       
       setSession(existingSession);
-      setUser(existingSession?.user ?? null);
       
       if (existingSession?.user) {
+        // Set initial enhanced user
+        const enhancedUser = {
+          ...existingSession.user,
+          role: undefined as UserRole | undefined,
+          associado_id: undefined,
+          empresa_id: undefined,
+          userTags: [] as UserTag[]
+        };
+        
+        setUser(enhancedUser);
         await fetchUserData(existingSession.user.id);
+      } else {
+        setUser(null);
       }
     } catch (error) {
       console.error('Error checking auth session:', error);
