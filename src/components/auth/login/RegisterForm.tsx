@@ -9,11 +9,16 @@ const RegisterForm = () => {
     setEmail,
     password,
     setPassword,
+    confirmPassword,
+    setConfirmPassword,
     name,
     setName,
     isLoading,
     showPassword,
     setShowPassword,
+    showConfirmPassword,
+    setShowConfirmPassword,
+    passwordsMatch,
     organizationType,
     setOrganizationType,
     handleSignUp
@@ -37,10 +42,15 @@ const RegisterForm = () => {
           setEmail={setEmail}
           password={password}
           setPassword={setPassword}
+          confirmPassword={confirmPassword}
+          setConfirmPassword={setConfirmPassword}
           name={name}
           setName={setName}
           showPassword={showPassword}
           setShowPassword={setShowPassword}
+          showConfirmPassword={showConfirmPassword}
+          setShowConfirmPassword={setShowConfirmPassword}
+          passwordsMatch={passwordsMatch}
           organizationType={organizationType}
           setOrganizationType={setOrganizationType}
           isLoading={isLoading}

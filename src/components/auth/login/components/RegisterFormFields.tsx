@@ -12,10 +12,15 @@ interface RegisterFormFieldsProps {
   setEmail: (email: string) => void;
   password: string;
   setPassword: (password: string) => void;
+  confirmPassword: string;
+  setConfirmPassword: (password: string) => void;
   name: string;
   setName: (name: string) => void;
   showPassword: boolean;
   setShowPassword: (show: boolean) => void;
+  showConfirmPassword: boolean;
+  setShowConfirmPassword: (show: boolean) => void;
+  passwordsMatch: boolean;
   organizationType: UserRole;
   setOrganizationType: (type: UserRole) => void;
   isLoading: boolean;
@@ -27,10 +32,15 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
   setEmail,
   password,
   setPassword,
+  confirmPassword,
+  setConfirmPassword,
   name,
   setName,
   showPassword,
   setShowPassword,
+  showConfirmPassword,
+  setShowConfirmPassword,
+  passwordsMatch,
   organizationType,
   setOrganizationType,
   isLoading,
@@ -81,6 +91,32 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="confirm-password-register">Confirmar Senha</Label>
+        <div className="relative">
+          <Input 
+            id="confirm-password-register" 
+            type={showConfirmPassword ? "text" : "password"}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required 
+            className={!passwordsMatch && confirmPassword ? "border-red-500" : ""}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-0 top-0 h-full px-3"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+          >
+            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
+        </div>
+        {!passwordsMatch && confirmPassword && (
+          <p className="text-sm text-red-500 mt-1">As senhas não coincidem</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
         <Label>Tipo de Conta</Label>
         <Select 
           value={organizationType} 
@@ -101,7 +137,7 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
         <Button 
           type="submit" 
           className="w-full"
-          disabled={isLoading}
+          disabled={isLoading || !passwordsMatch}
         >
           {isLoading ? "Criando conta..." : "Criar Conta"}
         </Button>
