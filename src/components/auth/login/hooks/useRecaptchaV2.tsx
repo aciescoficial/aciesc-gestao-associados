@@ -20,8 +20,9 @@ export const useRecaptchaV2 = () => {
     const loadRecaptchaConfig = async () => {
       try {
         const { data, error } = await supabase
-          .from('recaptcha_config')
+          .from('configuracoes')
           .select('*')
+          .eq('tipo', 'recaptcha')
           .single();
 
         if (error && error.code !== 'PGRST116') {
@@ -29,9 +30,9 @@ export const useRecaptchaV2 = () => {
           return;
         }
 
-        if (data) {
-          setIsEnabled(data.enabled || false);
-          setSiteKey(data.site_key || '');
+        if (data && data.configuracoes) {
+          setIsEnabled(data.configuracoes.enabled || false);
+          setSiteKey(data.configuracoes.siteKey || '');
         }
       } catch (error) {
         console.error('Failed to fetch reCAPTCHA config:', error);
@@ -59,38 +60,33 @@ export const useRecaptchaV2 = () => {
     };
   }, [isEnabled, siteKey]);
 
-  // Initialize reCAPTCHA when loaded
-  useEffect(() => {
-    if (!isLoaded || !isEnabled || !siteKey || !recaptchaRef.current || !window.grecaptcha?.render) {
-      return;
+  // Function to execute reCAPTCHA
+  const executeRecaptcha = async (action = 'login'): Promise<string> => {
+    if (!isLoaded || !siteKey || !window.grecaptcha) {
+      return '';
     }
-
+    
     try {
-      window.grecaptcha.render(recaptchaRef.current, {
-        sitekey: siteKey,
-        callback: (token: string) => {
-          setRecaptchaToken(token);
-        },
-        'expired-callback': () => {
-          setRecaptchaToken(null);
-        },
-        'error-callback': () => {
-          console.error('reCAPTCHA error');
-          setRecaptchaToken(null);
-        },
-      });
+      const token = await window.grecaptcha.execute(siteKey, { action });
+      setRecaptchaToken(token);
+      return token;
     } catch (error) {
-      console.error('Error rendering reCAPTCHA:', error);
+      console.error('reCAPTCHA execution error:', error);
+      return '';
     }
-  }, [isLoaded, isEnabled, siteKey]);
+  };
 
   return {
     recaptchaRef,
     isEnabled: isEnabled && !!siteKey,
     recaptchaToken,
+    recaptchaLoaded: isLoaded,
+    executeRecaptcha,
     resetRecaptcha: () => {
-      if (window.grecaptcha?.reset) {
+      if (window.grecaptcha && window.grecaptcha.reset) {
         window.grecaptcha.reset();
+        setRecaptchaToken(null);
+      } else {
         setRecaptchaToken(null);
       }
     },

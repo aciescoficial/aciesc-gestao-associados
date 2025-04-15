@@ -6,6 +6,14 @@ export const recaptchaSchema = z.object({
   secretKey: z.string().min(1, 'Chave secreta é obrigatória'),
   enabled: z.boolean().default(true),
   threshold: z.number().min(0).max(1).default(0.5),
+  version: z.enum(['v2', 'v3']).default('v2'),
 });
 
 export type RecaptchaFormValues = z.infer<typeof recaptchaSchema>;
+export type RecaptchaConfigValues = {
+  enabled: boolean;
+  siteKey: string;
+  secretKey: string;
+  version: string;
+  scoreThreshold: number;
+};
