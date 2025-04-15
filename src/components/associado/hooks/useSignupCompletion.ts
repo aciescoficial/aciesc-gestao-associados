@@ -104,9 +104,15 @@ export const useSignupCompletion = (token: string | null): UseSignupCompletionRe
           throw new Error("Dados do associado não encontrados");
         }
         
-        // Fix the type issue by properly extracting the associado_interesse object
-        // The issue is that data.associado_interesse is now the correct type
-        const interesseData = data.associado_interesse;
+        // The issue is that data.associado_interesse might be an array
+        // We need to handle both cases - if it's an array, take the first item
+        const interesseData = Array.isArray(data.associado_interesse) 
+          ? data.associado_interesse[0] 
+          : data.associado_interesse;
+        
+        if (!interesseData) {
+          throw new Error("Dados do associado inválidos");
+        }
         
         // Ensure we're setting a single object that matches SignupData interface
         setSignupData({
