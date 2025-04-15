@@ -30,7 +30,7 @@ if (!supabase.auth.admin) {
         console.log("Admin createUser called with:", userDetails);
         
         // Use the regular signup method since we can't use service_role in the client
-        const { data, error } = await supabase.auth.signUp({
+        const result = await supabase.auth.signUp({
           email: userDetails.email,
           password: userDetails.password,
           options: {
@@ -39,7 +39,7 @@ if (!supabase.auth.admin) {
           }
         });
         
-        return { data, error };
+        return result;
       } catch (error) {
         console.error("Error in admin createUser:", error);
         return { data: null, error };
