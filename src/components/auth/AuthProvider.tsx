@@ -119,6 +119,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [handleAuthStateChange, initializeSession]);
   
   // Derived state for user permissions
+  // Explicit type casting to make sure TypeScript recognizes proper types
   const isAdmin = userRole === 'admin' || userRole === 'diretoria';
   
   const hasFinanceiroAccess = isAdmin || 
