@@ -12,8 +12,8 @@ const AdminUserSetup: React.FC = () => {
   const [created, setCreated] = useState(false);
   const [rootExists, setRootExists] = useState(false);
 
-  const ROOT_EMAIL = "root@admin.com";
-  const ROOT_PASSWORD = "Admin@1287#";
+  const ROOT_EMAIL = "admin@aciesc.com.br";
+  const ROOT_PASSWORD = "FavorDeDeus@2025";
   
   // Check if ROOT user already exists
   useEffect(() => {
