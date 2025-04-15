@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { logUserActivity } from '@/components/audit/services/userActivityService';
 
 interface AvatarUploadProps {
   user: any;
@@ -20,7 +21,18 @@ export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadPr
     
     const file = e.target.files[0];
     const fileExt = file.name.split('.').pop();
-    const filePath = `${user.id}/avatar.${fileExt}`;
+    const fileName = `avatar.${fileExt}`;
+    const filePath = `${user.id}/${fileName}`;
+    
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar foto",
+        description: "O arquivo é muito grande. Limite máximo: 5MB.",
+      });
+      return;
+    }
     
     setIsUploadingAvatar(true);
     
@@ -47,6 +59,9 @@ export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadPr
         
       if (updateError) throw updateError;
       
+      // Log user activity
+      await logUserActivity(user.id, 'Atualização de foto de perfil');
+      
       onAvatarUpdate(data.publicUrl);
       
       toast({
@@ -54,10 +69,11 @@ export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadPr
         description: "Sua foto de perfil foi atualizada com sucesso.",
       });
     } catch (error: any) {
+      console.error('Avatar upload error:', error);
       toast({
         variant: "destructive",
         title: "Erro ao atualizar foto",
-        description: error.message,
+        description: error.message || "Não foi possível atualizar a foto de perfil.",
       });
     } finally {
       setIsUploadingAvatar(false);
@@ -73,7 +89,10 @@ export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadPr
             {user.email?.substring(0, 2).toUpperCase() || "U"}
           </AvatarFallback>
         </Avatar>
-        <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-aciesc-primary text-white rounded-full p-1.5 cursor-pointer hover:bg-aciesc-dark transition-colors">
+        <label 
+          htmlFor="avatar-upload" 
+          className="absolute bottom-0 right-0 bg-aciesc-primary text-white rounded-full p-1.5 cursor-pointer hover:bg-aciesc-dark transition-colors"
+        >
           <Camera className="h-4 w-4" />
           <input 
             id="avatar-upload" 
