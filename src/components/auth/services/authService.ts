@@ -4,14 +4,22 @@ import { UserRole } from '@/components/usuarios/types';
 
 export const signIn = async (email: string, password: string) => {
   try {
+    console.log('SignIn attempt with:', email);
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     
+    if (error) {
+      console.error('SignIn error:', error);
+    } else {
+      console.log('SignIn successful:', data?.user?.id);
+    }
+    
     return { data, error };
   } catch (error: any) {
-    console.error('Error during sign in:', error);
+    console.error('Exception during sign in:', error);
     return { data: null, error };
   }
 };
@@ -34,7 +42,6 @@ export const signInWithGoogle = async () => {
 
 export const signUp = async (email: string, password: string, name: string, role: UserRole = 'user') => {
   try {
-    // Removido o sistema de captcha, configurado para não exigir um token captcha
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -46,6 +53,22 @@ export const signUp = async (email: string, password: string, name: string, role
         emailRedirectTo: `${window.location.origin}/login`
       }
     });
+    
+    // If signup was successful but we need to create the user in the user table as well
+    if (data?.user && !error) {
+      try {
+        // Insert the user into the public.user table
+        await supabase.from('user').insert({
+          id: data.user.id,
+          email: email,
+          name: name,
+          role: role,
+          active: true
+        });
+      } catch (profileError) {
+        console.error('Error creating user profile:', profileError);
+      }
+    }
     
     return { data, error };
   } catch (error: any) {

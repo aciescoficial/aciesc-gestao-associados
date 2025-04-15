@@ -19,6 +19,21 @@ const AdminUserSetup: React.FC = () => {
   useEffect(() => {
     const checkRootUser = async () => {
       try {
+        // First check in auth.users instead of user table
+        const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+        
+        if (authError) {
+          console.error("Error checking auth users:", authError);
+        }
+        
+        const rootUserExists = authData?.users?.some(user => user.email === ROOT_EMAIL);
+        
+        if (rootUserExists) {
+          setRootExists(true);
+          return;
+        }
+        
+        // Also check in public.user table as fallback
         const { data, error } = await supabase
           .from('user')
           .select('email')
@@ -40,14 +55,16 @@ const AdminUserSetup: React.FC = () => {
     setLoading(true);
     
     try {
-      // Step 1: Create auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Step 1: Create auth user using signUp instead of admin.createUser
+      // This is more reliable for setting up initial users
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: ROOT_EMAIL,
         password: ROOT_PASSWORD,
-        email_confirm: true,
-        user_metadata: {
-          name: "Administrator ROOT",
-          role: "admin"
+        options: {
+          data: {
+            name: "Administrator ROOT",
+            role: "admin"
+          }
         }
       });
 
@@ -72,6 +89,20 @@ const AdminUserSetup: React.FC = () => {
           throw profileError;
         }
 
+        // Attempt to confirm the email directly if possible
+        try {
+          const { error: confirmError } = await supabase.auth.admin.updateUserById(
+            authData.user.id,
+            { email_confirm: true }
+          );
+          
+          if (confirmError) {
+            console.warn("Could not confirm email automatically:", confirmError);
+          }
+        } catch (confirmErr) {
+          console.warn("Email confirmation is not available:", confirmErr);
+        }
+
         toast({
           title: "Usuário ROOT criado",
           description: "O usuário ROOT foi criado com sucesso com a senha fornecida.",
@@ -79,6 +110,7 @@ const AdminUserSetup: React.FC = () => {
         });
         
         setCreated(true);
+        setRootExists(true);
       }
     } catch (error) {
       console.error("Error creating ROOT user:", error);
