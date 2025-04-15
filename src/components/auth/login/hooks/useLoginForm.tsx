@@ -13,7 +13,7 @@ export const useLoginForm = (onForgotPassword: () => void) => {
   const [organizationType, setOrganizationType] = useState<UserRole>('user');
   const { toast } = useToast();
   
-  const handleSignIn = async (e: React.FormEvent, recaptchaToken: string | null = null) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     

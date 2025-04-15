@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLoginForm } from './hooks/useLoginForm';
 import LoginFormFields from './components/LoginFormFields';
@@ -26,7 +25,7 @@ const LoginForm = ({
   } = useLoginForm(onForgotPassword);
 
   const handleFormSubmit = (e: React.FormEvent) => {
-    handleSignIn(e, null);
+    handleSignIn(e);
   };
 
   return (
