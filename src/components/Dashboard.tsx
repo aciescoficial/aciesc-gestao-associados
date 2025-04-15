@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo } from 'react';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
@@ -10,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { useAuth } from '@/components/auth/hooks/useAuthContext';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import SituacaoPagamentoCard from '@/components/associado/dashboard/SituacaoPagamentoCard';
+import UltimasEmpresas from '@/components/associado/dashboard/UltimasEmpresas';
 
-// Example messages are defined once outside the component to avoid recreations
 const exampleMessages: NotificationMessage[] = [
   {
     id: '1',
@@ -46,13 +46,10 @@ const Dashboard: React.FC = () => {
   const { stats, recentActivity, loading, systemStatus, refreshData } = useDashboardData();
   const { user } = useAuth();
   
-  // Store example messages in localStorage only once
   useEffect(() => {
-    // Only set example messages if they don't exist yet to prevent constant writes
     if (!window.localStorage.getItem('demoMessages')) {
       window.localStorage.setItem('demoMessages', JSON.stringify(exampleMessages));
       
-      // Clear after 30 seconds to demonstrate the banner disappearing
       const timer = setTimeout(() => {
         window.localStorage.removeItem('demoMessages');
       }, 30000);
@@ -61,10 +58,8 @@ const Dashboard: React.FC = () => {
     }
   }, []);
 
-  // Memoize the refresh handler to prevent recreation on every render
   const handleRefresh = useMemo(() => refreshData, [refreshData]);
 
-  // Force page refresh after a short delay if no user
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     if (!user) {
@@ -78,6 +73,8 @@ const Dashboard: React.FC = () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [user, handleRefresh]);
+
+  const isAssociado = user?.role === 'user' && user?.associado_id;
 
   return (
     <div className="space-y-6">
@@ -104,7 +101,6 @@ const Dashboard: React.FC = () => {
         </Button>
       </div>
       
-      {/* Auth status debug info - will be helpful for troubleshooting */}
       {process.env.NODE_ENV !== 'production' && (
         <div className="p-2 bg-amber-50 text-amber-800 rounded-md text-xs">
           Status de autenticação: {user ? `Autenticado (${user.email})` : 'Não autenticado'} 
@@ -112,16 +108,20 @@ const Dashboard: React.FC = () => {
         </div>
       )}
       
-      {/* Stats Grid */}
-      <DashboardStats stats={stats} loading={loading} />
+      {!isAssociado && <DashboardStats stats={stats} loading={loading} />}
       
-      {/* Recent Activity */}
+      {isAssociado && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <SituacaoPagamentoCard />
+          <UltimasEmpresas />
+        </div>
+      )}
+      
       <RecentActivity recentActivity={recentActivity} loading={loading} />
       
-      {/* Quick Actions and System Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <QuickActions />
-        <SystemStatus systemStatus={systemStatus} />
+        {!isAssociado && <SystemStatus systemStatus={systemStatus} />}
       </div>
     </div>
   );
