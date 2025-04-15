@@ -7,6 +7,8 @@ import AssociadoSignupCompletion from '@/components/associado/AssociadoSignupCom
 import { ProtectedRoute } from '../pages/AuthRoutes';
 import PluginLayout from '../components/PluginLayout';
 import Dashboard from '../components/Dashboard';
+import MessagesDashboard from '../components/mensagens/MessagesDashboard';
+import MensagensPage from '../components/mensagens/MensagensPage';
 
 const ProfilePage = lazy(() => import("../components/auth/profile/ProfilePage"));
 
@@ -41,6 +43,23 @@ export const SharedRoutes = [
         <Suspense fallback={<PageLoading />}>
           <ProfilePage />
         </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
+  // Rotas de mensagens
+  <Route key="mensagens" path="/mensagens" element={
+    <ProtectedRoute>
+      <PluginLayout>
+        <MessagesDashboard />
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="mensagens-enviar" path="/mensagens/enviar" element={
+    <ProtectedRoute>
+      <PluginLayout>
+        <MensagensPage />
       </PluginLayout>
     </ProtectedRoute>
   } />
