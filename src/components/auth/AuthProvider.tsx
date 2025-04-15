@@ -34,7 +34,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("User data fetched:", data);
       
       if (data) {
-        setUserRole(data.role as UserRole || 'user');
+        // Explicitly cast the role to UserRole type to ensure TypeScript recognizes it
+        setUserRole((data.role as UserRole) || 'user');
         
         // Process user tags
         processUserTags(data.tags);
@@ -119,12 +120,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [handleAuthStateChange, initializeSession]);
   
   // Derived state for user permissions
-  // Explicit type casting to make sure TypeScript recognizes proper types
-  const isAdmin = userRole === 'admin' || userRole === 'diretoria';
+  // Ensure TypeScript recognizes valid UserRole values by using type assertions
+  const isAdmin = userRole === 'admin' || userRole === ('diretoria' as UserRole);
   
   const hasFinanceiroAccess = isAdmin || 
     userTags.some(tag => tag === 'financeiro') || 
-    userRole === 'diretoria';
+    userRole === ('diretoria' as UserRole);
   
   // Prepare context value
   const authContextValue = {
