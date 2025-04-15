@@ -98,12 +98,22 @@ export const useSignupCompletion = (token: string | null): UseSignupCompletionRe
         
         // Token is valid
         setTokenValid(true);
+        
+        // Extract associado_interesse data and ensure it's typed correctly
+        const interesseData = data.associado_interesse as {
+          id: string;
+          nome: string;
+          sobrenome: string;
+          email: string;
+          cpf: string;
+        };
+        
         setSignupData({
-          id: data.associado_interesse.id,
-          nome: data.associado_interesse.nome,
-          sobrenome: data.associado_interesse.sobrenome,
-          email: data.associado_interesse.email,
-          cpf: data.associado_interesse.cpf
+          id: interesseData.id,
+          nome: interesseData.nome,
+          sobrenome: interesseData.sobrenome,
+          email: interesseData.email,
+          cpf: interesseData.cpf
         });
         
       } catch (error) {

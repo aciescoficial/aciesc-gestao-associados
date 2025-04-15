@@ -61,3 +61,19 @@ export const handleApiError = (error: PostgrestError | null): string => {
   
   return error.message || 'Ocorreu um erro na operação.';
 };
+
+// Add secure delete function for admin operations
+export const secureDelete = async (table: string, id: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from(table)
+      .delete()
+      .eq('id', id);
+      
+    if (error) throw error;
+    
+  } catch (error) {
+    console.error(`Error deleting from ${table}:`, error);
+    throw new Error(`Failed to delete ${table} record: ${(error as Error).message}`);
+  }
+};
