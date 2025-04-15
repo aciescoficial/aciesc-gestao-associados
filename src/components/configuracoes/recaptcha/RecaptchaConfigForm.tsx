@@ -17,7 +17,7 @@ const RecaptchaConfigForm: React.FC<RecaptchaConfigFormProps> = ({ onError }) =>
   const [testResult, setTestResult] = useState<'success' | 'error' | null>(null);
   const { toast } = useToast();
   
-  const { form, isLoading, saveSettings } = useRecaptchaForm({ toast });
+  const { form, isLoading, isSaving, saveSettings } = useRecaptchaForm({ toast });
 
   const handleSaveSettings = async (values: any) => {
     try {
@@ -100,8 +100,8 @@ const RecaptchaConfigForm: React.FC<RecaptchaConfigFormProps> = ({ onError }) =>
             )}
           </Button>
           
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? (
+          <Button type="submit" disabled={isLoading || isSaving}>
+            {isLoading || isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Salvando...

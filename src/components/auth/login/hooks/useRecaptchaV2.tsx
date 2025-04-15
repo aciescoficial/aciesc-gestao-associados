@@ -2,10 +2,26 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define interface for the recaptcha configuration
-interface RecaptchaConfig {
+// Define interface for the recaptcha configuration from the database JSONB field
+interface RecaptchaConfigData {
   enabled: boolean;
   siteKey: string;
+  secretKey: string;
+  version: string;
+  scoreThreshold: number;
+}
+
+// Update the grecaptcha interface
+declare global {
+  interface Window {
+    grecaptcha: {
+      ready: (callback: () => void) => void;
+      execute: (siteKey: string, options: { action: string }) => Promise<string>;
+      render: (container: string | HTMLElement, parameters: any) => number;
+      reset?: (widgetId?: number) => void; // Make reset optional since it's only available after rendering
+    };
+    onRecaptchaLoad: () => void;
+  }
 }
 
 export const useRecaptchaV2 = () => {
@@ -31,8 +47,10 @@ export const useRecaptchaV2 = () => {
         }
 
         if (data && data.configuracoes) {
-          setIsEnabled(data.configuracoes.enabled || false);
-          setSiteKey(data.configuracoes.siteKey || '');
+          // Type assertion to handle JSONB data safely
+          const configData = data.configuracoes as RecaptchaConfigData;
+          setIsEnabled(configData.enabled || false);
+          setSiteKey(configData.siteKey || '');
         }
       } catch (error) {
         console.error('Failed to fetch reCAPTCHA config:', error);
@@ -83,10 +101,12 @@ export const useRecaptchaV2 = () => {
     recaptchaLoaded: isLoaded,
     executeRecaptcha,
     resetRecaptcha: () => {
-      if (window.grecaptcha && window.grecaptcha.reset) {
+      // Check if grecaptcha.reset exists before calling it
+      if (window.grecaptcha && typeof window.grecaptcha.reset === 'function') {
         window.grecaptcha.reset();
         setRecaptchaToken(null);
       } else {
+        // Just reset the token if the reset function isn't available
         setRecaptchaToken(null);
       }
     },

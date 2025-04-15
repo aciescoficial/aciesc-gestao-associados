@@ -1,10 +1,19 @@
 
 import { useState, useEffect } from 'react';
-import { RecaptchaFormValues, RecaptchaConfigValues } from '../types';
+import { RecaptchaFormValues } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+
+// Define interface for the recaptcha configuration from the database
+export interface RecaptchaConfigValues {
+  enabled: boolean;
+  siteKey: string;
+  secretKey: string;
+  version: string;
+  scoreThreshold: number;
+}
 
 interface UseRecaptchaFormOptions {
   toast?: any;
@@ -26,6 +35,7 @@ export const useRecaptchaForm = (options?: UseRecaptchaFormOptions) => {
     secretKey: z.string().min(1, 'Chave secreta é obrigatória'),
     enabled: z.boolean().default(true),
     threshold: z.number().min(0).max(1).default(0.5),
+    version: z.enum(['v2', 'v3']).default('v2'),
   });
 
   const form = useForm<RecaptchaFormValues>({
@@ -35,6 +45,7 @@ export const useRecaptchaForm = (options?: UseRecaptchaFormOptions) => {
       siteKey: '',
       secretKey: '',
       threshold: 0.5,
+      version: 'v2',
     },
   });
 
@@ -76,7 +87,8 @@ export const useRecaptchaForm = (options?: UseRecaptchaFormOptions) => {
         }
 
         if (data && data.configuracoes) {
-          const configData = data.configuracoes;
+          // Type assertion to handle JSONB data safely
+          const configData = data.configuracoes as RecaptchaConfigValues;
           
           setConfig({
             enabled: configData.enabled || false,
@@ -91,6 +103,7 @@ export const useRecaptchaForm = (options?: UseRecaptchaFormOptions) => {
             siteKey: configData.siteKey || '',
             secretKey: configData.secretKey || '',
             threshold: configData.scoreThreshold || 0.5,
+            version: configData.version || 'v2',
           });
         }
       } catch (error: any) {
@@ -124,7 +137,7 @@ export const useRecaptchaForm = (options?: UseRecaptchaFormOptions) => {
         enabled: values.enabled,
         siteKey: values.siteKey,
         secretKey: values.secretKey,
-        version: 'v2', // Default to v2 for now
+        version: values.version || 'v2',
         scoreThreshold: values.threshold,
       };
       
