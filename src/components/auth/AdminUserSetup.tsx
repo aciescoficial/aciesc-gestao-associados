@@ -19,21 +19,7 @@ const AdminUserSetup: React.FC = () => {
   useEffect(() => {
     const checkRootUser = async () => {
       try {
-        // First check in auth.users instead of user table
-        const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
-        
-        if (authError) {
-          console.error("Error checking auth users:", authError);
-        }
-        
-        const rootUserExists = authData?.users?.some(user => user.email === ROOT_EMAIL);
-        
-        if (rootUserExists) {
-          setRootExists(true);
-          return;
-        }
-        
-        // Also check in public.user table as fallback
+        // First check auth.users by fetching user with specific email
         const { data, error } = await supabase
           .from('user')
           .select('email')
@@ -42,6 +28,11 @@ const AdminUserSetup: React.FC = () => {
           
         if (data) {
           setRootExists(true);
+          return;
+        }
+
+        if (error && error.code !== 'PGRST116') { // Not found error code
+          console.error("Error checking user:", error);
         }
       } catch (error) {
         console.error("Error checking root user:", error);
@@ -112,7 +103,7 @@ const AdminUserSetup: React.FC = () => {
         setCreated(true);
         setRootExists(true);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating ROOT user:", error);
       toast({
         title: "Erro ao criar usuário ROOT",
