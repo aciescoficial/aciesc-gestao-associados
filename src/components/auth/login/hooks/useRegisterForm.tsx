@@ -66,19 +66,19 @@ export const useRegisterForm = () => {
     try {
       console.log("Tentando registrar com email:", email, "e tipo:", organizationType);
       
-      // Direct sign-up with no captcha verification
+      // Call the signUp function from auth service
       const { data, error } = await signUp(email, password, name, organizationType);
       
       if (error) {
         console.error("Signup error:", error);
         
-        let errorMessage = error.message;
+        let errorMessage = error.message || "Erro ao criar conta";
         
-        if (error.message.includes('already registered') || error.message.includes('já está registrado')) {
+        if (error.message?.includes('already registered') || error.message?.includes('já está registrado')) {
           errorMessage = "Este email já está registrado. Tente fazer login.";
-        } else if (error.message.includes('rate limit') || error.message.includes('limite')) {
+        } else if (error.message?.includes('rate limit') || error.message?.includes('limite')) {
           errorMessage = "Limite de cadastros excedido. Por favor, tente novamente mais tarde.";
-        } else if (error.message.includes('violates row-level security') || error.message.includes('policy')) {
+        } else if (error.message?.includes('violates row-level security') || error.message?.includes('policy')) {
           errorMessage = "Erro no sistema de permissões. Por favor, contate o administrador.";
         }
         
@@ -88,7 +88,7 @@ export const useRegisterForm = () => {
           description: errorMessage,
         });
       } else if (data) {
-        // Se não houver mensagem de erro mas temos dados, significa que deu certo
+        // Registration successful
         toast({
           title: "Conta criada com sucesso",
           description: "Sua conta foi criada. Você já pode fazer login.",
@@ -102,7 +102,7 @@ export const useRegisterForm = () => {
         setOrganizationType('user');
         
         // Navigate to login page
-        navigate('/login');
+        navigate('/login?registered=true');
       }
     } catch (error: any) {
       console.error("Exception during signup:", error);

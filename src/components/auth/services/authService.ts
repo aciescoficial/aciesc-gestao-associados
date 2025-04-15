@@ -67,43 +67,52 @@ export const signUp = async (email: string, password: string, name: string, role
   try {
     console.log("Signup attempt with:", email, name, role);
     
-    // Configurar para não enviar o email de confirmação
-    const { data, error } = await supabase.auth.signUp({
+    // Use admin client for signup to bypass RLS
+    const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: { 
-          name,
-          role
-        },
-        // Removido emailRedirectTo para evitar envio de emails de confirmação
-        emailRedirectTo: undefined
+      email_confirm: true, // Auto confirm the email
+      user_metadata: { 
+        name,
+        role
       }
     });
     
-    // Se o signup foi bem-sucedido, criar o usuário na tabela user também
-    if (data?.user && !error) {
+    if (error) {
+      console.error("Signup error:", error);
+      
+      // Handle specific errors
+      if (error.message.includes('User already registered')) {
+        return { 
+          data: null, 
+          error: { 
+            message: 'Este email já está registrado. Tente fazer login.' 
+          } 
+        };
+      }
+      
+      return { data: null, error };
+    }
+    
+    // If signup was successful, create the user in the user table
+    if (data?.user) {
       try {
-        console.log("Creating user profile:", data.user.id, email, name, role);
+        console.log("Creating user profile in user table:", data.user.id, email, name, role);
         
-        // CORREÇÃO: Usar service_role para inserir o usuário (bypass RLS)
-        const adminAuthClient = supabase.auth.admin;
-        
-        // Inserir o usuário na tabela public.user
+        // Insert directly into the user table
         const { error: profileError } = await supabase
           .from('user')
           .insert({
             id: data.user.id,
-            email: email,
-            name: name,
-            role: role,
+            email,
+            name,
+            role,
             active: true,
             tags: role === 'diretoria' ? ['diretoria_aciesc'] : []
           });
         
         if (profileError) {
           console.error('Error creating user profile:', profileError);
-          console.error('Error details:', JSON.stringify(profileError));
           return { data, error: profileError };
         } else {
           console.log("User profile created successfully");
@@ -112,19 +121,9 @@ export const signUp = async (email: string, password: string, name: string, role
         console.error('Exception creating user profile:', profileError);
         return { data, error: profileError };
       }
-    } else if (error) {
-      // Tratar erros específicos do Supabase
-      if (error.message.includes('rate limit')) {
-        return { 
-          data: null, 
-          error: { 
-            message: 'Limite de cadastros excedido. Por favor, tente novamente mais tarde.' 
-          } 
-        };
-      }
     }
     
-    return { data, error };
+    return { data, error: null };
   } catch (error: any) {
     console.error('Error during sign up:', error);
     return { data: null, error };

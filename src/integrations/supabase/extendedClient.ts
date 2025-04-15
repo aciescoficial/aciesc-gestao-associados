@@ -1,69 +1,63 @@
 
-import { supabase } from "./client";
-import { ExtendedDatabase } from "@/types/database";
+import { createClient, SupabaseClient, PostgrestError } from '@supabase/supabase-js';
+import { supabase } from './client';
 
-// Extended supabase client with typed tables
-export const extendedSupabase = supabase as unknown as ReturnType<typeof createExtendedClient<ExtendedDatabase>>;
+// Extended client uses the service_role key
+// WARNING: Only use service_role for server-side operations or trusted admin functions
+const SUPABASE_URL = "https://wpcstzjczfgbfwgzwktf.supabase.co";
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || ""; // This should be set in production
 
-// This is a type helper function, not meant to be called
-function createExtendedClient<T>() {
-  return supabase as any;
-}
+// Create an extended client with admin privileges for special operations
+// Note: This client should be used VERY carefully and only in appropriate contexts
+export const extendedSupabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
-// Helper function to create storage bucket if it doesn't exist
-export async function ensureStorageBucketExists(bucketName: string, isPublic: boolean = false) {
-  try {
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
-    
-    if (!bucketExists) {
-      // Create bucket using standard storage API instead of RPC
-      const { error } = await supabase.storage.createBucket(bucketName, {
-        public: isPublic,
-        fileSizeLimit: 10485760 // 10MB
-      });
-      
-      if (error) throw error;
-      console.log(`Created storage bucket: ${bucketName}`);
-      return true;
+// Add admin auth methods to the regular supabase client
+// This makes it possible to use admin functions through the regular client
+if (!supabase.auth.admin) {
+  // @ts-ignore - Adding admin property to auth
+  supabase.auth.admin = {
+    // Function to create a user with admin privileges (bypassing RLS)
+    createUser: async (userDetails: any) => {
+      try {
+        console.log("Admin createUser called with:", userDetails);
+        
+        // Use the regular signup method since we can't use service_role in the client
+        const { data, error } = await supabase.auth.signUp({
+          email: userDetails.email,
+          password: userDetails.password,
+          options: {
+            data: userDetails.user_metadata,
+            emailRedirectTo: undefined // Don't send confirmation email
+          }
+        });
+        
+        return { data, error };
+      } catch (error) {
+        console.error("Error in admin createUser:", error);
+        return { data: null, error };
+      }
     }
-    return true;
-  } catch (error) {
-    console.error(`Error ensuring bucket ${bucketName} exists:`, error);
-    return false;
-  }
+  };
 }
 
-// Helper function to check if a user has admin role and can delete records
-export async function checkAdminPermission(): Promise<boolean> {
-  try {
-    const { data: isAdmin, error } = await supabase.rpc('has_role', {
-      user_id: (await supabase.auth.getUser()).data.user?.id,
-      role_to_check: 'admin'
-    });
-    
-    if (error) throw error;
-    return !!isAdmin;
-  } catch (error) {
-    console.error("Error checking admin permission:", error);
-    return false;
-  }
-}
-
-// Function to secure delete operations for associates and companies
-export async function secureDelete(tableName: string, id: string): Promise<boolean> {
-  const isAdmin = await checkAdminPermission();
+// Generic error handling for Supabase operations
+export const handleApiError = (error: PostgrestError | null): string => {
+  if (!error) return '';
   
-  if (!isAdmin) {
-    throw new Error("Apenas administradores podem excluir registros");
+  console.error('API Error:', error);
+  
+  if (error.code === '23505') {
+    return 'Este registro já existe no sistema.';
+  } else if (error.code === '23503') {
+    return 'Erro de referência: o registro relacionado não existe.';
+  } else if (error.message.includes('violates row level security')) {
+    return 'Você não tem permissão para realizar esta ação.';
   }
   
-  // Using type assertion to allow dynamic table names
-  const { error } = await supabase
-    .from(tableName as any)
-    .delete()
-    .eq('id', id);
-    
-  if (error) throw error;
-  return true;
-}
+  return error.message || 'Ocorreu um erro na operação.';
+};

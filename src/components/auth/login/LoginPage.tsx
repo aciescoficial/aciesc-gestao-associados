@@ -9,6 +9,7 @@ import ForgotPasswordForm from './ForgotPasswordForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { useMigrationCheck } from './hooks/useMigrationCheck';
 
 const LoginPage = () => {
   const { user, loading } = useAuth();
@@ -18,6 +19,7 @@ const LoginPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState<string | null>(null);
+  const { migrationNeeded, checking } = useMigrationCheck();
   
   useEffect(() => {
     // Check for registration success query param
@@ -43,7 +45,7 @@ const LoginPage = () => {
   }, [location, toast]);
 
   // Don't show anything while checking auth status
-  if (loading) {
+  if (loading || checking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -70,6 +72,16 @@ const LoginPage = () => {
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{loginError}</AlertDescription>
+          </Alert>
+        )}
+
+        {migrationNeeded && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              É necessário executar a migração do banco de dados. 
+              Por favor, contate o administrador e execute o script SQL em src/migrations/create-user-policy.sql.
+            </AlertDescription>
           </Alert>
         )}
 
