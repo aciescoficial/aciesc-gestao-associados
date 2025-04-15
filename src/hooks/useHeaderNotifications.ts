@@ -1,15 +1,47 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { NotificationMessage } from '@/components/layout/types/NotificationTypes';
 import { supabase } from '@/integrations/supabase/client';
 import { extendedSupabase } from '@/integrations/supabase/extendedClient';
+import { toast } from '@/components/ui/use-toast';
 
-export function useHeaderNotifications() {
-  const [importantMessages, setImportantMessages] = useState<NotificationMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const [showSystemMessages, setShowSystemMessages] = useState(true);
-  
+interface HeaderNotificationsOptions {
+  cacheDuration?: number; // in milliseconds
+  enableRetry?: boolean;
+  maxRetries?: number;
+  debug?: boolean;
+}
+
+interface NotificationsState {
+  importantMessages: NotificationMessage[];
+  isLoading: boolean;
+  hasError: boolean;
+  errorMessage?: string;
+  lastFetched?: number;
+}
+
+const DEFAULT_OPTIONS: HeaderNotificationsOptions = {
+  cacheDuration: 5 * 60 * 1000, // 5 minutes default
+  enableRetry: true,
+  maxRetries: 3,
+  debug: false,
+};
+
+export function useHeaderNotifications(options: HeaderNotificationsOptions = {}) {
+  const config = { ...DEFAULT_OPTIONS, ...options };
+  const [state, setState] = useState<NotificationsState>({
+    importantMessages: [],
+    isLoading: false,
+    hasError: false,
+  });
+
+  // Debug logger function
+  const logDebug = useCallback((message: string, data?: any) => {
+    if (config.debug) {
+      console.log(`[useHeaderNotifications] ${message}`, data || '');
+    }
+  }, [config.debug]);
+
   // Load system configuration
   useEffect(() => {
     const loadSystemConfig = async () => {
@@ -17,8 +49,14 @@ export function useHeaderNotifications() {
         // Try localStorage first for immediate effect
         const storedConfig = localStorage.getItem('systemConfig');
         if (storedConfig) {
-          const config = JSON.parse(storedConfig);
-          setShowSystemMessages(config.showSystemMessages ?? true);
+          const parsedConfig = JSON.parse(storedConfig);
+          const showSystemMessages = parsedConfig.showSystemMessages ?? true;
+          
+          setState(prev => ({ 
+            ...prev,
+            showSystemMessages,
+          }));
+          logDebug('Loaded systemConfig from localStorage', { showSystemMessages });
           return;
         }
         
@@ -27,20 +65,31 @@ export function useHeaderNotifications() {
           .from('configuracoes')
           .select('*')
           .eq('tipo', 'sistema')
-          .single();
+          .maybeSingle();
         
         if (error) {
-          console.warn('No system config found, using defaults');
+          logDebug('No system config found, using defaults', error);
           return;
         }
         
         if (data?.configuracoes) {
-          setShowSystemMessages(data.configuracoes.showSystemMessages ?? true);
+          const showSystemMessages = data.configuracoes.showSystemMessages ?? true;
+          setState(prev => ({ 
+            ...prev,
+            showSystemMessages,
+          }));
+          
           // Store for future use
           localStorage.setItem('systemConfig', JSON.stringify(data.configuracoes));
+          logDebug('Loaded systemConfig from database', { showSystemMessages });
         }
       } catch (error) {
         console.error('Error loading system config:', error);
+        setState(prev => ({ 
+          ...prev,
+          hasError: true,
+          errorMessage: 'Failed to load system configuration'
+        }));
       }
     };
     
@@ -49,7 +98,11 @@ export function useHeaderNotifications() {
     // Listen for config updates
     const handleConfigUpdate = (event: CustomEvent) => {
       if (event.detail && typeof event.detail.showSystemMessages === 'boolean') {
-        setShowSystemMessages(event.detail.showSystemMessages);
+        setState(prev => ({ 
+          ...prev,
+          showSystemMessages: event.detail.showSystemMessages 
+        }));
+        logDebug('Config updated via event', { showSystemMessages: event.detail.showSystemMessages });
       }
     };
     
@@ -58,46 +111,84 @@ export function useHeaderNotifications() {
     return () => {
       window.removeEventListener('system-config-updated', handleConfigUpdate as EventListener);
     };
-  }, []);
+  }, [logDebug]);
+  
+  // Function to check if cache is still valid
+  const isCacheValid = useCallback((timestamp: number): boolean => {
+    if (!timestamp || !config.cacheDuration) return false;
+    return (Date.now() - timestamp) < config.cacheDuration;
+  }, [config.cacheDuration]);
+
+  // Function to load messages from cache
+  const loadFromCache = useCallback((): boolean => {
+    try {
+      const cachedMessages = localStorage.getItem('cachedSystemMessages');
+      const cacheTimestamp = localStorage.getItem('cachedSystemMessagesTimestamp');
+      
+      if (cachedMessages && cacheTimestamp) {
+        const timestamp = parseInt(cacheTimestamp, 10);
+        
+        if (isCacheValid(timestamp)) {
+          const parsedMessages = JSON.parse(cachedMessages);
+          if (Array.isArray(parsedMessages)) {
+            setState(prev => ({
+              ...prev,
+              importantMessages: parsedMessages,
+              isLoading: false,
+              lastFetched: timestamp
+            }));
+            logDebug('Using cached messages', { messageCount: parsedMessages.length });
+            return true;
+          }
+        } else {
+          logDebug('Cache expired', { timestamp, now: Date.now(), diff: Date.now() - timestamp });
+        }
+      }
+      return false;
+    } catch (e) {
+      console.error('Error loading messages from cache:', e);
+      return false;
+    }
+  }, [isCacheValid, logDebug]);
+
+  // Function to save messages to cache
+  const saveToCache = useCallback((messages: NotificationMessage[]) => {
+    try {
+      localStorage.setItem('cachedSystemMessages', JSON.stringify(messages));
+      localStorage.setItem('cachedSystemMessagesTimestamp', Date.now().toString());
+      logDebug('Messages saved to cache', { messageCount: messages.length });
+    } catch (e) {
+      console.error('Error saving messages to cache:', e);
+    }
+  }, [logDebug]);
   
   // Function to fetch important messages with improved performance
-  const fetchImportantMessages = async () => {
+  const fetchImportantMessages = useCallback(async (retryCount = 0) => {
     // Skip if system messages are disabled
-    if (!showSystemMessages) {
-      setImportantMessages([]);
+    if (!state.showSystemMessages) {
+      setState(prev => ({ ...prev, importantMessages: [], isLoading: false }));
       return;
     }
     
     // Check if we're already loading data to prevent duplicate requests
-    if (isLoading) return;
+    if (state.isLoading) {
+      logDebug('Fetch already in progress, skipping');
+      return;
+    }
     
-    setIsLoading(true);
+    // Try to load from cache first
+    if (loadFromCache()) {
+      return;
+    }
+    
+    setState(prev => ({ ...prev, isLoading: true }));
+    logDebug('Fetching messages from API');
     
     try {
-      // First check local storage for cached messages
-      const cachedMessages = localStorage.getItem('cachedSystemMessages');
-      const cacheTimestamp = localStorage.getItem('cachedSystemMessagesTimestamp');
-      
-      // Use cache if it's less than 5 minutes old
-      if (cachedMessages && cacheTimestamp) {
-        const timestamp = parseInt(cacheTimestamp, 10);
-        const now = Date.now();
-        
-        // Cache valid for 5 minutes
-        if (now - timestamp < 5 * 60 * 1000) {
-          const parsedMessages = JSON.parse(cachedMessages);
-          if (Array.isArray(parsedMessages)) {
-            setImportantMessages(parsedMessages);
-            setIsLoading(false);
-            return;
-          }
-        }
-      }
-      
       // Using the email_templates table as a temporary solution
       // Set a timeout to abort if the query takes too long
       const timeoutPromise = new Promise<null>((_, reject) => {
-        setTimeout(() => reject(new Error("Query timeout")), 8000); // Increased to 8 second timeout
+        setTimeout(() => reject(new Error("Query timeout")), 8000);
       });
       
       // Use a simpler query to reduce database load
@@ -127,12 +218,17 @@ export function useHeaderNotifications() {
           } : undefined
         }));
         
-        setImportantMessages(formattedMessages);
-        setHasError(false);
+        setState(prev => ({ 
+          ...prev, 
+          importantMessages: formattedMessages, 
+          hasError: false,
+          isLoading: false,
+          errorMessage: undefined,
+          lastFetched: Date.now()
+        }));
         
         // Cache the messages
-        localStorage.setItem('cachedSystemMessages', JSON.stringify(formattedMessages));
-        localStorage.setItem('cachedSystemMessagesTimestamp', Date.now().toString());
+        saveToCache(formattedMessages);
       } else {
         // When testing locally, if no messages in the database, use demo messages
         const storedMessages = window.localStorage.getItem('demoMessages');
@@ -140,71 +236,134 @@ export function useHeaderNotifications() {
           try {
             const parsedMessages = JSON.parse(storedMessages);
             if (Array.isArray(parsedMessages)) {
-              setImportantMessages(parsedMessages);
+              setState(prev => ({ 
+                ...prev, 
+                importantMessages: parsedMessages,
+                isLoading: false,
+                lastFetched: Date.now()
+              }));
+              saveToCache(parsedMessages);
             } else {
-              setImportantMessages([]);
+              setState(prev => ({ ...prev, importantMessages: [], isLoading: false }));
             }
           } catch (e) {
-            setImportantMessages([]);
+            setState(prev => ({ ...prev, importantMessages: [], isLoading: false }));
           }
         } else {
-          setImportantMessages([]);
+          setState(prev => ({ ...prev, importantMessages: [], isLoading: false }));
         }
       }
     } catch (error) {
       console.error("Error fetching important messages:", error);
-      setHasError(true);
       
-      // On error, try to use cached messages or demo messages
+      // Implement retry logic
+      if (config.enableRetry && retryCount < (config.maxRetries || 0)) {
+        logDebug(`Retry attempt ${retryCount + 1} of ${config.maxRetries}`);
+        
+        setTimeout(() => {
+          fetchImportantMessages(retryCount + 1);
+        }, 2000 * Math.pow(2, retryCount)); // Exponential backoff
+        
+        return;
+      }
+      
+      setState(prev => ({ 
+        ...prev, 
+        hasError: true,
+        isLoading: false,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error fetching messages'
+      }));
+      
+      // On error, try to use cached messages
       const cachedMessages = localStorage.getItem('cachedSystemMessages');
       if (cachedMessages) {
         try {
           const parsedMessages = JSON.parse(cachedMessages);
           if (Array.isArray(parsedMessages)) {
-            setImportantMessages(parsedMessages);
+            setState(prev => ({ 
+              ...prev, 
+              importantMessages: parsedMessages,
+              hasError: true, // Still set hasError true to indicate we're using stale data
+              errorMessage: 'Using cached data due to fetch error',
+            }));
+            
+            // Show error toast but still display cached data
+            toast({
+              title: "Notification Error",
+              description: "Using cached notifications. Some information may be outdated.",
+              variant: "destructive"
+            });
           }
         } catch (e) {
           console.error("Error parsing cached messages:", e);
         }
       } else {
+        // Try demo messages as last resort
         const storedMessages = window.localStorage.getItem('demoMessages');
         if (storedMessages) {
           try {
             const parsedMessages = JSON.parse(storedMessages);
             if (Array.isArray(parsedMessages)) {
-              setImportantMessages(parsedMessages);
+              setState(prev => ({ 
+                ...prev, 
+                importantMessages: parsedMessages,
+                hasError: true
+              }));
             }
           } catch (e) {
             console.error("Error parsing demo messages:", e);
           }
         }
       }
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [state.showSystemMessages, state.isLoading, loadFromCache, saveToCache, config.enableRetry, config.maxRetries, logDebug]);
+  
+  // Force refresh function for manual refresh
+  const refreshMessages = useCallback(() => {
+    // Clear cache and force fetch
+    localStorage.removeItem('cachedSystemMessages');
+    localStorage.removeItem('cachedSystemMessagesTimestamp');
+    fetchImportantMessages();
+    logDebug('Manually refreshing messages');
+  }, [fetchImportantMessages, logDebug]);
   
   useEffect(() => {
-    if (showSystemMessages) {
+    if (state.showSystemMessages) {
       // Use a larger delay on initial load to prioritize other UI components
-      const initialLoadTimer = setTimeout(fetchImportantMessages, 2000);
+      const initialLoadTimer = setTimeout(() => {
+        fetchImportantMessages();
+        logDebug('Initial load timer executed');
+      }, 2000);
       
-      // Update messages every 10 minutes instead of 5
-      const interval = setInterval(fetchImportantMessages, 10 * 60 * 1000);
+      // Update messages every 10 minutes
+      const interval = setInterval(() => {
+        fetchImportantMessages();
+        logDebug('Refresh interval executed');
+      }, 10 * 60 * 1000);
       
       return () => {
         clearTimeout(initialLoadTimer);
         clearInterval(interval);
+        logDebug('Cleanup: cleared timers');
       };
     } else {
       // Clear messages if disabled
-      setImportantMessages([]);
+      setState(prev => ({ ...prev, importantMessages: [] }));
+      logDebug('System messages disabled, clearing messages');
     }
-  }, [showSystemMessages]);
+  }, [state.showSystemMessages, fetchImportantMessages, logDebug]);
 
   return {
-    importantMessages,
-    isLoading,
-    hasError
+    importantMessages: state.importantMessages,
+    isLoading: state.isLoading,
+    hasError: state.hasError,
+    errorMessage: state.errorMessage,
+    lastFetched: state.lastFetched,
+    refreshMessages,
+    cacheStatus: state.lastFetched 
+      ? isCacheValid(state.lastFetched) 
+        ? 'valid' 
+        : 'expired' 
+      : 'none'
   };
 }
