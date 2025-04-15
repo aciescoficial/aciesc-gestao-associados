@@ -1,70 +1,43 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Empresa } from '../types/empresa';
 
-export interface EmpresaConveniada {
-  id: string;
-  nome_fantasia: string;
-  razao_social: string;
-  cnpj: string;
-  cidade: string;
-  desconto: string;
-  nicho: string;
-  logo_url?: string;
-  created_at: string;
-}
-
-// Função para buscar as últimas empresas cadastradas
-export const buscarUltimasEmpresas = async (limite: number = 3): Promise<EmpresaConveniada[]> => {
+/**
+ * Get list of partnered companies (empresas conveniadas)
+ */
+export const getEmpresasConveniadas = async (): Promise<Empresa[]> => {
   try {
     const { data, error } = await supabase
       .from('empresas')
-      .select('id, nome_fantasia, razao_social, cnpj, cidade, desconto, nicho, logo_url, created_at')
+      .select('*')
       .eq('status', 'ativo')
-      .order('created_at', { ascending: false })
-      .limit(limite);
-      
+      .order('created_at', { ascending: false });
+    
     if (error) throw error;
-    return data as EmpresaConveniada[];
+    
+    return data as Empresa[];
   } catch (error) {
-    console.error('Erro ao buscar últimas empresas:', error);
-    return [];
+    console.error('Error fetching empresas conveniadas:', error);
+    throw error;
   }
 };
 
-// Função para listar todas as empresas com paginação
-export const listarEmpresasConveniadas = async (
-  pagina: number = 1,
-  itensPorPagina: number = 10
-): Promise<{ dados: EmpresaConveniada[], total: number }> => {
+/**
+ * Get details of a specific empresa
+ */
+export const getEmpresaDetails = async (id: string): Promise<Empresa | null> => {
   try {
-    // Calcular o início da paginação
-    const inicio = (pagina - 1) * itensPorPagina;
-    
-    // Buscar o total para calcular paginação
-    const { count: total, error: countError } = await supabase
-      .from('empresas')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'ativo');
-      
-    if (countError) throw countError;
-    
-    // Buscar os registros paginados
     const { data, error } = await supabase
       .from('empresas')
-      .select('id, nome_fantasia, razao_social, cnpj, cidade, desconto, nicho, logo_url, created_at')
-      .eq('status', 'ativo')
-      .order('nome_fantasia', { ascending: true })
-      .range(inicio, inicio + itensPorPagina - 1);
-      
+      .select('*')
+      .eq('id', id)
+      .single();
+    
     if (error) throw error;
     
-    return {
-      dados: data as EmpresaConveniada[],
-      total: total || 0
-    };
-    
+    return data as Empresa;
   } catch (error) {
-    console.error('Erro ao listar empresas conveniadas:', error);
-    return { dados: [], total: 0 };
+    console.error('Error fetching empresa details:', error);
+    throw error;
   }
 };

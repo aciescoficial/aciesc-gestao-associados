@@ -128,7 +128,7 @@ export const useAprovacaoInteresse = () => {
         toast({
           title: 'Alerta',
           description: 'O interesse foi aprovado, mas houve um problema ao criar o usuário. Verifique os logs.',
-          variant: 'warning',
+          variant: 'default', // Changed from 'warning' to 'default' to fix the type error
         });
       }
       

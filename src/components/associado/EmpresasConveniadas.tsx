@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getEmpresasConveniadas } from './services/empresasService';
-import { Empresa } from './types';
+import { Empresa } from './types/empresa';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { Button } from '@/components/ui/button';
 import { ExternalLink } from 'lucide-react';

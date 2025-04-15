@@ -116,9 +116,9 @@ const AprovacaoInteresse: React.FC = () => {
         <div className="space-y-4">
           <AprovacaoAlertas />
           
-          {/* Exibição para dispositivos móveis */}
+          {/* Mobile view */}
           {isMobile && (
-            <div className="md:hidden">
+            <div className="md:hidden space-y-4">
               {interesses.map(interesse => (
                 <InteresseMobileCard 
                   key={interesse.id}
@@ -130,9 +130,9 @@ const AprovacaoInteresse: React.FC = () => {
             </div>
           )}
           
-          {/* Exibição para desktop */}
+          {/* Desktop view */}
           {!isMobile && (
-            <div className="hidden md:block">
+            <div className="hidden md:block overflow-x-auto">
               <InteresseDesktopTable 
                 interesses={interesses} 
                 onApprove={handleApprove}
