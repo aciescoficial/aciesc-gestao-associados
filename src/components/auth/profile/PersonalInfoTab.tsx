@@ -4,6 +4,7 @@ import { AvatarUpload } from './components/AvatarUpload';
 import { ProfileForm } from './components/ProfileForm';
 import { useProfileData } from './hooks/useProfileData';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { UserLinkEntityPanel } from './components/UserLinkEntityPanel';
 
 interface PersonalInfoProps {
   user: any;
@@ -18,6 +19,18 @@ export const PersonalInfoTab = ({ user }: PersonalInfoProps) => {
     role,
     avatarUrl,
     setAvatarUrl,
+    city,
+    setCity,
+    state,
+    setState,
+    cpf,
+    setCpf,
+    creci,
+    setCreci,
+    associadoId,
+    empresaId,
+    setAssociadoId,
+    setEmpresaId,
     isLoading
   } = useProfileData(user);
   
@@ -50,9 +63,29 @@ export const PersonalInfoTab = ({ user }: PersonalInfoProps) => {
             name={name}
             phone={phone}
             role={role}
+            city={city}
+            state={state}
+            cpf={cpf}
+            creci={creci}
             onNameChange={setName}
             onPhoneChange={setPhone}
+            onCityChange={setCity}
+            onStateChange={setState}
+            onCpfChange={setCpf}
+            onCreciChange={setCreci}
           />
+          
+          {/* Entity linking panel based on user role */}
+          {(role === 'empresa' || role === 'user') && (
+            <UserLinkEntityPanel
+              role={role} 
+              associadoId={associadoId}
+              empresaId={empresaId}
+              onAssociadoChange={setAssociadoId}
+              onEmpresaChange={setEmpresaId}
+              userId={user.id}
+            />
+          )}
         </div>
       </CardContent>
     </Card>

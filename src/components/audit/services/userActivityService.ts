@@ -50,3 +50,13 @@ export const logProfileUpdate = async (userId: string): Promise<boolean> => {
 export const logPasswordChange = async (userId: string): Promise<boolean> => {
   return logUserActivity(userId, 'Alteração de senha');
 };
+
+/**
+ * Log entity linking event (Associado or Empresa)
+ * @param userId User ID
+ * @param entityType Type of entity ('associado' or 'empresa')
+ * @returns Promise resolving to success status
+ */
+export const logEntityLinking = async (userId: string, entityType: 'associado' | 'empresa'): Promise<boolean> => {
+  return logUserActivity(userId, `Vinculação de ${entityType}`);
+};

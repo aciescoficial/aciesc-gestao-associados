@@ -5,14 +5,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User, UserRole } from '@/components/usuarios/types';
+import { logProfileUpdate } from '@/components/audit/services/userActivityService';
 
 interface ProfileFormProps {
   user: any;
   name: string;
   phone: string;
   role: string;
+  city: string;
+  state: string;
+  cpf: string;
+  creci: string;
   onNameChange: (name: string) => void;
   onPhoneChange: (phone: string) => void;
+  onCityChange: (city: string) => void;
+  onStateChange: (state: string) => void;
+  onCpfChange: (cpf: string) => void;
+  onCreciChange: (creci: string) => void;
 }
 
 export const ProfileForm = ({ 
@@ -20,8 +31,16 @@ export const ProfileForm = ({
   name, 
   phone, 
   role,
+  city,
+  state,
+  cpf,
+  creci,
   onNameChange,
-  onPhoneChange
+  onPhoneChange,
+  onCityChange,
+  onStateChange,
+  onCpfChange,
+  onCreciChange
 }: ProfileFormProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -32,15 +51,22 @@ export const ProfileForm = ({
     
     try {
       const { error } = await supabase
-        .from('user') // Correct table name
+        .from('user')
         .update({ 
           name, 
           phone,
+          city,
+          state,
+          cpf,
+          creci,
           updated_at: new Date().toISOString() 
         })
         .eq('id', user.id);
         
       if (error) throw error;
+      
+      // Log profile update
+      await logProfileUpdate(user.id);
       
       toast({
         title: "Perfil atualizado",
@@ -61,7 +87,9 @@ export const ProfileForm = ({
   const getRoleLabel = (role: string) => {
     switch(role) {
       case 'admin': return 'Administrador';
-      case 'user': return 'Usuário Normal';
+      case 'user': return 'Associado';
+      case 'empresa': return 'Empresa';
+      case 'diretoria': return 'Diretoria';
       default: return 'Usuário';
     }
   };
@@ -109,6 +137,47 @@ export const ProfileForm = ({
           <div className="p-2 bg-muted rounded-md border">
             {getRoleLabel(role)}
           </div>
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="city">Cidade</Label>
+          <Input 
+            id="city" 
+            value={city}
+            onChange={(e) => onCityChange(e.target.value)}
+            placeholder="Sua cidade" 
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="state">Estado</Label>
+          <Input 
+            id="state" 
+            value={state}
+            onChange={(e) => onStateChange(e.target.value)}
+            placeholder="UF" 
+            maxLength={2}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="cpf">CPF</Label>
+          <Input 
+            id="cpf" 
+            value={cpf}
+            onChange={(e) => onCpfChange(e.target.value)}
+            placeholder="000.000.000-00" 
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="creci">CRECI</Label>
+          <Input 
+            id="creci" 
+            value={creci}
+            onChange={(e) => onCreciChange(e.target.value)}
+            placeholder="Número CRECI (se aplicável)" 
+          />
         </div>
       </div>
       <Button 

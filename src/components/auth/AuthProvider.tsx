@@ -5,6 +5,7 @@ import { AuthContext } from './context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { signIn, signOut, signUp, resetPassword, signInWithGoogle, fetchUserRole } from './services/authService';
 import { UserRole, UserTag } from '../usuarios/types';
+import { logSystemAccess } from '../audit/services/userActivityService';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -56,6 +57,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Process user tags
         processUserTags(data.tags);
+        
+        // Log system access
+        logSystemAccess(userId).catch(err => 
+          console.error("Error logging system access:", err)
+        );
       } else {
         // No user data found, set defaults
         setUserRole('user');

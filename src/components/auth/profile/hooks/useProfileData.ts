@@ -8,6 +8,12 @@ export const useProfileData = (user: any) => {
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [creci, setCreci] = useState('');
+  const [associadoId, setAssociadoId] = useState<string | undefined>(undefined);
+  const [empresaId, setEmpresaId] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -20,7 +26,7 @@ export const useProfileData = (user: any) => {
         // Query user table - using maybeSingle() instead of single() to handle case when no row is found
         const { data: userData, error: userError } = await supabase
           .from('user')
-          .select('name, phone, role, avatar_url')
+          .select('name, phone, role, avatar_url, city, state, cpf, creci, associado_id, empresa_id')
           .eq('id', user.id)
           .maybeSingle();
           
@@ -31,6 +37,12 @@ export const useProfileData = (user: any) => {
           setPhone(userData.phone || '');
           setRole(userData.role || '');
           setAvatarUrl(userData.avatar_url);
+          setCity(userData.city || '');
+          setState(userData.state || '');
+          setCpf(userData.cpf || '');
+          setCreci(userData.creci || '');
+          setAssociadoId(userData.associado_id);
+          setEmpresaId(userData.empresa_id);
         } else {
           // No user found, create a new user record
           const { error: insertError } = await supabase
@@ -78,6 +90,18 @@ export const useProfileData = (user: any) => {
     role,
     avatarUrl,
     setAvatarUrl,
+    city,
+    setCity,
+    state,
+    setState,
+    cpf,
+    setCpf,
+    creci,
+    setCreci,
+    associadoId,
+    empresaId,
+    setAssociadoId,
+    setEmpresaId,
     isLoading
   };
 };
