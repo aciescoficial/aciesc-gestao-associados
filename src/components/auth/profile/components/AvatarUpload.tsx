@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera } from 'lucide-react';
+import { Camera, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { logUserActivity } from '@/components/audit/services/userActivityService';
 import { ImageCropper } from './ImageCropper';
@@ -11,7 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 interface AvatarUploadProps {
   user: any;
   avatarUrl: string | null;
-  onAvatarUpdate: (url: string) => void;
+  onAvatarUpdate: (url: string | null) => void;
 }
 
 export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadProps) => {
@@ -19,6 +19,7 @@ export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadPr
   const [croppingImage, setCroppingImage] = useState<string | null>(null);
   const [fileToCrop, setFileToCrop] = useState<File | null>(null);
   const [showSizeAlert, setShowSizeAlert] = useState(false);
+  const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
   const { toast } = useToast();
   
   const FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB
@@ -101,6 +102,52 @@ export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadPr
     }
   };
   
+  const handleRemoveAvatar = async () => {
+    if (!avatarUrl) return;
+    
+    setIsRemovingAvatar(true);
+    try {
+      // Update user to remove avatar URL
+      const { error: updateError } = await supabase
+        .from('user')
+        .update({ avatar_url: null })
+        .eq('id', user.id);
+        
+      if (updateError) throw updateError;
+      
+      // Try to remove file from storage (optional, won't fail if file doesn't exist)
+      const filePath = `${user.id}/avatar.`;
+      try {
+        await supabase
+          .storage
+          .from('avatars')
+          .remove([`${filePath}png`, `${filePath}jpg`, `${filePath}jpeg`]);
+      } catch (storageError) {
+        console.warn('Failed to remove avatar from storage:', storageError);
+        // Don't throw error here, as the DB update is the critical part
+      }
+      
+      // Log user activity
+      await logUserActivity(user.id, 'Remoção de foto de perfil');
+      
+      onAvatarUpdate(null);
+      
+      toast({
+        title: "Foto removida",
+        description: "Sua foto de perfil foi removida com sucesso.",
+      });
+    } catch (error: any) {
+      console.error('Avatar removal error:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao remover foto",
+        description: error.message || "Não foi possível remover a foto de perfil.",
+      });
+    } finally {
+      setIsRemovingAvatar(false);
+    }
+  };
+  
   const handleCropCancel = () => {
     if (croppingImage) {
       URL.revokeObjectURL(croppingImage);
@@ -118,23 +165,41 @@ export const AvatarUpload = ({ user, avatarUrl, onAvatarUpdate }: AvatarUploadPr
             {user.email?.substring(0, 2).toUpperCase() || "U"}
           </AvatarFallback>
         </Avatar>
-        <label 
-          htmlFor="avatar-upload" 
-          className="absolute bottom-0 right-0 bg-aciesc-primary text-white rounded-full p-1.5 cursor-pointer hover:bg-aciesc-dark transition-colors"
-        >
-          <Camera className="h-4 w-4" />
-          <input 
-            id="avatar-upload" 
-            type="file" 
-            accept="image/*" 
-            className="hidden" 
-            onChange={handleFileSelect}
-            disabled={isUploadingAvatar}
-          />
-        </label>
+        <div className="absolute -bottom-2 right-0 flex gap-1">
+          <label 
+            htmlFor="avatar-upload" 
+            className="bg-aciesc-primary text-white rounded-full p-1.5 cursor-pointer hover:bg-aciesc-dark transition-colors"
+          >
+            <Camera className="h-4 w-4" />
+            <input 
+              id="avatar-upload" 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              onChange={handleFileSelect}
+              disabled={isUploadingAvatar || isRemovingAvatar}
+            />
+          </label>
+          
+          {avatarUrl && (
+            <button 
+              type="button" 
+              onClick={handleRemoveAvatar}
+              disabled={isUploadingAvatar || isRemovingAvatar}
+              className="bg-red-500 text-white rounded-full p-1.5 cursor-pointer hover:bg-red-600 transition-colors"
+              aria-label="Remover foto"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
       
-      {isUploadingAvatar && <p className="text-xs text-muted-foreground">Enviando...</p>}
+      {(isUploadingAvatar || isRemovingAvatar) && (
+        <p className="text-xs text-muted-foreground">
+          {isUploadingAvatar ? "Enviando..." : "Removendo..."}
+        </p>
+      )}
       
       <p className="text-xs text-muted-foreground">
         Tamanho recomendado: {RECOMMENDED_SIZE} pixels. Máx: 5MB

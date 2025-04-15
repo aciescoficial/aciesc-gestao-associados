@@ -15,6 +15,7 @@ interface ActivityLog {
   id: string;
   event: string;
   created_at: string;
+  is_login?: boolean;
 }
 
 export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
@@ -26,9 +27,18 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
       try {
         setIsLoading(true);
         
+        // First check if is_login column exists
+        const { data: columnInfo } = await supabase
+          .from('user_access_logs')
+          .select('is_login')
+          .limit(1);
+          
+        const hasLoginField = columnInfo && columnInfo.length > 0 && 'is_login' in columnInfo[0];
+        
+        // Fetch logs with conditional selection of is_login field
         const { data, error } = await supabase
           .from('user_access_logs')
-          .select('*')
+          .select(hasLoginField ? '*' : 'id, user_id, event, created_at')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(50);
@@ -51,15 +61,21 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
     return format(date, "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: pt });
   };
   
-  const getEventBadge = (event: string) => {
+  const getEventBadge = (event: string, isLogin?: boolean) => {
+    // Show "Login" badge only for actual login events
+    if (event === 'Acesso ao sistema' && isLogin === true) {
+      return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Login</Badge>;
+    }
+    
+    // For other events, use appropriate badges
     switch (event) {
-      case 'Acesso ao sistema':
-        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Login</Badge>;
       case 'Atualização de perfil':
         return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Perfil</Badge>;
       case 'Alteração de senha':
         return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Senha</Badge>;
       case 'Atualização de foto de perfil':
+        return <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">Foto</Badge>;
+      case 'Remoção de foto de perfil':
         return <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">Foto</Badge>;
       default:
         return <Badge variant="outline">{event}</Badge>;
@@ -87,7 +103,7 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
                 className="p-3 border rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  {getEventBadge(log.event)}
+                  {getEventBadge(log.event, log.is_login)}
                   <span>{log.event}</span>
                 </div>
                 <div className="text-sm text-muted-foreground">

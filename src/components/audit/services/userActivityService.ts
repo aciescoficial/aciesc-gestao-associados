@@ -5,13 +5,18 @@ import { supabase } from '@/integrations/supabase/client';
  * Log a user access event
  * @param userId User ID
  * @param event Event description
+ * @param isLoginEvent Whether this is a true login event or just a page access
  * @returns Promise resolving to success status
  */
-export const logUserActivity = async (userId: string, event: string): Promise<boolean> => {
+export const logUserActivity = async (userId: string, event: string, isLoginEvent: boolean = false): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('user_access_logs')
-      .insert({ user_id: userId, event });
+      .insert({ 
+        user_id: userId, 
+        event,
+        is_login: isLoginEvent 
+      });
       
     if (error) {
       console.error('Error logging user activity:', error);
@@ -30,7 +35,7 @@ export const logUserActivity = async (userId: string, event: string): Promise<bo
  * @returns Promise resolving to success status
  */
 export const logSystemAccess = async (userId: string): Promise<boolean> => {
-  return logUserActivity(userId, 'Acesso ao sistema');
+  return logUserActivity(userId, 'Acesso ao sistema', true);
 };
 
 /**

@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { UserRole } from '@/components/usuarios/types';
 import { logUserActivity } from '@/components/audit/services/userActivityService';
+import { useAuth } from '@/components/auth';
+import { AlertCircle } from 'lucide-react';
 
 interface UserLinkEntityPanelProps {
   role: string;
@@ -34,6 +36,10 @@ export const UserLinkEntityPanel = ({
   const [selectedEmpresaId, setSelectedEmpresaId] = useState<string | undefined>(empresaId);
   
   const { toast } = useToast();
+  const { userRole, isAdmin } = useAuth();
+  
+  // Check if the current user is admin to allow associado linking
+  const canLinkAssociado = isAdmin || userRole === 'admin' || userRole === 'diretoria';
   
   useEffect(() => {
     const fetchEntities = async () => {
@@ -148,51 +154,61 @@ export const UserLinkEntityPanel = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {role === 'user' && (
-            <Select
-              value={selectedAssociadoId}
-              onValueChange={setSelectedAssociadoId}
+        {role === 'user' && !canLinkAssociado ? (
+          <div className="flex flex-col gap-3 text-center items-center p-4 text-muted-foreground border rounded-md bg-gray-50">
+            <AlertCircle className="h-6 w-6 text-amber-500" />
+            <div>
+              <p className="font-medium text-foreground">Acesso restrito</p>
+              <p className="text-sm">A vinculação de associados só pode ser realizada por administradores do sistema.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {role === 'user' && (
+              <Select
+                value={selectedAssociadoId}
+                onValueChange={setSelectedAssociadoId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um associado" />
+                </SelectTrigger>
+                <SelectContent>
+                  {associados.map(associado => (
+                    <SelectItem key={associado.id} value={associado.id}>
+                      {associado.nome} {associado.sobrenome} - CPF: {associado.cpf}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {role === 'empresa' && (
+              <Select
+                value={selectedEmpresaId}
+                onValueChange={setSelectedEmpresaId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma empresa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {empresas.map(empresa => (
+                    <SelectItem key={empresa.id} value={empresa.id}>
+                      {empresa.nome_fantasia} - CNPJ: {empresa.cnpj}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            <Button 
+              className="w-full" 
+              onClick={handleSaveLink}
+              disabled={isSaving}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um associado" />
-              </SelectTrigger>
-              <SelectContent>
-                {associados.map(associado => (
-                  <SelectItem key={associado.id} value={associado.id}>
-                    {associado.nome} {associado.sobrenome} - CPF: {associado.cpf}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          
-          {role === 'empresa' && (
-            <Select
-              value={selectedEmpresaId}
-              onValueChange={setSelectedEmpresaId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma empresa" />
-              </SelectTrigger>
-              <SelectContent>
-                {empresas.map(empresa => (
-                  <SelectItem key={empresa.id} value={empresa.id}>
-                    {empresa.nome_fantasia} - CNPJ: {empresa.cnpj}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          
-          <Button 
-            className="w-full" 
-            onClick={handleSaveLink}
-            disabled={isSaving}
-          >
-            {isSaving ? "Salvando..." : "Salvar Vínculo"}
-          </Button>
-        </div>
+              {isSaving ? "Salvando..." : "Salvar Vínculo"}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
