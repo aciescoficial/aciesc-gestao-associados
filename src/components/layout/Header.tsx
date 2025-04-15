@@ -9,8 +9,10 @@ import ErrorBoundary from './ErrorBoundary';
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Header: React.FC = () => {
-  const isMobile = useIsMobile();
-  const { importantMessages } = useHeaderNotifications();
+  // Using our refactored hook with default options
+  const { importantMessages } = useHeaderNotifications({
+    debug: process.env.NODE_ENV !== 'production'
+  });
   
   return (
     <ErrorBoundary
