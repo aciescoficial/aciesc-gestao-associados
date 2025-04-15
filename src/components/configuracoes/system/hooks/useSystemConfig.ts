@@ -65,47 +65,64 @@ export const useSystemConfig = () => {
 
   const saveConfig = async (values: SystemConfigValues): Promise<void> => {
     try {
-      // Save to system_config table first for compatibility
-      const { error: systemConfigError } = await supabase
-        .from('system_config')
-        .upsert({
-          key: 'SHOW_SYSTEM_MESSAGES',
-          value: values.showSystemMessages.toString()
-        });
-      
-      if (systemConfigError) {
-        console.error('Error saving to system_config:', systemConfigError);
-      }
+      console.log('Saving system config:', values);
       
       // Try to save to configuracoes table if it exists
       try {
         // Check if config already exists
-        const { data: existingConfig } = await extendedSupabase
+        const { data: existingConfig, error: checkError } = await extendedSupabase
           .from('configuracoes')
           .select('id')
           .eq('tipo', 'sistema')
-          .single();
+          .maybeSingle();
+        
+        if (checkError) {
+          console.error('Error checking configuracoes:', checkError);
+        }
 
         if (existingConfig) {
           // Update existing configuration
-          await extendedSupabase
+          const { error: updateError } = await extendedSupabase
             .from('configuracoes')
             .update({
               configuracoes: values,
               updated_at: new Date().toISOString(),
             })
             .eq('id', existingConfig.id);
+            
+          if (updateError) {
+            console.error('Error updating configuracoes:', updateError);
+            throw updateError;
+          }
         } else {
           // Create new configuration
-          await extendedSupabase
+          const { error: insertError } = await extendedSupabase
             .from('configuracoes')
             .insert({
               tipo: 'sistema',
               configuracoes: values,
             });
+            
+          if (insertError) {
+            console.error('Error inserting configuracoes:', insertError);
+            throw insertError;
+          }
         }
       } catch (configError) {
-        console.warn('Error saving to configuracoes table, but saved to system_config:', configError);
+        console.warn('Error saving to configuracoes table, falling back to system_config:', configError);
+        
+        // Save to system_config table as fallback
+        const { error: systemConfigError } = await supabase
+          .from('system_config')
+          .upsert({
+            key: 'SHOW_SYSTEM_MESSAGES',
+            value: values.showSystemMessages.toString()
+          });
+        
+        if (systemConfigError) {
+          console.error('Error saving to system_config:', systemConfigError);
+          throw systemConfigError;
+        }
       }
 
       // Update local state
@@ -118,6 +135,8 @@ export const useSystemConfig = () => {
       window.dispatchEvent(new CustomEvent('system-config-updated', { 
         detail: values 
       }));
+      
+      console.log('System config saved successfully');
     } catch (err) {
       console.error('Error saving system config:', err);
       throw err;

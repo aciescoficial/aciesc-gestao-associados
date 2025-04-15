@@ -5,14 +5,44 @@ import { Settings } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import RecaptchaConfigForm from './RecaptchaConfigForm';
 import RecaptchaIntegrationGuide from './RecaptchaIntegrationGuide';
-import { useAuth } from '@/components/auth/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const RecaptchaConfig: React.FC = () => {
-  const { user } = useAuth();
+  // Check if user is authenticated using supabase directly
   const [error, setError] = useState<string | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check authentication status
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        setIsAuthenticated(!!data.session);
+      } catch (err) {
+        console.error('Auth check error:', err);
+        setError('Erro ao verificar autenticação');
+      } finally {
+        setIsAuthChecking(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+
+  // Show loading state while checking auth
+  if (isAuthChecking) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="animate-pulse">Verificando autenticação...</div>
+      </div>
+    );
+  }
 
   // Check if user is authenticated
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <div className="p-6 space-y-6">
         <Alert variant="destructive">

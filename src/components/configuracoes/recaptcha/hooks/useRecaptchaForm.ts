@@ -1,142 +1,109 @@
 
 import { useState, useEffect } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { RecaptchaConfigValues, RecaptchaConfig } from '../types';
+import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
-import { extendedSupabase } from '@/integrations/supabase/extendedClient';
-import { RecaptchaFormValues } from '../types';
-import { useAuth } from '@/components/auth/context/AuthContext';
 
-// Schema for form validation
-const recaptchaFormSchema = z.object({
-  enabled: z.boolean(),
-  siteKey: z.string().min(1, 'Site key é obrigatório'),
-  secretKey: z.string().min(1, 'Secret key é obrigatório'),
-  threshold: z.number().min(0).max(1),
-});
-
-export const useRecaptchaForm = ({ toast }: { toast: any }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
-  
-  const form = useForm<RecaptchaFormValues>({
-    resolver: zodResolver(recaptchaFormSchema),
-    defaultValues: {
-      enabled: true,
-      siteKey: '',
-      secretKey: '',
-      threshold: 0.5,
-    },
+export const useRecaptchaForm = (onError?: (msg: string) => void) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [config, setConfig] = useState<RecaptchaConfigValues>({
+    enabled: false,
+    siteKey: '',
+    secretKey: '',
+    version: 'v2',
+    scoreThreshold: 0.5,
   });
+
+  // Check authentication status
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-  // Load existing settings
   useEffect(() => {
-    const loadSettings = async () => {
-      setIsLoading(true);
+    const checkAuth = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Auth check error:', error);
+        onError?.('Erro ao verificar autenticação');
+        return false;
+      }
+      return !!data.session;
+    };
+    
+    checkAuth().then(setIsAuthenticated);
+  }, [onError]);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      if (!isAuthenticated) return;
       
+      setIsLoading(true);
       try {
-        const { data, error } = await extendedSupabase
-          .from('configuracoes')
-          .select('configuracoes')
-          .eq('tipo', 'recaptcha')
-          .maybeSingle();
-          
-        if (error) {
-          console.error('Error loading reCAPTCHA settings:', error);
-          return;
+        const { data, error } = await supabase
+          .from('recaptcha_config')
+          .select('*')
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
         }
-        
-        if (data?.configuracoes) {
-          const settings = data.configuracoes as RecaptchaFormValues;
-          form.reset({
-            enabled: settings.enabled !== undefined ? settings.enabled : true,
-            siteKey: settings.siteKey || '',
-            secretKey: settings.secretKey || '',
-            threshold: settings.threshold || 0.5,
+
+        if (data) {
+          setConfig({
+            enabled: data.enabled || false,
+            siteKey: data.site_key || '',
+            secretKey: data.secret_key || '',
+            version: data.version || 'v2',
+            scoreThreshold: data.score_threshold || 0.5,
           });
         }
-      } catch (error) {
-        console.error('Failed to load reCAPTCHA settings:', error);
+      } catch (error: any) {
+        console.error('Error fetching reCAPTCHA config:', error);
+        onError?.(error.message || 'Erro ao carregar configurações');
       } finally {
         setIsLoading(false);
       }
     };
-    
-    if (user) {
-      loadSettings();
-    }
-  }, [form, user]);
-  
-  // Save settings
-  const saveSettings = async (values: RecaptchaFormValues) => {
-    if (!user) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro de autenticação',
-        description: 'Você precisa estar autenticado para salvar as configurações.',
-      });
+
+    fetchConfig();
+  }, [isAuthenticated, onError]);
+
+  const saveConfig = async (values: RecaptchaConfigValues) => {
+    if (!isAuthenticated) {
+      onError?.('Você precisa estar autenticado para salvar configurações');
       return;
     }
     
-    setIsLoading(true);
-    
+    setIsSaving(true);
     try {
-      // Check if settings already exist
-      const { data: existingData, error: existingError } = await extendedSupabase
-        .from('configuracoes')
-        .select('id')
-        .eq('tipo', 'recaptcha')
-        .maybeSingle();
+      const { error } = await supabase
+        .from('recaptcha_config')
+        .upsert({
+          id: 1, // Using a singleton approach with id=1
+          enabled: values.enabled,
+          site_key: values.siteKey,
+          secret_key: values.secretKey,
+          version: values.version,
+          score_threshold: values.scoreThreshold,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
       
-      if (existingError) {
-        throw new Error('Erro ao verificar configurações existentes: ' + existingError.message);
-      }
-      
-      let result;
-      
-      if (existingData?.id) {
-        // Update existing
-        result = await extendedSupabase
-          .from('configuracoes')
-          .update({ 
-            configuracoes: values,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingData.id)
-          .select();
-      } else {
-        // Insert new
-        result = await extendedSupabase
-          .from('configuracoes')
-          .insert({ 
-            tipo: 'recaptcha', 
-            configuracoes: values,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .select();
-      }
-      
-      if (result.error) {
-        throw new Error('Erro ao salvar configurações: ' + result.error.message);
-      }
-      
-      toast({
-        title: 'Configurações salvas',
-        description: 'As configurações do reCAPTCHA foram atualizadas com sucesso.',
-      });
+      setConfig(values);
+      return true;
     } catch (error: any) {
-      console.error('Failed to save reCAPTCHA settings:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao salvar configurações',
-        description: error.message || 'Ocorreu um erro ao salvar as configurações.',
-      });
-      throw error;
+      console.error('Error saving reCAPTCHA config:', error);
+      onError?.(error.message || 'Erro ao salvar configurações');
+      return false;
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
-  
-  return { form, isLoading, saveSettings };
+
+  return {
+    config,
+    isLoading,
+    isSaving,
+    saveConfig,
+  };
 };

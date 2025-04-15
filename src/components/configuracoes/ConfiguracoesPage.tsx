@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, Map, Users, ClipboardList, Mail, CreditCard, DollarSign, Shield } from 'lucide-react';
 import GoogleMapsConfig from './GoogleMapsConfig';
