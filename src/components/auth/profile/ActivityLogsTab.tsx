@@ -52,23 +52,28 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
           throw error;
         }
         
-        if (data && Array.isArray(data)) {
-          // Check if the data contains valid objects (not parser errors)
-          const validData = data.filter(item => 
-            typeof item === 'object' && 
-            item !== null && 
-            !('error' in item) && 
-            'id' in item && 
-            'event' in item && 
+        if (data) {
+          // Filter out any items that aren't valid objects or have parser errors
+          const validData = data.filter((item): item is {
+            id: string;
+            event: string;
+            created_at: string;
+            is_login?: boolean;
+          } => (
+            typeof item === 'object' &&
+            item !== null &&
+            !('error' in item) &&
+            'id' in item &&
+            'event' in item &&
             'created_at' in item
-          );
+          ));
           
-          // Ensure the data format matches ActivityLog interface
+          // Map valid data to ActivityLog objects
           const formattedLogs: ActivityLog[] = validData.map(item => ({
             id: item.id,
             event: item.event,
             created_at: item.created_at,
-            ...(hasLoginField && 'is_login' in item ? { is_login: item.is_login } : {})
+            ...(hasLoginField && 'is_login' in item ? { is_login: !!item.is_login } : {})
           }));
           
           setLogs(formattedLogs);

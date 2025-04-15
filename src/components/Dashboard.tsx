@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo } from 'react';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
@@ -11,6 +12,8 @@ import { useAuth } from '@/components/auth/hooks/useAuthContext';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import SituacaoPagamentoCard from '@/components/associado/dashboard/SituacaoPagamentoCard';
 import UltimasEmpresas from '@/components/associado/dashboard/UltimasEmpresas';
+import EmpresasDashboard from '@/components/empresa/dashboard/EmpresasDashboard';
+import { Navigate } from 'react-router-dom';
 
 const exampleMessages: NotificationMessage[] = [
   {
@@ -74,6 +77,12 @@ const Dashboard: React.FC = () => {
     };
   }, [user, handleRefresh]);
 
+  // Redirecionamento para o perfil da empresa se o usuário for empresa
+  if (user?.role === 'empresa') {
+    return <EmpresasDashboard />;
+  }
+
+  // Verificar se o usuário é um associado
   const isAssociado = user?.role === 'user' && user?.associado_id;
 
   return (
@@ -108,21 +117,35 @@ const Dashboard: React.FC = () => {
         </div>
       )}
       
-      {!isAssociado && <DashboardStats stats={stats} loading={loading} />}
-      
-      {isAssociado && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SituacaoPagamentoCard />
-          <UltimasEmpresas />
-        </div>
+      {/* Dashboard para Administrador */}
+      {!isAssociado && user?.role !== 'user' && (
+        <>
+          <DashboardStats stats={stats} loading={loading} />
+          <RecentActivity recentActivity={recentActivity} loading={loading} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <QuickActions />
+            <SystemStatus systemStatus={systemStatus} />
+          </div>
+        </>
       )}
       
-      <RecentActivity recentActivity={recentActivity} loading={loading} />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <QuickActions />
-        {!isAssociado && <SystemStatus systemStatus={systemStatus} />}
-      </div>
+      {/* Dashboard para Associado */}
+      {isAssociado && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SituacaoPagamentoCard />
+            <UltimasEmpresas />
+          </div>
+          <div className="mt-6">
+            <h2 className="text-xl font-semibold mb-4">Todas as Empresas Conveniadas</h2>
+            <iframe 
+              src="/empresas-conveniadas" 
+              className="w-full h-[600px] border-0 rounded-lg shadow-sm" 
+              title="Empresas Conveniadas"
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 };

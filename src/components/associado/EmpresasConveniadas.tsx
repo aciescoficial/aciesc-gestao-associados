@@ -1,173 +1,296 @@
+
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from "@/integrations/supabase/client";
-import { Database } from '@/integrations/supabase/types';
-
-type NichoType = Database['public']['Enums']['nicho_type'];
-
-interface EmpresaData {
-  id: string;
-  nome_fantasia: string;
-  razao_social: string;
-  nicho: NichoType;
-  cidade: string;
-  desconto: string;
-  logo_url: string | null;
-}
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Search, Building, MapPin, Tag, External, Phone } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmpresaConveniada, listarEmpresasConveniadas } from './services/empresasService';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 const EmpresasConveniadas: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedNicho, setSelectedNicho] = useState<string>('');
-  const [empresas, setEmpresas] = useState<EmpresaData[]>([]);
-  const [filteredEmpresas, setFilteredEmpresas] = useState<EmpresaData[]>([]);
+  const [empresas, setEmpresas] = useState<EmpresaConveniada[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filtroNicho, setFiltroNicho] = useState<string>('todos');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
   
-  // Fetch active companies on component mount
+  // Nichos para filtro
+  const nichos = ['Alimentação', 'Saúde', 'Educação', 'Vestuário', 'Automotivo', 'Serviços'];
+  
+  // Dados de exemplo para usar como fallback
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .slice(0, 2)
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase();
+  };
+  
   useEffect(() => {
-    fetchEmpresas();
-  }, []);
+    loadEmpresas();
+  }, [currentPage, filtroNicho]);
   
-  // Apply filters when search term or nicho changes
-  useEffect(() => {
-    applyFilters();
-  }, [searchTerm, selectedNicho, empresas]);
-  
-  const fetchEmpresas = async () => {
+  const loadEmpresas = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      // Only fetch companies with 'ativo' status
-      const { data, error } = await supabase
-        .from('empresas')
-        .select('*')
-        .eq('status', 'ativo');
-        
-      if (error) throw error;
-      
-      setEmpresas(data || []);
+      const response = await listarEmpresasConveniadas(currentPage, itemsPerPage);
+      setEmpresas(response.dados);
+      setTotalItems(response.total);
+      setTotalPages(Math.ceil(response.total / itemsPerPage));
     } catch (error) {
-      console.error("Error fetching empresas:", error);
-      toast({
-        title: "Erro ao carregar empresas",
-        description: "Não foi possível carregar a lista de empresas conveniadas.",
-        variant: "destructive",
-      });
+      console.error('Erro ao carregar empresas:', error);
     } finally {
       setIsLoading(false);
     }
   };
-  
-  const applyFilters = () => {
-    let filtered = [...empresas];
-    
-    // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(empresa => 
-        empresa.nome_fantasia.toLowerCase().includes(term) || 
-        empresa.razao_social.toLowerCase().includes(term)
-      );
-    }
-    
-    // Apply nicho filter
-    if (selectedNicho) {
-      filtered = filtered.filter(empresa => empresa.nicho === selectedNicho);
-    }
-    
-    setFilteredEmpresas(filtered);
-  };
-  
+
+  // Filtro de empresas
+  const filteredEmpresas = empresas.filter(empresa => 
+    (searchTerm === '' || 
+      empresa.nome_fantasia.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      empresa.desconto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      empresa.cidade.toLowerCase().includes(searchTerm.toLowerCase())
+    ) && 
+    (filtroNicho === 'todos' || empresa.nicho === filtroNicho)
+  );
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    applyFilters();
+    loadEmpresas();
   };
-  
+
+  // Gerar componentes de paginação
+  const renderPagination = () => {
+    return (
+      <Pagination className="mt-6">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            />
+          </PaginationItem>
+          
+          {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+            let pageNum: number;
+            
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (currentPage <= 3) {
+              pageNum = i + 1;
+            } else if (currentPage >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = currentPage - 2 + i;
+            }
+            
+            return (
+              <PaginationItem key={i}>
+                <PaginationLink
+                  isActive={pageNum === currentPage}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className="cursor-pointer"
+                >
+                  {pageNum}
+                </PaginationLink>
+              </PaginationItem>
+            );
+          })}
+          
+          {totalPages > 5 && currentPage < totalPages - 2 && (
+            <>
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationLink
+                  onClick={() => setCurrentPage(totalPages)}
+                  className="cursor-pointer"
+                >
+                  {totalPages}
+                </PaginationLink>
+              </PaginationItem>
+            </>
+          )}
+          
+          <PaginationItem>
+            <PaginationNext 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="wp-header">Empresas Conveniadas</h1>
       
-      <div className="wp-card">
-        <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="col-span-2">
-            <label className="block text-sm font-medium mb-1">Buscar empresas</label>
-            <div className="relative">
-              <input
-                type="text"
-                className="wp-input w-full pl-10"
-                placeholder="Nome da empresa ou razão social"
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap gap-4 mb-6">
+            <form onSubmit={handleSearch} className="flex flex-1 gap-2">
+              <Input
+                placeholder="Buscar por nome, desconto, cidade..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1"
               />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-            </div>
+              <Button type="submit">
+                <Search size={18} className="mr-2" />
+                Buscar
+              </Button>
+            </form>
+            
+            <Select value={filtroNicho} onValueChange={setFiltroNicho}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrar por nicho" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os nichos</SelectItem>
+                {nichos.map(nicho => (
+                  <SelectItem key={nicho} value={nicho}>{nicho}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
-          <div>
-            <label className="block text-sm font-medium mb-1">Nicho</label>
-            <select 
-              className="wp-input w-full"
-              value={selectedNicho}
-              onChange={(e) => setSelectedNicho(e.target.value)}
-            >
-              <option value="">Todos os nichos</option>
-              <option value="Alimentação">Alimentação</option>
-              <option value="Saúde">Saúde</option>
-              <option value="Educação">Educação</option>
-              <option value="Serviços">Serviços</option>
-              <option value="Comércio">Comércio</option>
-              <option value="Lazer">Lazer</option>
-              <option value="Tecnologia">Tecnologia</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-        </form>
-        
-        {isLoading ? (
-          <div className="flex justify-center p-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          </div>
-        ) : filteredEmpresas.length === 0 ? (
-          <div className="wp-notice-warning">
-            <p>Nenhuma empresa encontrada com os filtros selecionados.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEmpresas.map((empresa) => (
-              <div key={empresa.id} className="border rounded-lg overflow-hidden shadow-sm">
-                <div className="h-32 bg-gray-100 flex items-center justify-center">
-                  {empresa.logo_url ? (
-                    <img 
-                      src={empresa.logo_url} 
-                      alt={empresa.nome_fantasia} 
-                      className="max-h-full object-contain"
-                    />
-                  ) : (
-                    <div className="text-gray-400 text-sm">Sem logotipo</div>
-                  )}
+          <Tabs defaultValue="cards" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="cards">Cartões</TabsTrigger>
+              <TabsTrigger value="list">Lista</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="cards">
+              {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Array(4).fill(0).map((_, i) => (
+                    <div key={i} className="border rounded-lg p-4">
+                      <div className="flex gap-4">
+                        <Skeleton className="h-14 w-14 rounded-full" />
+                        <div className="space-y-2 flex-1">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                          <Skeleton className="h-3 w-1/3" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg">{empresa.nome_fantasia}</h3>
-                  <div className="flex items-center text-sm text-gray-500 mt-1">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    <span>{empresa.cidade}</span>
-                  </div>
-                  <div className="mt-2">
-                    <span className="wp-badge">{empresa.nicho}</span>
-                  </div>
-                  <div className="mt-3 pt-3 border-t">
-                    <p className="font-medium">Desconto para associados:</p>
-                    <p className="text-green-600 font-bold">{empresa.desconto}</p>
-                  </div>
+              ) : filteredEmpresas.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredEmpresas.map((empresa) => (
+                    <div key={empresa.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex gap-4">
+                        <Avatar className="h-14 w-14">
+                          <AvatarImage src={empresa.logo_url} alt={empresa.nome_fantasia} />
+                          <AvatarFallback className="bg-aciesc-primary text-white">
+                            {getInitials(empresa.nome_fantasia)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1 flex-1">
+                          <h3 className="font-medium text-base">{empresa.nome_fantasia}</h3>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Tag size={14} className="mr-1" />
+                            <span className="font-semibold text-green-600">{empresa.desconto} de desconto</span>
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <MapPin size={14} className="mr-1" />
+                            <span>{empresa.cidade}</span>
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Phone size={14} className="mr-1" />
+                            <span>Contato via app</span>
+                            <Button size="sm" variant="link" className="p-0 h-auto ml-2">
+                              <External size={12} className="mr-1" />
+                              Saiba mais
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Building size={40} className="mx-auto text-muted-foreground mb-3" />
+                  <h3 className="font-medium text-lg">Nenhuma empresa encontrada</h3>
+                  <p className="text-muted-foreground">
+                    Não encontramos empresas para os filtros selecionados.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="list">
+              {isLoading ? (
+                <div className="space-y-2">
+                  {Array(4).fill(0).map((_, i) => (
+                    <div key={i} className="border rounded-lg p-3">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="space-y-1 flex-1">
+                          <Skeleton className="h-4 w-1/3" />
+                          <Skeleton className="h-3 w-1/5" />
+                        </div>
+                        <Skeleton className="h-8 w-24" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredEmpresas.length > 0 ? (
+                <div className="space-y-2">
+                  {filteredEmpresas.map((empresa) => (
+                    <div key={empresa.id} className="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={empresa.logo_url} alt={empresa.nome_fantasia} />
+                          <AvatarFallback className="bg-aciesc-primary text-white text-xs">
+                            {getInitials(empresa.nome_fantasia)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">{empresa.nome_fantasia}</h3>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Tag size={12} className="mr-1" />
+                            <span className="font-semibold text-green-600 mr-2">{empresa.desconto}</span>
+                            <MapPin size={12} className="mr-1" />
+                            <span>{empresa.cidade}</span>
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline" className="shrink-0">
+                          <External size={14} className="mr-1" />
+                          Detalhes
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Building size={40} className="mx-auto text-muted-foreground mb-3" />
+                  <h3 className="font-medium text-lg">Nenhuma empresa encontrada</h3>
+                  <p className="text-muted-foreground">
+                    Não encontramos empresas para os filtros selecionados.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+          
+          {!isLoading && totalPages > 1 && renderPagination()}
+        </CardContent>
+      </Card>
     </div>
   );
 };
