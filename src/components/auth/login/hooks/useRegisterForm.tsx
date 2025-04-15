@@ -44,6 +44,7 @@ export const useRegisterForm = () => {
     try {
       console.log("Tentando registrar com email:", email);
       
+      // Direct sign-up with no captcha verification
       const { error } = await signUp(email, password, name, organizationType);
       
       if (error) {

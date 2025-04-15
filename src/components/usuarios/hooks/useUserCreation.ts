@@ -25,7 +25,7 @@ export const useUserCreation = (onSuccess: (user: User) => void) => {
       
       console.log("Criando usuário com email:", newUser.email);
       
-      // Step 1: Create the user in auth
+      // Step 1: Create the user in auth - no captcha required
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: tempPassword,
@@ -68,7 +68,7 @@ export const useUserCreation = (onSuccess: (user: User) => void) => {
         console.log("Atualizando dados do usuário:", userData);
         
         const { error: userError } = await supabase
-          .from('user') // Ensure we're using 'user' table, NOT 'profiles'
+          .from('user') // Using 'user' table
           .upsert(userData);
 
         if (userError) {

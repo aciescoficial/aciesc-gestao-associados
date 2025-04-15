@@ -34,6 +34,7 @@ export const signInWithGoogle = async () => {
 
 export const signUp = async (email: string, password: string, name: string, role: UserRole = 'user') => {
   try {
+    // Direct sign-up with no captcha verification
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

@@ -1,105 +1,114 @@
 
-import { useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { User as SupabaseUser } from '@supabase/supabase-js';
-import { UserRole, UserTag } from '../usuarios/types';
+import { useState, useEffect } from 'react';
+import { Session, User } from '@supabase/supabase-js';
 import { AuthContext } from './context/AuthContext';
-import { fetchUserRole, signIn, signInWithGoogle, signUp, resetPassword, signOut } from './services/authService';
+import { supabase } from '@/integrations/supabase/client';
+import { signIn, signOut, signUp, resetPassword, signInWithGoogle, fetchUserRole } from './services/authService';
+import { UserRole, UserTag } from '../usuarios/types';
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [userRole, setUserRole] = useState<UserRole | null>('admin');
-  const [userTags, setUserTags] = useState<UserTag[]>(['administrador', 'financeiro']);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [userTags, setUserTags] = useState<UserTag[]>([]);
+  
+  // Load user data on mount
   useEffect(() => {
-    const fetchSession = async () => {
-      setLoading(true);
-      try {
-        // Get current session
-        const { data: { session }, error } = await supabase.auth.getSession();
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null);
         
-        if (error) {
-          console.error('Error getting session:', error);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-        
-        // Set user if session exists
         if (session?.user) {
-          setUser(session.user);
-          // Always set admin role regardless of what's in the database
-          setUserRole('admin');
-          setUserTags(['administrador', 'financeiro']);
+          // Defer Supabase calls with setTimeout
+          setTimeout(async () => {
+            // Fetch user role from database
+            const role = await fetchUserRole(session.user.id);
+            setUserRole(role || 'user');
+            
+            // Fetch user tags
+            try {
+              const { data } = await supabase
+                .from('user')
+                .select('tags')
+                .eq('id', session.user.id)
+                .single();
+                
+              setUserTags(data?.tags || []);
+            } catch (error) {
+              console.error('Error fetching user tags:', error);
+              setUserTags([]);
+            }
+          }, 0);
         } else {
-          setUser(null);
-          // Default to admin role and tags even when not logged in
-          setUserRole('admin');
-          setUserTags(['administrador', 'financeiro']);
+          setUserRole(null);
+          setUserTags([]);
         }
-      } catch (err) {
-        console.error('Error in auth provider:', err);
-        setUser(null);
+      }
+    );
+    
+    // THEN check for existing session
+    const getSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch user role from database
+          const role = await fetchUserRole(session.user.id);
+          setUserRole(role || 'user');
+          
+          // Fetch user tags
+          try {
+            const { data } = await supabase
+              .from('user')
+              .select('tags')
+              .eq('id', session.user.id)
+              .single();
+              
+            setUserTags(data?.tags || []);
+          } catch (error) {
+            console.error('Error fetching user tags:', error);
+            setUserTags([]);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth session:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    // Fetch initial session
-    fetchSession();
+    getSession();
     
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-          // Always set admin role regardless of what's retrieved
-          setUserRole('admin');
-          setUserTags(['administrador', 'financeiro']);
-        } else {
-          setUser(null);
-          // Default to admin role and tags even when not logged in
-          setUserRole('admin');
-          setUserTags(['administrador', 'financeiro']);
-        }
-      }
-    );
-    
-    // Clean up subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
   }, []);
   
-  // Always set isAdmin to true
-  const isAdmin = true;
+  // Check if user is admin
+  const isAdmin = userRole === 'admin' || userRole === 'diretoria';
   
-  // Always set hasFinanceiroAccess to true
-  const hasFinanceiroAccess = true;
+  // Check if user has financeiro access
+  const hasFinanceiroAccess = isAdmin || userRole === 'financeiro';
+  
+  const authContextValue = {
+    user,
+    loading,
+    signIn,
+    signUp,
+    signOut,
+    resetPassword,
+    signInWithGoogle,
+    userRole,
+    userTags,
+    isAdmin,
+    hasFinanceiroAccess,
+  };
   
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      signIn,
-      signUp,
-      resetPassword, 
-      signOut,
-      signInWithGoogle,
-      userRole,
-      userTags,
-      isAdmin,
-      hasFinanceiroAccess
-    }}>
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   );
 };
-
-// Export the useAuth hook directly from the AuthProvider file
-export { useAuth } from './hooks/useAuthContext';
