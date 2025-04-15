@@ -4,12 +4,8 @@ import { useAuth } from '../../hooks/useAuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from '@/components/usuarios/types';
 
-interface RegisterFormOptions {
-  captchaToken?: string;
-}
-
 export const useRegisterForm = () => {
-  const { signUp, signInWithGoogle } = useAuth();
+  const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -48,30 +44,6 @@ export const useRegisterForm = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    
-    try {
-      const { error } = await signInWithGoogle();
-      
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Erro ao entrar com Google",
-          description: error.message,
-        });
-        setIsLoading(false);
-      }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao entrar com Google",
-        description: error.message || "Ocorreu um erro durante o login com Google",
-      });
-      setIsLoading(false);
-    }
-  };
-
   return {
     email,
     setEmail,
@@ -84,7 +56,6 @@ export const useRegisterForm = () => {
     setShowPassword,
     organizationType,
     setOrganizationType,
-    handleSignUp,
-    handleGoogleSignIn
+    handleSignUp
   };
 };

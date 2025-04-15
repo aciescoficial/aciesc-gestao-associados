@@ -2,7 +2,6 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import TwoFactorSettings from './TwoFactorSettings';
-import RecaptchaConfig from '@/components/configuracoes/recaptcha/RecaptchaConfig';
 
 const SecurityTabContent: React.FC = () => {
   return (
@@ -18,8 +17,6 @@ const SecurityTabContent: React.FC = () => {
           <TwoFactorSettings />
         </CardContent>
       </Card>
-
-      <RecaptchaConfig />
     </div>
   );
 };

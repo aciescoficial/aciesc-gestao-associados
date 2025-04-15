@@ -1,3 +1,4 @@
+
 import { UserRole, UserTag } from '../types';
 
 // Original database role types 
@@ -23,7 +24,7 @@ export const mapToDbRole = (role: UserRole): DatabaseUserRole => {
 export const mapFromDbRole = (dbRole: DatabaseUserRole | string): UserRole => {
   switch (dbRole) {
     case 'admin':
-      return 'admin';
+      return 'diretoria';
     case 'associado':
     case 'user':
       return 'user';
@@ -41,7 +42,7 @@ export const mapFromDbRole = (dbRole: DatabaseUserRole | string): UserRole => {
 export const getRoleLabel = (role: UserRole): string => {
   switch (role) {
     case 'admin':
-      return 'Administrador';
+      return 'Diretoria';
     case 'user':
       return 'Associado';
     case 'empresa':

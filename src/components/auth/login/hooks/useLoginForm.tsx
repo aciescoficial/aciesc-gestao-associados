@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UserRole } from '@/components/usuarios/types';
 
 export const useLoginForm = (onForgotPassword: () => void) => {
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,13 +18,8 @@ export const useLoginForm = (onForgotPassword: () => void) => {
     setIsLoading(true);
     
     try {
-      console.log('Tentando login com email:', email, 'e token recaptcha:', recaptchaToken ? 'presente' : 'ausente');
+      console.log('Tentando login com email:', email);
       
-      const options = recaptchaToken 
-        ? { captchaToken: recaptchaToken } 
-        : undefined;
-      
-      // Use captchaToken if provided
       const { error } = await signIn(email, password);
       
       if (error) {
@@ -45,30 +40,6 @@ export const useLoginForm = (onForgotPassword: () => void) => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    
-    try {
-      const { error } = await signInWithGoogle();
-      
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "Erro ao entrar com Google",
-          description: error.message,
-        });
-        setIsLoading(false);
-      }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao entrar com Google",
-        description: error.message || "Ocorreu um erro durante o login com Google",
-      });
-      setIsLoading(false);
-    }
-  };
-
   return {
     email,
     setEmail,
@@ -80,7 +51,6 @@ export const useLoginForm = (onForgotPassword: () => void) => {
     organizationType,
     setOrganizationType,
     handleSignIn,
-    handleGoogleSignIn,
     onForgotPassword
   };
 };

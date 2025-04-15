@@ -7,11 +7,6 @@ import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
-import './recaptcha-styles.css';
-
-// No need to redeclare the global interface here since it's declared in useRecaptchaV2.tsx
-// and will be available throughout the application
 
 const LoginPage = () => {
   const { user } = useAuth();

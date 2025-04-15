@@ -1,7 +1,5 @@
 
-import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useRecaptcha } from './hooks/useRecaptcha';
 import { useRegisterForm } from './hooks/useRegisterForm';
 import RegisterFormFields from './components/RegisterFormFields';
 
@@ -16,8 +14,6 @@ const RegisterForm = ({
   setRecaptchaLoaded,
   setRecaptchaToken
 }: RegisterFormProps) => {
-  const [recaptchaToken, setRecaptchaTokenLocal] = useState<string | null>(null);
-  
   const {
     email,
     setEmail,
@@ -30,20 +26,8 @@ const RegisterForm = ({
     setShowPassword,
     organizationType,
     setOrganizationType,
-    handleSignUp,
-    handleGoogleSignIn
+    handleSignUp
   } = useRegisterForm();
-
-  // Initialize reCAPTCHA
-  const { isEnabled } = useRecaptcha(
-    'register-recaptcha', 
-    recaptchaLoaded, 
-    setRecaptchaLoaded, 
-    (token: string) => {
-      setRecaptchaTokenLocal(token);
-      setRecaptchaToken(token);
-    }
-  );
 
   const handleFormSubmit = (e: React.FormEvent) => {
     handleSignUp(e);
@@ -70,11 +54,10 @@ const RegisterForm = ({
           organizationType={organizationType}
           setOrganizationType={setOrganizationType}
           isLoading={isLoading}
-          recaptchaLoaded={recaptchaLoaded}
-          recaptchaToken={recaptchaToken}
-          isRecaptchaEnabled={isEnabled}
+          recaptchaLoaded={false}
+          recaptchaToken={null}
+          isRecaptchaEnabled={false}
           handleSubmit={handleFormSubmit}
-          handleGoogleSignIn={handleGoogleSignIn}
         />
       </CardContent>
     </Card>

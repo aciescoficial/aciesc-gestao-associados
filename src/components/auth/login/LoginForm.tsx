@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useRecaptcha } from './hooks/useRecaptcha';
 import { useLoginForm } from './hooks/useLoginForm';
 import LoginFormFields from './components/LoginFormFields';
 import ForgotPasswordFooter from './components/ForgotPasswordFooter';
@@ -19,8 +18,6 @@ const LoginForm = ({
   setRecaptchaLoaded,
   setRecaptchaToken
 }: LoginFormProps) => {
-  const [recaptchaToken, setRecaptchaTokenLocal] = useState<string | null>(null);
-  
   const {
     email,
     setEmail,
@@ -31,23 +28,11 @@ const LoginForm = ({
     setShowPassword,
     organizationType,
     setOrganizationType,
-    handleSignIn,
-    handleGoogleSignIn
+    handleSignIn
   } = useLoginForm(onForgotPassword);
 
-  // Initialize reCAPTCHA
-  const { isEnabled } = useRecaptcha(
-    'login-recaptcha', 
-    recaptchaLoaded, 
-    setRecaptchaLoaded, 
-    (token: string) => {
-      setRecaptchaTokenLocal(token);
-      setRecaptchaToken(token);
-    }
-  );
-
   const handleFormSubmit = (e: React.FormEvent) => {
-    handleSignIn(e, recaptchaToken);
+    handleSignIn(e, null);
   };
 
   return (
@@ -69,11 +54,10 @@ const LoginForm = ({
           organizationType={organizationType}
           setOrganizationType={setOrganizationType}
           isLoading={isLoading}
-          recaptchaLoaded={recaptchaLoaded}
-          recaptchaToken={recaptchaToken}
-          isRecaptchaEnabled={isEnabled}
+          recaptchaLoaded={false}
+          recaptchaToken={null}
+          isRecaptchaEnabled={false}
           handleSubmit={handleFormSubmit}
-          handleGoogleSignIn={handleGoogleSignIn}
         />
       </CardContent>
       <CardFooter className="flex justify-center">
