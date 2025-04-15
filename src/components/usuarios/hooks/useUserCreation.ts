@@ -36,7 +36,8 @@ export const useUserCreation = (onSuccess: (user: User) => void) => {
             tags: newUser.tags,
             associado_id: newUser.associado_id,
             empresa_id: newUser.empresa_id
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/login`
         }
       });
 

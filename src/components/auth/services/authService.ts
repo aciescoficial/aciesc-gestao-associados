@@ -34,7 +34,7 @@ export const signInWithGoogle = async () => {
 
 export const signUp = async (email: string, password: string, name: string, role: UserRole = 'user') => {
   try {
-    // Direct sign-up with no captcha verification
+    // Removido o sistema de captcha, configurado para não exigir um token captcha
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -43,6 +43,7 @@ export const signUp = async (email: string, password: string, name: string, role
           name,
           role
         },
+        emailRedirectTo: `${window.location.origin}/login`
       }
     });
     
