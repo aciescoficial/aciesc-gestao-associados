@@ -43,7 +43,7 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
         // Fetch logs with conditional selection of is_login field
         const { data, error } = await supabase
           .from('user_access_logs')
-          .select(hasLoginField ? 'id, user_id, event, created_at, is_login' : 'id, user_id, event, created_at')
+          .select(hasLoginField ? 'id, event, created_at, is_login' : 'id, event, created_at')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(50);
@@ -53,7 +53,15 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
         }
         
         if (data && Array.isArray(data)) {
-          setLogs(data as ActivityLog[]);
+          // Ensure the data format matches ActivityLog interface
+          const formattedLogs: ActivityLog[] = data.map(item => ({
+            id: item.id,
+            event: item.event,
+            created_at: item.created_at,
+            ...(hasLoginField ? { is_login: item.is_login } : {})
+          }));
+          
+          setLogs(formattedLogs);
         } else {
           // If no data or invalid format, set empty array
           setLogs([]);
