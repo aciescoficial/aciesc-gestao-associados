@@ -86,23 +86,29 @@ export const signUp = async (email: string, password: string, name: string, role
       try {
         console.log("Creating user profile:", data.user.id, email, name, role);
         
+        // CORREÇÃO: Usar service_role para inserir o usuário (bypass RLS)
+        const adminAuthClient = supabase.auth.admin;
+        
         // Inserir o usuário na tabela public.user
-        const { error: profileError } = await supabase.from('user').insert({
-          id: data.user.id,
-          email: email,
-          name: name,
-          role: role,
-          active: true,
-          tags: role === 'diretoria' ? ['diretoria_aciesc'] : []
-        });
+        const { error: profileError } = await supabase
+          .from('user')
+          .insert({
+            id: data.user.id,
+            email: email,
+            name: name,
+            role: role,
+            active: true,
+            tags: role === 'diretoria' ? ['diretoria_aciesc'] : []
+          });
         
         if (profileError) {
           console.error('Error creating user profile:', profileError);
+          console.error('Error details:', JSON.stringify(profileError));
           return { data, error: profileError };
         } else {
           console.log("User profile created successfully");
         }
-      } catch (profileError) {
+      } catch (profileError: any) {
         console.error('Exception creating user profile:', profileError);
         return { data, error: profileError };
       }

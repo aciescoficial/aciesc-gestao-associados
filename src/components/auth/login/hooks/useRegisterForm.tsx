@@ -78,6 +78,8 @@ export const useRegisterForm = () => {
           errorMessage = "Este email já está registrado. Tente fazer login.";
         } else if (error.message.includes('rate limit') || error.message.includes('limite')) {
           errorMessage = "Limite de cadastros excedido. Por favor, tente novamente mais tarde.";
+        } else if (error.message.includes('violates row-level security') || error.message.includes('policy')) {
+          errorMessage = "Erro no sistema de permissões. Por favor, contate o administrador.";
         }
         
         toast({
