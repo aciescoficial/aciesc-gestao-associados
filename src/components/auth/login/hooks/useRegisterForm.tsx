@@ -42,6 +42,8 @@ export const useRegisterForm = () => {
     setIsLoading(true);
     
     try {
+      console.log("Tentando registrar com email:", email);
+      
       const { error } = await signUp(email, password, name, organizationType);
       
       if (error) {

@@ -72,6 +72,8 @@ export const signInWithGoogle = async () => {
 
 export const signUp = async (email: string, password: string, name: string, role: UserRole) => {
   try {
+    console.log('Registrando novo usuário:', email);
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

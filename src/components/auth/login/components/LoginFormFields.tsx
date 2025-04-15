@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserRole } from '@/components/usuarios/types';
 
 interface LoginFormFieldsProps {
@@ -26,6 +27,8 @@ const LoginFormFields: React.FC<LoginFormFieldsProps> = ({
   setPassword,
   showPassword,
   setShowPassword,
+  organizationType,
+  setOrganizationType,
   isLoading,
   handleSubmit
 }) => {
@@ -39,7 +42,7 @@ const LoginFormFields: React.FC<LoginFormFieldsProps> = ({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required 
-          autoComplete="email"
+          disabled={isLoading}
         />
       </div>
       <div className="space-y-2">
@@ -47,11 +50,11 @@ const LoginFormFields: React.FC<LoginFormFieldsProps> = ({
         <div className="relative">
           <Input 
             id="password" 
-            type={showPassword ? "text" : "password"} 
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required 
-            autoComplete="current-password"
+            disabled={isLoading}
           />
           <Button
             type="button"
@@ -59,10 +62,30 @@ const LoginFormFields: React.FC<LoginFormFieldsProps> = ({
             size="icon"
             className="absolute right-0 top-0 h-full px-3"
             onClick={() => setShowPassword(!showPassword)}
+            disabled={isLoading}
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="organization-type">Tipo de Acesso</Label>
+        <Select 
+          value={organizationType} 
+          onValueChange={(value) => setOrganizationType(value as UserRole)}
+          disabled={isLoading}
+        >
+          <SelectTrigger id="organization-type">
+            <SelectValue placeholder="Selecione o tipo de acesso" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="user">Associado</SelectItem>
+            <SelectItem value="empresa">Empresa</SelectItem>
+            <SelectItem value="diretoria">Diretoria</SelectItem>
+            <SelectItem value="admin">Administrador</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="pt-2">
