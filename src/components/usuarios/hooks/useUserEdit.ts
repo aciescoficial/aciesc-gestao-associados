@@ -56,7 +56,7 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
     try {
       console.log("Updating user:", selectedUser);
       
-      // Update user table
+      // Update user table (NOT profiles) - Corrected table reference
       const { error: userError } = await supabase
         .from('user')
         .update({

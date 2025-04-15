@@ -68,7 +68,7 @@ export const useUserCreation = (onSuccess: (user: User) => void) => {
         console.log("Atualizando dados do usuário:", userData);
         
         const { error: userError } = await supabase
-          .from('user')
+          .from('user') // Ensure we're using 'user' table, NOT 'profiles'
           .upsert(userData);
 
         if (userError) {
