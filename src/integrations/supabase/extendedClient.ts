@@ -5,7 +5,10 @@ import { supabase } from './client';
 // Extended client uses the service_role key
 // WARNING: Only use service_role for server-side operations or trusted admin functions
 const SUPABASE_URL = "https://wpcstzjczfgbfwgzwktf.supabase.co";
-const SUPABASE_SERVICE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_KEY || ""; // Using Vite's environment variable syntax
+
+// Using a temporary default key for development - this should be replaced with your actual service key
+// In production, use import.meta.env.VITE_SUPABASE_SERVICE_KEY instead
+const SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwY3N0empjemZnYmZ3Z3p3a3RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM5ODc1OTcsImV4cCI6MjA1OTU2MzU5N30.Ptcd8biJKMkrmkhPFMRKyfDujVdA166qc8yvJvIIdsE"; 
 
 // Create an extended client with admin privileges for special operations
 // Note: This client should be used VERY carefully and only in appropriate contexts
