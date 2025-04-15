@@ -104,8 +104,11 @@ export const useSignupCompletion = (token: string | null): UseSignupCompletionRe
           throw new Error("Dados do associado não encontrados");
         }
         
-        const interesseData = data.associado_interesse as SignupData;
+        // Fix the type issue by properly extracting the associado_interesse object
+        // The issue is that data.associado_interesse is now the correct type
+        const interesseData = data.associado_interesse;
         
+        // Ensure we're setting a single object that matches SignupData interface
         setSignupData({
           id: interesseData.id,
           nome: interesseData.nome,
