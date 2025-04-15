@@ -11,8 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const LoginPage = () => {
   const { user } = useAuth();
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Redirect if already logged in
@@ -31,7 +29,6 @@ const LoginPage = () => {
         {showForgotPassword ? (
           <ForgotPasswordForm 
             onBack={() => setShowForgotPassword(false)} 
-            recaptchaLoaded={recaptchaLoaded}
           />
         ) : (
           <Tabs defaultValue="login" className="w-full">
@@ -43,18 +40,11 @@ const LoginPage = () => {
             <TabsContent value="login">
               <LoginForm 
                 onForgotPassword={() => setShowForgotPassword(true)} 
-                recaptchaLoaded={recaptchaLoaded}
-                setRecaptchaLoaded={setRecaptchaLoaded}
-                setRecaptchaToken={setRecaptchaToken}
               />
             </TabsContent>
             
             <TabsContent value="register">
-              <RegisterForm 
-                recaptchaLoaded={recaptchaLoaded}
-                setRecaptchaLoaded={setRecaptchaLoaded}
-                setRecaptchaToken={setRecaptchaToken}
-              />
+              <RegisterForm />
             </TabsContent>
           </Tabs>
         )}

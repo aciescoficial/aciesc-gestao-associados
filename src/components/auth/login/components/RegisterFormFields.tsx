@@ -19,9 +19,6 @@ interface RegisterFormFieldsProps {
   organizationType: UserRole;
   setOrganizationType: (type: UserRole) => void;
   isLoading: boolean;
-  recaptchaLoaded: boolean;
-  recaptchaToken: string | null;
-  isRecaptchaEnabled: boolean;
   handleSubmit: (e: React.FormEvent) => void;
 }
 

@@ -3,17 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useRegisterForm } from './hooks/useRegisterForm';
 import RegisterFormFields from './components/RegisterFormFields';
 
-interface RegisterFormProps {
-  recaptchaLoaded: boolean;
-  setRecaptchaLoaded: (loaded: boolean) => void;
-  setRecaptchaToken: (token: string) => void;
-}
-
-const RegisterForm = ({
-  recaptchaLoaded,
-  setRecaptchaLoaded,
-  setRecaptchaToken
-}: RegisterFormProps) => {
+const RegisterForm = () => {
   const {
     email,
     setEmail,
@@ -54,9 +44,6 @@ const RegisterForm = ({
           organizationType={organizationType}
           setOrganizationType={setOrganizationType}
           isLoading={isLoading}
-          recaptchaLoaded={false}
-          recaptchaToken={null}
-          isRecaptchaEnabled={false}
           handleSubmit={handleFormSubmit}
         />
       </CardContent>

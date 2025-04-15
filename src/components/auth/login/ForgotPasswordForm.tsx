@@ -1,93 +1,115 @@
 
 import { useState } from 'react';
-import { useAuth } from '../AuthProvider';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '../hooks/useAuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 
 interface ForgotPasswordFormProps {
   onBack: () => void;
-  recaptchaLoaded: boolean;
 }
 
-const ForgotPasswordForm = ({ onBack, recaptchaLoaded }: ForgotPasswordFormProps) => {
+const ForgotPasswordForm = ({ onBack }: ForgotPasswordFormProps) => {
   const { resetPassword } = useAuth();
-  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    if (!forgotPasswordEmail) {
-      toast({
-        variant: "destructive",
-        title: "Campo obrigatório",
-        description: "Por favor, informe seu e-mail.",
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    const { error } = await resetPassword(forgotPasswordEmail);
-
-    if (error) {
+    
+    try {
+      const { error } = await resetPassword(email);
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erro ao recuperar senha",
+          description: error.message,
+        });
+      } else {
+        setIsSubmitted(true);
+      }
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Erro ao recuperar senha",
-        description: error.message,
+        description: error.message || "Ocorreu um erro durante a recuperação de senha",
       });
-    } else {
-      toast({
-        title: "E-mail enviado",
-        description: "Verifique sua caixa de entrada para redefinir sua senha.",
-      });
-      onBack();
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recuperar Senha</CardTitle>
-        <CardDescription>
-          Informe seu e-mail para receber instruções de recuperação
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <form onSubmit={handleResetPassword} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="reset-email">E-mail</Label>
-            <Input 
-              id="reset-email" 
-              type="email" 
-              value={forgotPasswordEmail}
-              onChange={(e) => setForgotPasswordEmail(e.target.value)}
-              required 
-            />
-          </div>
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? "Enviando..." : "Enviar E-mail"}
-          </Button>
-        </form>
-      </CardContent>
-      <CardFooter className="flex justify-center">
         <Button 
           variant="ghost" 
+          className="p-0 h-auto mb-2 font-normal" 
           onClick={onBack}
         >
-          Voltar para Login
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar para o login
         </Button>
-      </CardFooter>
+        <CardTitle>Recuperar Senha</CardTitle>
+        <CardDescription>
+          {isSubmitted ? 
+            "Link de recuperação enviado. Verifique seu email." : 
+            "Digite seu email e enviaremos um link para recuperar sua senha."}
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        {!isSubmitted && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email-recover">Email</Label>
+              <Input 
+                id="email-recover" 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required 
+              />
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                "Enviar link de recuperação"
+              )}
+            </Button>
+          </form>
+        )}
+        
+        {isSubmitted && (
+          <div className="text-center py-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Verifique sua caixa de entrada e siga as instruções para recuperar sua senha.
+            </p>
+            <Button 
+              className="w-full"
+              onClick={onBack}
+            >
+              Voltar para o login
+            </Button>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 };

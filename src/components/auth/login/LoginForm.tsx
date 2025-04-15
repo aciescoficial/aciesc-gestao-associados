@@ -7,16 +7,10 @@ import ForgotPasswordFooter from './components/ForgotPasswordFooter';
 
 interface LoginFormProps {
   onForgotPassword: () => void;
-  recaptchaLoaded: boolean;
-  setRecaptchaLoaded: (loaded: boolean) => void;
-  setRecaptchaToken: (token: string) => void;
 }
 
 const LoginForm = ({ 
-  onForgotPassword,
-  recaptchaLoaded,
-  setRecaptchaLoaded,
-  setRecaptchaToken
+  onForgotPassword
 }: LoginFormProps) => {
   const {
     email,
@@ -54,9 +48,6 @@ const LoginForm = ({
           organizationType={organizationType}
           setOrganizationType={setOrganizationType}
           isLoading={isLoading}
-          recaptchaLoaded={false}
-          recaptchaToken={null}
-          isRecaptchaEnabled={false}
           handleSubmit={handleFormSubmit}
         />
       </CardContent>

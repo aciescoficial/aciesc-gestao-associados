@@ -8,5 +8,6 @@ import AppLoading from "../components/shared/AppLoading";
 const PageLoading = () => <AppLoading message="Carregando página..." />;
 
 export const AuthRoutes = [
-  <Route key="login" path="/login" element={<LoginPage />} />
+  <Route key="login" path="/login" element={<LoginPage />} />,
+  <Route key="cadastro" path="/cadastro" element={<LoginPage />} />
 ];
