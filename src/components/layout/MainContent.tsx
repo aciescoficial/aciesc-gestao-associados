@@ -45,8 +45,8 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 
 const MainContent: React.FC<MainContentProps> = React.memo(({ children }) => {
   return (
-    <main className="flex-1 p-4 bg-gray-100 overflow-auto">
-      <div className="max-w-full">
+    <main className="flex-1 bg-gray-100 overflow-auto">
+      <div className="p-4 w-full">
         <ErrorBoundary>
           <Suspense fallback={
             <div className="flex justify-center items-center h-[50vh]">

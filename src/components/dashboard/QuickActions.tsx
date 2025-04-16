@@ -9,7 +9,7 @@ export const QuickActions: React.FC = () => {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle>Ações Rápidas</CardTitle>
+        <CardTitle className="text-left">Ações Rápidas</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <Link to="/associados/cadastrar" className="w-full block">

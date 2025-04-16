@@ -69,6 +69,7 @@ export const SystemConfigForm = () => {
             checked={showSystemMessages}
             onCheckedChange={handleToggleSystemMessages}
             disabled={isLoading}
+            className="data-[state=checked]:bg-green-500 data-[state=checked]:hover:bg-green-600"
           />
           <Label htmlFor="system-messages">
             Exibir mensagens importantes no dashboard

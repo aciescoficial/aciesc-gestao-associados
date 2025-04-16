@@ -59,31 +59,29 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <TooltipProvider>
       <SidebarProvider defaultOpen={!isMobile}>
-        <div className="flex min-h-screen w-full flex-col">
-          <div className="flex flex-1 overflow-hidden">
+        <div className="flex h-screen w-full overflow-hidden">
+          <ErrorBoundary>
+            <Suspense fallback={<Skeleton className="h-full w-64" />}>
+              <MainSidebar location={location} />
+            </Suspense>
+          </ErrorBoundary>
+          
+          <div className="flex flex-col flex-1 overflow-hidden">
             <ErrorBoundary>
-              <Suspense fallback={<Skeleton className="h-full w-64" />}>
-                <MainSidebar location={location} />
-              </Suspense>
+              <Header />
             </ErrorBoundary>
             
-            <div className="flex flex-col flex-1 w-full overflow-x-hidden">
-              <ErrorBoundary>
-                <Header />
-              </ErrorBoundary>
-              
-              <ErrorBoundary>
-                <MainContent>
-                  <Suspense fallback={
-                    <div className="flex h-[80vh] items-center justify-center">
-                      <LoadingSpinner size="large" text="Carregando página..." />
-                    </div>
-                  }>
-                    <div className="w-full max-w-full">{children}</div>
-                  </Suspense>
-                </MainContent>
-              </ErrorBoundary>
-            </div>
+            <ErrorBoundary>
+              <MainContent>
+                <Suspense fallback={
+                  <div className="flex h-[80vh] items-center justify-center">
+                    <LoadingSpinner size="large" text="Carregando página..." />
+                  </div>
+                }>
+                  {children}
+                </Suspense>
+              </MainContent>
+            </ErrorBoundary>
           </div>
         </div>
       </SidebarProvider>

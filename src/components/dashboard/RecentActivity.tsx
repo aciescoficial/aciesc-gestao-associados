@@ -17,13 +17,13 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ recentActivity, 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle>Atividade Recente</CardTitle>
+        <CardTitle className="text-left">Atividade Recente</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b">
+              <tr className="border-b text-left">
                 <th className="text-left font-medium py-2 px-3">Tipo</th>
                 <th className="text-left font-medium py-2 px-3">Nome</th>
                 <th className="text-left font-medium py-2 px-3">Ação</th>
