@@ -5,6 +5,7 @@ import { Map } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { MapViewProps } from './types/MapTypes';
+import { EmpresaData } from '../types';
 import MapComponent from './components/MapComponent';
 import CompanyList from './components/CompanyList';
 import { useMapControls } from './hooks/useMapControls';
@@ -56,11 +57,12 @@ const VectorMapView: React.FC<MapViewProps> = ({
       
       // Import Google Maps API script
       const googleMapsScript = document.createElement('script');
-      googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,visualization&callback=initMap`;
+      googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,visualization&callback=initializeMap`;
       googleMapsScript.async = true;
       googleMapsScript.defer = true;
       
-      window.initMap = () => {
+      // Define the callback function on the window object
+      window.initializeMap = () => {
         clearInterval(interval);
         setMapLoadingProgress(100);
         setTimeout(() => {
@@ -109,6 +111,14 @@ const VectorMapView: React.FC<MapViewProps> = ({
       initMapInstance();
       setMapLoaded(true);
     }
+
+    // Add the initializeMap to Window type
+    return () => {
+      // Clean up the global callback when the component unmounts
+      if (window.initializeMap) {
+        delete window.initializeMap;
+      }
+    };
   }, [apiKey]);
 
   // Use hook for managing markers
@@ -197,5 +207,12 @@ const VectorMapView: React.FC<MapViewProps> = ({
     </Card>
   );
 };
+
+// Add initializeMap to Window interface
+declare global {
+  interface Window {
+    initializeMap: () => void;
+  }
+}
 
 export default VectorMapView;

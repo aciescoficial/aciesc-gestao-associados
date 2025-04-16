@@ -262,8 +262,8 @@ const OpenStreetMapView: React.FC<OpenStreetMapViewProps> = ({
         {/* Map */}
         <div className="relative h-[600px] w-full">
           <MapContainer 
-            defaultCenter={currentLocation} 
-            defaultZoom={6} 
+            center={currentLocation} 
+            zoom={6} 
             style={{ height: "100%", width: "100%" }}
             zoomControl={false}
           >
