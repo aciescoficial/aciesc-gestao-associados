@@ -99,21 +99,34 @@ export function useSystemConfig(debug: boolean = false) {
     };
   }, [logDebug]);
 
+  const toggleSystemMessages = useCallback((show: boolean) => {
+    setState(prev => ({ ...prev, showSystemMessages: show }));
+    // Also update localStorage for persistence
+    try {
+      const existingConfig = localStorage.getItem('systemConfig');
+      const config = existingConfig ? JSON.parse(existingConfig) : {};
+      localStorage.setItem('systemConfig', JSON.stringify({
+        ...config,
+        showSystemMessages: show
+      }));
+
+      // You might want to update the database configuration as well
+      extendedSupabase
+        .from('configuracoes')
+        .upsert({
+          tipo: 'sistema',
+          configuracoes: { ...config, showSystemMessages: show }
+        })
+        .then(({ error }) => {
+          if (error) console.error('Error updating system config in database', error);
+        });
+    } catch (e) {
+      console.error('Error updating systemConfig in localStorage:', e);
+    }
+  }, []);
+
   return {
     ...state,
-    toggleSystemMessages: useCallback((show: boolean) => {
-      setState(prev => ({ ...prev, showSystemMessages: show }));
-      // Also update localStorage for persistence
-      try {
-        const existingConfig = localStorage.getItem('systemConfig');
-        const config = existingConfig ? JSON.parse(existingConfig) : {};
-        localStorage.setItem('systemConfig', JSON.stringify({
-          ...config,
-          showSystemMessages: show
-        }));
-      } catch (e) {
-        console.error('Error updating systemConfig in localStorage:', e);
-      }
-    }, [])
+    toggleSystemMessages
   };
 }
