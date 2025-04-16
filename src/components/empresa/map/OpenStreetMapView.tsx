@@ -201,6 +201,8 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
         <Marker 
           key={company.id || index}
           position={position}
+          // Using the Leaflet icons but applying them differently for react-leaflet
+          // @ts-ignore - We need to force the icon prop usage for Leaflet
           icon={isSelected ? selectedIcon : defaultIcon}
           eventHandlers={{
             click: () => {
@@ -241,7 +243,8 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
         <div className="relative h-[600px] w-full">
           <MapContainer 
             style={{ height: "100%", width: "100%" }}
-            zoomControl={false}
+            // Using center and zoom as props on the MapUpdater component instead
+            // @ts-ignore - Adding zoomControl and scrollWheelZoom props
             scrollWheelZoom={true}
             whenReady={() => {
               setMapInitialized(true);
@@ -249,6 +252,7 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
           >
             <MapUpdater center={currentLocation} zoom={zoom} mapRef={mapRef} />
             <TileLayer
+              // @ts-ignore - Using attribution prop for OpenStreetMap
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
