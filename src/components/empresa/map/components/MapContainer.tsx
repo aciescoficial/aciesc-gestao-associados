@@ -1,25 +1,11 @@
 
 import React, { useState } from 'react';
-import { MapContainer as LeafletMapContainer, TileLayer, TileLayerProps } from 'react-leaflet';
+import { MapContainer as LeafletMapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapUpdater from './MapUpdater';
 import CompanyMarkers from './CompanyMarkers';
 import { EmpresaData } from '../../types';
 import L from 'leaflet';
-
-// Add proper types for the props that TypeScript doesn't recognize
-interface ExtendedLeafletMapProps {
-  scrollWheelZoom?: boolean;
-  zoomControl?: boolean;
-  center: [number, number];
-  zoom: number;
-  whenReady?: () => void;
-  style?: React.CSSProperties;
-}
-
-interface ExtendedTileLayerProps extends TileLayerProps {
-  attribution?: string;
-}
 
 interface MapComponentProps {
   companies: EmpresaData[];
@@ -42,9 +28,14 @@ export const MapContainerComponent: React.FC<MapComponentProps> = ({
 
   return (
     <div className="relative h-[600px] w-full">
+      {/* 
+       * The issue is how we're typing props for the react-leaflet components.
+       * Instead of creating custom interfaces, we'll let TypeScript infer types.
+       * This is a valid workaround for react-leaflet type issues.
+       */}
       <LeafletMapContainer 
         style={{ height: "100%", width: "100%" }}
-        center={currentLocation}
+        center={currentLocation as [number, number]}
         zoom={zoom}
         scrollWheelZoom={true}
         zoomControl={true}
