@@ -6,7 +6,7 @@ import { useEmpresaSearch } from './hooks/useEmpresaSearch';
 import EmpresaSearchForm from './components/EmpresaSearchForm';
 import EmpresaResultsTable from './components/EmpresaResultsTable';
 import ApiKeyRedirect from './components/ApiKeyRedirect';
-import VectorMapView from './map/VectorMapView';
+import OpenStreetMapView from './map/OpenStreetMapView';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EmpresasPesquisa: React.FC = () => {
@@ -55,10 +55,6 @@ const EmpresasPesquisa: React.FC = () => {
         apiKey={apiKey}
       />
       
-      {searchType === 'mapa' && !apiKey && !isLoadingApiKey && (
-        <ApiKeyRedirect />
-      )}
-      
       <Tabs defaultValue="mapa" className="space-y-4">
         <TabsList>
           <TabsTrigger value="mapa">Visualização de Mapa</TabsTrigger>
@@ -66,14 +62,11 @@ const EmpresasPesquisa: React.FC = () => {
         </TabsList>
         
         <TabsContent value="mapa">
-          {apiKey && (
-            <VectorMapView
-              companies={results}
-              selectedCompany={selectedEmpresa}
-              setSelectedCompany={setSelectedEmpresa}
-              apiKey={apiKey}
-            />
-          )}
+          <OpenStreetMapView
+            companies={results}
+            selectedCompany={selectedEmpresa}
+            setSelectedCompany={setSelectedEmpresa}
+          />
         </TabsContent>
         
         <TabsContent value="lista">
@@ -81,7 +74,7 @@ const EmpresasPesquisa: React.FC = () => {
             results={results}
             isSearching={isSearching}
             locateEmpresa={locateEmpresa}
-            isMapEnabled={!!apiKey && searchType === 'mapa'}
+            isMapEnabled={true}
           />
         </TabsContent>
       </Tabs>
