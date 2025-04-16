@@ -53,15 +53,18 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
         }
         
         if (data) {
-          // Filter out any items that aren't valid objects or are null
-          const validData = data
-            .filter((item): item is Exclude<typeof item, null> => item !== null)
-            .filter((item): item is ActivityLog => 
+          // First, filter out null values
+          const nonNullData = data.filter((item): item is NonNullable<typeof item> => item !== null);
+          
+          // Then, filter for items with the required properties
+          const validData = nonNullData.filter((item): item is ActivityLog => {
+            return (
               typeof item === 'object' &&
               'id' in item &&
               'event' in item &&
               'created_at' in item
             );
+          });
           
           setLogs(validData);
         } else {
