@@ -1,126 +1,14 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import React, { useState, useCallback, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Phone, Mail, ExternalLink, Navigation, Home } from 'lucide-react';
+import L from 'leaflet';
 import { EmpresaData } from '../types';
-import { getBadgeColors, formatPhoneNumber } from '../utils/helpers';
-import 'leaflet/dist/leaflet.css';
+import { setupLeafletIcons } from './icons/mapIcons';
+import MapContainerComponent from './components/MapContainer';
 
-// Fix for default marker icons in Leaflet with webpack/vite
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-// Custom marker icon for selected company
-const selectedIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-// Regular marker icon
-const defaultIcon = new L.Icon({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-// Fix for the missing default icon in webpack/vite
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
-
-// Company card component for the popup
-const CompanyCard = ({ company }: { company: EmpresaData }) => {
-  const [badgeColor, badgeBgColor] = getBadgeColors(company.nicho);
-  
-  return (
-    <div className="w-64 p-1">
-      <h3 className="font-medium text-lg">{company.nome_fantasia}</h3>
-      <Badge 
-        className="my-1" 
-        style={{ 
-          backgroundColor: badgeBgColor, 
-          color: badgeColor
-        }}
-      >
-        {company.nicho}
-      </Badge>
-      
-      <div className="mt-2 space-y-2 text-sm">
-        <div className="flex items-start gap-2">
-          <Home className="h-4 w-4 mt-1 text-gray-500" />
-          <span>{company.endereco}, {company.cidade}</span>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Phone className="h-4 w-4 text-gray-500" />
-          <a href={`tel:${company.telefone}`} className="hover:underline">
-            {formatPhoneNumber(company.telefone)}
-          </a>
-        </div>
-        
-        {company.email && (
-          <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-gray-500" />
-            <a href={`mailto:${company.email}`} className="hover:underline">
-              {company.email}
-            </a>
-          </div>
-        )}
-        
-        <div className="pt-2">
-          <Button size="sm" variant="outline" className="w-full flex items-center gap-1">
-            <Navigation className="h-4 w-4" />
-            <span>Como chegar</span>
-          </Button>
-        </div>
-        
-        {company.site && (
-          <div className="pt-1">
-            <a 
-              href={company.site.startsWith('http') ? company.site : `https://${company.site}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-blue-600 hover:underline"
-            >
-              <ExternalLink className="h-4 w-4" />
-              <span>Visitar site</span>
-            </a>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Component to handle map updates
-const MapUpdater = ({ center, zoom, mapRef }: { center: [number, number], zoom: number, mapRef: React.MutableRefObject<L.Map | null> }) => {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (map) {
-      map.setView(center, zoom);
-      if (mapRef) mapRef.current = map;
-    }
-  }, [map, center, zoom, mapRef]);
-  
-  return null;
-};
+// Initialize Leaflet icons
+setupLeafletIcons();
 
 interface MapViewProps {
   companies: EmpresaData[];
@@ -136,8 +24,7 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
   const [currentLocation, setCurrentLocation] = useState<[number, number]>([-15.7801, -47.9292]); // Brazil center
   const [zoom, setZoom] = useState<number>(6);
   const [loading, setLoading] = useState(false);
-  const [mapInitialized, setMapInitialized] = useState(false);
-  const mapRef = React.useRef<L.Map | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
   
   // Find company's geo position (latitude, longitude)
   const geocodeCompany = async (company: EmpresaData) => {
@@ -176,7 +63,7 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
   }, []);
   
   // When selected company changes, center map on it
-  useEffect(() => {
+  React.useEffect(() => {
     if (selectedCompany) {
       geocodeCompany(selectedCompany).then(coords => {
         if (coords) {
@@ -186,37 +73,6 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
       });
     }
   }, [selectedCompany]);
-
-  // Markers for all companies
-  const markers = useMemo(() => {
-    return companies.map((company, index) => {
-      // Generate random positions for demo
-      const lat = -15.7801 + (Math.random() - 0.5) * 10;
-      const lng = -47.9292 + (Math.random() - 0.5) * 10;
-      const position: [number, number] = [lat, lng];
-      
-      const isSelected = selectedCompany?.id === company.id;
-      
-      return (
-        <Marker 
-          key={company.id || index}
-          position={position}
-          // Using the Leaflet icons but applying them differently for react-leaflet
-          // @ts-ignore - We need to force the icon prop usage for Leaflet
-          icon={isSelected ? selectedIcon : defaultIcon}
-          eventHandlers={{
-            click: () => {
-              setSelectedCompany(company);
-            }
-          }}
-        >
-          <Popup>
-            <CompanyCard company={company} />
-          </Popup>
-        </Marker>
-      );
-    });
-  }, [companies, selectedCompany, setSelectedCompany]);
 
   return (
     <Card className="mt-4">
@@ -239,26 +95,14 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
           </div>
         </div>
         
-        {/* Map */}
-        <div className="relative h-[600px] w-full">
-          <MapContainer 
-            style={{ height: "100%", width: "100%" }}
-            // Using center and zoom as props on the MapUpdater component instead
-            // @ts-ignore - Adding zoomControl and scrollWheelZoom props
-            scrollWheelZoom={true}
-            whenReady={() => {
-              setMapInitialized(true);
-            }}
-          >
-            <MapUpdater center={currentLocation} zoom={zoom} mapRef={mapRef} />
-            <TileLayer
-              // @ts-ignore - Using attribution prop for OpenStreetMap
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-            {mapInitialized && markers}
-          </MapContainer>
-        </div>
+        <MapContainerComponent
+          companies={companies}
+          selectedCompany={selectedCompany}
+          setSelectedCompany={setSelectedCompany}
+          currentLocation={currentLocation}
+          zoom={zoom}
+          mapRef={mapRef}
+        />
       </CardContent>
     </Card>
   );
