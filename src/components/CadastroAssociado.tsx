@@ -5,12 +5,14 @@ import { ImportExportAssociado } from './associado/ImportExportAssociado';
 
 const CadastroAssociado: React.FC = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       <h1 className="wp-header">Cadastrar Associado</h1>
       
-      <div className="wp-card">
+      <div className="wp-card w-full">
         <AssociadoForm />
-        <ImportExportAssociado />
+        <div className="mt-8 pt-6 border-t">
+          <ImportExportAssociado />
+        </div>
       </div>
     </div>
   );

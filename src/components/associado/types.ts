@@ -32,7 +32,6 @@ export interface AssociadoFormData {
   dataUltimoPagamento?: string;
   valorDevido?: string;
   tipoPagamento?: string;
-  tags?: string[];
   validade?: string;
   foto?: FileList;
   comprovantePagamento?: FileList;
@@ -64,7 +63,6 @@ export interface ImportAssociadoData {
   tipoPagamento?: string;
   tipoAssociado?: string;
   validade?: string;
-  tags?: string[];
 }
 
 export interface ImportValidationData {
@@ -77,17 +75,6 @@ export const estados = [
   'AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO',
   'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR',
   'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO'
-];
-
-export const associadoTags = [
-  'Corretor',
-  'Imobiliária',
-  'Engenheiro',
-  'Arquiteto',
-  'Avaliador',
-  'Incorporador',
-  'Consultor',
-  'Construtor'
 ];
 
 export const tiposPagamento = [
@@ -114,5 +101,4 @@ export interface Associado {
   creci?: string;
   status: AssociadoStatus;
   avatar_url?: string;
-  tags?: string[];
 }

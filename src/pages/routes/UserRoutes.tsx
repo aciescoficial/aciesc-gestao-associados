@@ -33,7 +33,7 @@ const EmpresasConveniadasPage = () => (
 
 export const UserRoutes = [
   // Shared routes for admin and user
-  <Route key="associados-pesquisar" path="/associados/pesquisar" element={
+  <Route key="associados-pesquisar" path="/associados/pesquisa" element={
     <ProtectedRoute allowedRoles={['admin', 'user']}>
       <LayoutWrapper>
         <PesquisaAssociado />

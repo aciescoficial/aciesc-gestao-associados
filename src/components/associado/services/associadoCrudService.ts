@@ -32,7 +32,6 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       data_ultimo_pagamento: data.dataUltimoPagamento || null,
       valor_devido: data.valorDevido || null,
       tipo_pagamento: data.tipoPagamento || null,
-      tags: data.tags || null,
       validade: data.validade || null,
       status: 'pendente' as StatusType
     };

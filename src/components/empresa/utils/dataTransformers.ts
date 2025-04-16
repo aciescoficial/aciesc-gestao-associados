@@ -41,7 +41,6 @@ export const mapToEmpresaFormData = (record: any): EmpresaFormData => {
     email: record.email,
     cidade: record.cidade,
     nicho: record.nicho as any,
-    status: record.status as any,
     endereco: record.endereco,
     cep: record.cep,
     site: record.site || '',
