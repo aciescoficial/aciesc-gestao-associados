@@ -30,7 +30,6 @@ export const MapContainerComponent: React.FC<MapContainerProps> = ({
     <div className="relative h-[600px] w-full">
       <LeafletMapContainer 
         style={{ height: "100%", width: "100%" }}
-        // @ts-ignore - Adding scrollWheelZoom and zoomControl props
         scrollWheelZoom={true}
         zoomControl={true}
         whenReady={() => {
@@ -39,7 +38,6 @@ export const MapContainerComponent: React.FC<MapContainerProps> = ({
       >
         <MapUpdater center={currentLocation} zoom={zoom} mapRef={mapRef} />
         <TileLayer
-          // @ts-ignore - Using attribution prop for OpenStreetMap
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
