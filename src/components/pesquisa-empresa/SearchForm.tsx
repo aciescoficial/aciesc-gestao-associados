@@ -18,7 +18,7 @@ interface SearchFormProps {
   isSearching: boolean;
   handleSearch: (e: React.FormEvent) => void;
   getCurrentLocation: () => void;
-  apiKey: string;
+  apiKey?: string;
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({ 
@@ -88,7 +88,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
                 type="button" 
                 onClick={getCurrentLocation}
                 className="wp-button-secondary flex items-center gap-2 h-10"
-                disabled={!apiKey}
               >
                 <MapPin size={16} />
                 Usar minha localização
@@ -101,7 +100,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
           <button 
             type="submit" 
             className="wp-button w-full flex items-center justify-center gap-2"
-            disabled={isSearching || (searchType === 'mapa' && !apiKey)}
+            disabled={isSearching}
           >
             {searchType === 'mapa' ? (
               <>

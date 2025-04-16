@@ -118,6 +118,7 @@ const PesquisaEmpresaRefactored: React.FC = () => {
           isSearching={isSearching}
           handleSearch={handleSearch}
           getCurrentLocation={getCurrentLocation}
+          apiKey={undefined}
         />
       </div>
       

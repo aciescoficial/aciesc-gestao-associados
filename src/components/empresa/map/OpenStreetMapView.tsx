@@ -189,6 +189,7 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
         <Marker 
           key={company.id || index}
           position={position}
+          // Fix for the icon property
           icon={isSelected ? selectedIcon : defaultIcon}
           eventHandlers={{
             click: () => {
@@ -228,12 +229,12 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
         {/* Map */}
         <div className="relative h-[600px] w-full">
           <MapContainer 
-            center={currentLocation} 
-            zoom={6} 
+            center={currentLocation}
+            zoom={6}
             style={{ height: "100%", width: "100%" }}
             zoomControl={false}
-            whenReady={(map) => {
-              setMapRef(map.target);
+            whenCreated={(map) => {
+              setMapRef(map);
               setMapInitialized(true);
             }}
           >

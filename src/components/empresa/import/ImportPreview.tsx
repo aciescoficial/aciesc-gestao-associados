@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { EmpresaData, ImportError, FieldMapping } from './types';
-import FieldMapping from './FieldMapping';
+import FieldMappingComponent from './FieldMapping';
 
 interface ImportPreviewProps {
   data: EmpresaData[];
@@ -53,7 +53,7 @@ const ImportPreview: React.FC<ImportPreviewProps> = ({
       <div className="mb-4">
         <h4 className="text-sm font-medium mb-2">Mapeamento de Campos</h4>
         
-        <FieldMapping 
+        <FieldMappingComponent 
           csvHeaders={csvHeaders}
           sampleData={rawData.slice(0, 3)}
           onFieldMappingChange={onFieldMappingChange}
