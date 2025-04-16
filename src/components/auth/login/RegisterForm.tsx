@@ -21,6 +21,9 @@ const RegisterForm = () => {
     passwordsMatch,
     organizationType,
     setOrganizationType,
+    skipEmailVerification,
+    setSkipEmailVerification,
+    isRateLimited,
     handleSignUp
   } = useRegisterForm();
 
@@ -53,6 +56,9 @@ const RegisterForm = () => {
           passwordsMatch={passwordsMatch}
           organizationType={organizationType}
           setOrganizationType={setOrganizationType}
+          skipEmailVerification={skipEmailVerification}
+          setSkipEmailVerification={setSkipEmailVerification}
+          isRateLimited={isRateLimited}
           isLoading={isLoading}
           handleSubmit={handleFormSubmit}
         />

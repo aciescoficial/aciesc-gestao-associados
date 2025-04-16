@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { UserRole } from '@/components/usuarios/types';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface RegisterFormFieldsProps {
   email: string;
@@ -24,6 +25,9 @@ interface RegisterFormFieldsProps {
   passwordsMatch: boolean;
   organizationType: UserRole;
   setOrganizationType: (type: UserRole) => void;
+  skipEmailVerification?: boolean;
+  setSkipEmailVerification?: (skip: boolean) => void;
+  isRateLimited?: boolean;
   isLoading: boolean;
   handleSubmit: (e: React.FormEvent) => void;
 }
@@ -44,10 +48,16 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
   passwordsMatch,
   organizationType,
   setOrganizationType,
+  skipEmailVerification = false,
+  setSkipEmailVerification,
+  isRateLimited = false,
   isLoading,
   handleSubmit
 }) => {
   const [showRoleWarning, setShowRoleWarning] = useState(false);
+  const isDevelopment = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' ||
+                        window.location.hostname.includes('.lovableproject.com');
 
   // Show warning when restricted roles are selected
   useEffect(() => {
@@ -154,6 +164,29 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
           <AlertDescription>
             Apenas administradores existentes podem criar contas com perfil de {organizationType === 'admin' ? 'Administrador' : 'Diretoria'}. 
             Este tipo de cadastro requer autorização especial.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isDevelopment && setSkipEmailVerification && (
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="skip-verification" 
+            checked={skipEmailVerification}
+            onCheckedChange={(checked) => setSkipEmailVerification(checked as boolean)}
+          />
+          <Label htmlFor="skip-verification" className="cursor-pointer">
+            Pular verificação de e-mail (apenas para desenvolvimento)
+          </Label>
+        </div>
+      )}
+      
+      {isRateLimited && (
+        <Alert variant="destructive" className="mt-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Limite de cadastros excedido. Se estiver em ambiente de desenvolvimento, 
+            tente habilitar "Pular verificação de e-mail" ou configure o Supabase para não requerer verificação.
           </AlertDescription>
         </Alert>
       )}

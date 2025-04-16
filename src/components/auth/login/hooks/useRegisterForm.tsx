@@ -16,6 +16,8 @@ export const useRegisterForm = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordsMatch, setPasswordsMatch] = useState(true);
   const [organizationType, setOrganizationType] = useState<UserRole>('user');
+  const [skipEmailVerification, setSkipEmailVerification] = useState(false);
+  const [isRateLimited, setIsRateLimited] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -62,12 +64,13 @@ export const useRegisterForm = () => {
     }
     
     setIsLoading(true);
+    setIsRateLimited(false);
     
     try {
       console.log("Tentando registrar com email:", email, "e tipo:", organizationType);
       
       // Call the signUp function from auth service
-      const { data, error } = await signUp(email, password, name, organizationType);
+      const { data, error } = await signUp(email, password, name, organizationType, skipEmailVerification);
       
       if (error) {
         console.error("Signup error:", error);
@@ -76,8 +79,9 @@ export const useRegisterForm = () => {
         
         if (error.message?.includes('already registered') || error.message?.includes('já está registrado')) {
           errorMessage = "Este email já está registrado. Tente fazer login.";
-        } else if (error.message?.includes('rate limit') || error.message?.includes('limite')) {
+        } else if (error.message?.includes('rate limit') || error.message?.includes('limite') || error.code === 'rate_limit' || error.status === 429) {
           errorMessage = "Limite de cadastros excedido. Por favor, tente novamente mais tarde.";
+          setIsRateLimited(true);
         } else if (error.message?.includes('violates row-level security') || error.message?.includes('policy')) {
           errorMessage = "Erro de permissão: Novos usuários só podem ser criados por administradores do sistema.";
         } else if (error.message?.includes('not allowed') || error.message?.includes('permission denied')) {
@@ -93,7 +97,9 @@ export const useRegisterForm = () => {
         // Registration successful
         toast({
           title: "Conta criada com sucesso",
-          description: "Sua conta foi criada. Você já pode fazer login.",
+          description: skipEmailVerification 
+            ? "Sua conta foi criada. Você já pode fazer login."
+            : "Sua conta foi criada. Verifique seu email para confirmar o cadastro.",
         });
         
         // Reset form fields on success
@@ -102,6 +108,7 @@ export const useRegisterForm = () => {
         setConfirmPassword('');
         setName('');
         setOrganizationType('user');
+        setSkipEmailVerification(false);
         
         // Navigate to login page
         navigate('/login?registered=true');
@@ -135,6 +142,9 @@ export const useRegisterForm = () => {
     passwordsMatch,
     organizationType,
     setOrganizationType,
+    skipEmailVerification,
+    setSkipEmailVerification,
+    isRateLimited,
     handleSignUp
   };
 };

@@ -63,12 +63,12 @@ export const signInWithGoogle = async () => {
   }
 };
 
-export const signUp = async (email: string, password: string, name: string, role: UserRole = 'user') => {
+export const signUp = async (email: string, password: string, name: string, role: UserRole = 'user', skipEmailVerification: boolean = false) => {
   try {
     console.log("Signup attempt with:", email, name, role);
     
-    // Standard signup - using regular client
-    const { data, error } = await supabase.auth.signUp({
+    // Standard signup options
+    const signUpOptions: any = {
       email,
       password,
       options: {
@@ -78,7 +78,16 @@ export const signUp = async (email: string, password: string, name: string, role
         },
         emailRedirectTo: `${window.location.origin}/login`
       }
-    });
+    };
+    
+    // If skipEmailVerification is true, add emailConfirm option (for development environments)
+    if (skipEmailVerification) {
+      console.log("Skipping email verification for development");
+      signUpOptions.options.emailConfirm = true; // This will auto-confirm the email
+    }
+    
+    // Standard signup - using regular client
+    const { data, error } = await supabase.auth.signUp(signUpOptions);
     
     if (error) {
       console.error("Signup error:", error);
@@ -90,6 +99,19 @@ export const signUp = async (email: string, password: string, name: string, role
           error: { 
             message: 'Este email já está registrado. Tente fazer login.' 
           } 
+        };
+      }
+      
+      // Handle rate limit errors specifically
+      if (error.message.includes('rate limit') || error.message.includes('limite') || 
+          error.status === 429 || error.code === 'over_email_send_rate_limit') {
+        return {
+          data: null,
+          error: {
+            message: 'Limite de cadastros excedido. Por favor, tente novamente mais tarde ou contate o administrador.',
+            code: 'rate_limit',
+            status: 429
+          }
         };
       }
       
