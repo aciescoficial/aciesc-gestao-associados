@@ -79,7 +79,9 @@ export const useRegisterForm = () => {
         } else if (error.message?.includes('rate limit') || error.message?.includes('limite')) {
           errorMessage = "Limite de cadastros excedido. Por favor, tente novamente mais tarde.";
         } else if (error.message?.includes('violates row-level security') || error.message?.includes('policy')) {
-          errorMessage = "Erro no sistema de permissões. Por favor, contate o administrador.";
+          errorMessage = "Erro de permissão: Novos usuários só podem ser criados por administradores do sistema.";
+        } else if (error.message?.includes('not allowed') || error.message?.includes('permission denied')) {
+          errorMessage = "Usuário não autorizado. Entre em contato com um administrador para criar este tipo de conta.";
         }
         
         toast({

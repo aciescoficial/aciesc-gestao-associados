@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { UserRole } from '@/components/usuarios/types';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface RegisterFormFieldsProps {
   email: string;
@@ -46,6 +47,17 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
   isLoading,
   handleSubmit
 }) => {
+  const [showRoleWarning, setShowRoleWarning] = useState(false);
+
+  // Show warning when restricted roles are selected
+  useEffect(() => {
+    if (organizationType === 'admin' || organizationType === 'diretoria') {
+      setShowRoleWarning(true);
+    } else {
+      setShowRoleWarning(false);
+    }
+  }, [organizationType]);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -58,6 +70,7 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
           required 
         />
       </div>
+      
       <div className="space-y-2">
         <Label htmlFor="email-register">E-mail</Label>
         <Input 
@@ -68,6 +81,7 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
           required 
         />
       </div>
+      
       <div className="space-y-2">
         <Label htmlFor="password-register">Senha</Label>
         <div className="relative">
@@ -129,9 +143,20 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
             <SelectItem value="user">Associado</SelectItem>
             <SelectItem value="empresa">Empresa</SelectItem>
             <SelectItem value="diretoria">Diretoria</SelectItem>
+            <SelectItem value="admin">Administrador</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      {showRoleWarning && (
+        <Alert variant="destructive" className="mt-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Apenas administradores existentes podem criar contas com perfil de {organizationType === 'admin' ? 'Administrador' : 'Diretoria'}. 
+            Este tipo de cadastro requer autorização especial.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="space-y-4">
         <Button 

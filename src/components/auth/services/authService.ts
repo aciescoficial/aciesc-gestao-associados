@@ -67,14 +67,16 @@ export const signUp = async (email: string, password: string, name: string, role
   try {
     console.log("Signup attempt with:", email, name, role);
     
-    // Use admin client for signup to bypass RLS
-    const { data, error } = await supabase.auth.admin.createUser({
+    // Standard signup - using regular client
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      email_confirm: true, // Auto confirm the email
-      user_metadata: { 
-        name,
-        role
+      options: {
+        data: { 
+          name,
+          role
+        },
+        emailRedirectTo: `${window.location.origin}/login`
       }
     });
     
