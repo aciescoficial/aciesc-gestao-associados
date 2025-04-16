@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface AssociadoPaymentParams {
@@ -60,19 +61,23 @@ export const generateAssociadoPayment = async ({
     // Create an entry in pagamentos_associado
     const anoAtual = new Date().getFullYear();
     
+    // We need a placeholder associado_id for now because it's required
+    // This will be properly updated once the actual associado record is created
+    const placeholderAssociadoId = associadoInteresseId; // Using interesse ID as temporary placeholder
+    
     // Once the associado record is created, this payment will be linked
     // But for now, we just store the data for reference
     const { error: paymentError } = await supabase
       .from('pagamentos_associado')
       .insert({
+        associado_id: placeholderAssociadoId, // Add the required associado_id field
         valor: associationType.value,
         data_pagamento: new Date().toISOString(),
         status: 'pendente',
         metodo: associationType.payment_methods[0] || 'boleto',
         origem: 'asaas',
         descricao: `Associação ACIESC - ${associationType.title}`,
-        ano_referencia: anoAtual,
-        // associado_id will be updated once the associado record is created
+        ano_referencia: anoAtual
       });
     
     if (paymentError) {

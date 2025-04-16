@@ -53,22 +53,24 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
         }
         
         if (data) {
-          // First, filter out null values
-          const nonNullData = data.filter((item): item is NonNullable<typeof item> => item !== null);
-          
-          // Then, filter for items with the required properties
-          const validData = nonNullData.filter((item): item is ActivityLog => {
-            return (
+          // Make sure we handle the data properly with type safety
+          const validData = (data as Array<any>)
+            .filter((item): item is any => 
+              item !== null && 
               typeof item === 'object' &&
               'id' in item &&
               'event' in item &&
               'created_at' in item
-            );
-          });
+            )
+            .map(item => ({
+              id: item.id,
+              event: item.event,
+              created_at: item.created_at,
+              is_login: item.is_login
+            }));
           
-          setLogs(validData);
+          setLogs(validData as ActivityLog[]);
         } else {
-          // If no data or invalid format, set empty array
           setLogs([]);
         }
       } catch (error) {
