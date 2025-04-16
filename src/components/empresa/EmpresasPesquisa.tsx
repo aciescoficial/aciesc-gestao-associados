@@ -1,16 +1,13 @@
 
 import React from 'react';
 import { Map } from 'lucide-react';
-import { useGoogleMapsApi } from '@/hooks/use-google-maps-api';
 import { useEmpresaSearch } from './hooks/useEmpresaSearch';
 import EmpresaSearchForm from './components/EmpresaSearchForm';
 import EmpresaResultsTable from './components/EmpresaResultsTable';
-import ApiKeyRedirect from './components/ApiKeyRedirect';
 import { OpenStreetMapView } from './map';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EmpresasPesquisa: React.FC = () => {
-  const { apiKey, isLoading: isLoadingApiKey } = useGoogleMapsApi();
   const { 
     searchTerm,
     setSearchTerm,
@@ -52,7 +49,6 @@ const EmpresasPesquisa: React.FC = () => {
         isSearching={isSearching}
         handleSearch={handleSearch}
         getCurrentLocation={getCurrentLocation}
-        apiKey={apiKey}
       />
       
       <Tabs defaultValue="mapa" className="space-y-4">

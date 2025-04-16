@@ -20,6 +20,8 @@ export interface EmpresaData {
   logo_url?: string;
   capa_url?: string;
   video_url?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ImportError {

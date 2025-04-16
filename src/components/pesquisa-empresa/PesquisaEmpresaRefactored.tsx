@@ -1,20 +1,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Map, List } from 'lucide-react';
-import { useGoogleMapsApi } from '@/hooks/use-google-maps-api';
-import { useLoadScript } from '@react-google-maps/api';
 import { EmpresaData } from './types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ApiKeyRedirect from './ApiKeyRedirect';
 import SearchForm from './SearchForm';
-import MapView from './MapView';
 import ResultsTable from './ResultsTable';
 import { useEmpresaSearch } from './empresaSearchService';
 import { useToast } from '@/hooks/use-toast';
 import LatestCompanies from '../empresa/components/LatestCompanies';
 import PaginatedCompanyList from '../empresa/components/PaginatedCompanyList';
-import VectorMapView from '../empresa/map/VectorMapView';
+import { OpenStreetMapView } from '../empresa/map';
 
 const PesquisaEmpresaRefactored: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,14 +20,8 @@ const PesquisaEmpresaRefactored: React.FC = () => {
   const [selectedEmpresa, setSelectedEmpresa] = useState<EmpresaData | null>(null);
   const [activeTab, setActiveTab] = useState<'mapa' | 'lista'>('mapa');
   const { toast } = useToast();
-  const { apiKey, isLoading: isLoadingApiKey } = useGoogleMapsApi();
   const { searchNearbyCompanies, searchByTerm } = useEmpresaSearch();
   
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: apiKey || '',
-    libraries: ['places'],
-  });
-
   useEffect(() => {
     if (searchType === 'mapa' && !currentLocation) {
       getCurrentLocation();
@@ -104,12 +93,12 @@ const PesquisaEmpresaRefactored: React.FC = () => {
   };
 
   const locateEmpresa = useCallback((empresa: EmpresaData) => {
-    if (!isLoaded || !empresa.latitude || !empresa.longitude) return;
+    if (!empresa.latitude || !empresa.longitude) return;
     
     setSelectedEmpresa(empresa);
     setCurrentLocation({ lat: empresa.latitude, lng: empresa.longitude });
     setActiveTab('mapa');
-  }, [isLoaded]);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -129,7 +118,6 @@ const PesquisaEmpresaRefactored: React.FC = () => {
           isSearching={isSearching}
           handleSearch={handleSearch}
           getCurrentLocation={getCurrentLocation}
-          apiKey={apiKey}
         />
       </div>
       
@@ -146,18 +134,11 @@ const PesquisaEmpresaRefactored: React.FC = () => {
         </TabsList>
         
         <TabsContent value="mapa">
-          {searchType === 'mapa' && !apiKey && !isLoadingApiKey && (
-            <ApiKeyRedirect />
-          )}
-          
-          {apiKey && (
-            <VectorMapView 
-              companies={results}
-              selectedCompany={selectedEmpresa}
-              setSelectedCompany={setSelectedEmpresa}
-              apiKey={apiKey}
-            />
-          )}
+          <OpenStreetMapView 
+            companies={results}
+            selectedCompany={selectedEmpresa}
+            setSelectedCompany={setSelectedEmpresa}
+          />
         </TabsContent>
         
         <TabsContent value="lista">
