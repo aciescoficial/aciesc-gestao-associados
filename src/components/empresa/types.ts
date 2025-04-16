@@ -19,4 +19,8 @@ export interface EmpresaData {
   longitude?: number;
   endereco: string;
   cep: string;
+  logo_url?: string;
+  site?: string;
+  instagram?: string;
+  whatsapp?: string;
 }

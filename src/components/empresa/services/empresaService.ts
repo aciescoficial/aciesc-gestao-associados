@@ -1,11 +1,14 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { EmpresaData } from "../types";
+import { Database } from '@/integrations/supabase/types';
+import { EmpresaFormData } from '../EmpresaForm';
+
+type NichoType = Database['public']['Enums']['nicho_type'];
+type StatusType = Database['public']['Enums']['status_type'];
 
 /**
  * Get latest registered companies
  */
-export const getLatestCompanies = async (limit: number = 3): Promise<EmpresaData[]> => {
+export const getLatestCompanies = async (limit: number = 3): Promise<EmpresaFormData[]> => {
   try {
     const { data, error } = await supabase
       .from('empresas')
@@ -34,7 +37,7 @@ export const getCompaniesPaginated = async (
     nicho?: string;
     status?: string;
   } = {}
-): Promise<{ data: EmpresaData[]; count: number }> => {
+): Promise<{ data: EmpresaFormData[]; count: number }> => {
   try {
     // Create query
     let query = supabase

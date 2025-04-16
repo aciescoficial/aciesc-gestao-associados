@@ -12,6 +12,12 @@ interface VectorMapViewProps {
   apiKey: string;
 }
 
+declare global {
+  interface Window {
+    initMap: () => void;
+  }
+}
+
 const VectorMapView: React.FC<VectorMapViewProps> = ({ 
   companies, 
   selectedCompany, 
