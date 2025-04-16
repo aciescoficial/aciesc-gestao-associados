@@ -1,11 +1,22 @@
 
 import React, { useState } from 'react';
-import { MapContainer as LeafletMapContainer, TileLayer } from 'react-leaflet';
+import { MapContainer as LeafletMapContainer, TileLayer, MapContainerProps } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapUpdater from './MapUpdater';
 import CompanyMarkers from './CompanyMarkers';
 import { EmpresaData } from '../../types';
 import L from 'leaflet';
+
+// Add proper types for the props that TypeScript doesn't recognize
+interface ExtendedMapContainerProps extends MapContainerProps {
+  scrollWheelZoom?: boolean;
+  zoomControl?: boolean;
+}
+
+interface ExtendedTileLayerProps {
+  url: string;
+  attribution: string;
+}
 
 interface MapContainerProps {
   companies: EmpresaData[];
@@ -30,6 +41,8 @@ export const MapContainerComponent: React.FC<MapContainerProps> = ({
     <div className="relative h-[600px] w-full">
       <LeafletMapContainer 
         style={{ height: "100%", width: "100%" }}
+        center={currentLocation}
+        zoom={zoom}
         scrollWheelZoom={true}
         zoomControl={true}
         whenReady={() => {
