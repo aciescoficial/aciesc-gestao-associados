@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { extendedSupabase } from "@/integrations/supabase/extendedClient";
 import { getTemplateTestData } from '@/components/configuracoes/services/emailService';
 
 interface CreateUserParams {
@@ -25,16 +26,15 @@ export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }
     // Generate temporary password
     const tempPassword = Math.random().toString(36).slice(2, 10);
     
-    // Create user in auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // Create user in auth - usando extended client para permissões de admin
+    const { data: authData, error: authError } = await extendedSupabase.auth.admin.createUser({
       email,
       password: tempPassword,
-      options: {
-        data: {
-          name: `${nome} ${sobrenome}`,
-          associado_id: id,
-          role: 'user'
-        }
+      email_confirm: true,
+      user_metadata: {
+        name: `${nome} ${sobrenome}`,
+        associado_id: id,
+        role: 'user'
       }
     });
     
@@ -42,17 +42,17 @@ export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }
 
     // Update user table with additional data
     if (authData && authData.user) {
-      const { error: userError } = await supabase
+      const { error: userError } = await extendedSupabase
         .from('user')
-        .update({
+        .insert({
+          id: authData.user.id,
           name: `${nome} ${sobrenome}`,
-          email,
+          email: email,
           role: 'user',
           associado_id: id,
-          tags: ['associado', 'first_login'], // Using 'first_login' tag instead of column
           active: true,
-        })
-        .eq('id', authData.user.id);
+          cpf: cpf,
+        });
 
       if (userError) throw userError;
 

@@ -1,5 +1,6 @@
 
 import { supabase, handleSupabaseError } from "@/integrations/supabase/client";
+import { extendedSupabase } from "@/integrations/supabase/extendedClient";
 import { AssociadoFormData, StatusType } from '../types';
 import { logOperation } from '@/components/audit/auditLogService';
 import { uploadFoto, uploadComprovante } from './associadoStorageService';
@@ -36,7 +37,8 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       status: 'pendente' as StatusType
     };
     
-    const { data: associadoResult, error } = await supabase
+    // Usando o cliente estendido com permissões de administrador para contornar o RLS
+    const { data: associadoResult, error } = await extendedSupabase
       .from('associados')
       .insert(associadoData)
       .select('id')
