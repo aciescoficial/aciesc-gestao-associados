@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -7,11 +7,33 @@ import { useSystemConfig } from './hooks/useSystemConfig';
 import { toast } from '@/components/ui/use-toast';
 
 export const SystemConfigForm = () => {
-  const { showSystemMessages, toggleSystemMessages, isLoading } = useSystemConfig();
+  const { configValues, isLoading, saveConfig } = useSystemConfig();
+  const [showSystemMessages, setShowSystemMessages] = useState(true);
 
-  const handleToggleSystemMessages = (checked: boolean) => {
+  // Load the current value from configValues when available
+  useEffect(() => {
+    if (configValues && !isLoading) {
+      const currentValue = configValues['SHOW_SYSTEM_MESSAGES'];
+      setShowSystemMessages(currentValue ? currentValue === 'true' : true);
+    }
+  }, [configValues, isLoading]);
+
+  const handleToggleSystemMessages = async (checked: boolean) => {
     try {
-      toggleSystemMessages(checked);
+      await saveConfig('SHOW_SYSTEM_MESSAGES', checked.toString());
+      setShowSystemMessages(checked);
+      
+      // Store in localStorage for immediate effect
+      try {
+        const existingConfig = localStorage.getItem('systemConfig');
+        const config = existingConfig ? JSON.parse(existingConfig) : {};
+        localStorage.setItem('systemConfig', JSON.stringify({
+          ...config,
+          showSystemMessages: checked
+        }));
+      } catch (e) {
+        console.error('Error updating systemConfig in localStorage:', e);
+      }
       
       // Dispatch custom event for real-time updates
       window.dispatchEvent(
