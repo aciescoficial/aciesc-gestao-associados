@@ -10,13 +10,13 @@ interface StatusBadgeProps {
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   switch (status) {
     case 'ativo':
-      return <span className="wp-badge-success flex items-center gap-1 bg-green-500 text-white"><Check size={14} />Ativo</span>;
+      return <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-green-500 text-white"><Check size={14} />Ativo</span>;
     case 'pendente':
-      return <span className="wp-badge-warning bg-yellow-500 text-white">Pendente</span>;
+      return <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-yellow-500 text-white">Pendente</span>;
     case 'inativo':
-      return <span className="wp-badge-error flex items-center gap-1 bg-red-500 text-white"><X size={14} />Inativo</span>;
+      return <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-red-500 text-white"><X size={14} />Inativo</span>;
     default:
-      return <span className="wp-badge">{status}</span>;
+      return <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-gray-200">{status}</span>;
   }
 };
 

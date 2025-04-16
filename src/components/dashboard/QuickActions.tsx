@@ -3,31 +3,34 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { UserPlus, Building, ClipboardCheck } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export const QuickActions: React.FC = () => {
   return (
-    <div className="wp-card">
-      <h2 className="wp-subheader">Ações Rápidas</h2>
-      <div className="space-y-2">
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle>Ações Rápidas</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
         <Link to="/associados/cadastrar" className="w-full block">
-          <button className="wp-button w-full justify-start flex items-center gap-2 px-4">
-            <UserPlus size={18} />
+          <Button className="w-full justify-start" variant="default">
+            <UserPlus size={18} className="mr-2" />
             Cadastrar Novo Associado
-          </button>
+          </Button>
         </Link>
         <Link to="/empresas/cadastrar" className="w-full block">
-          <button className="wp-button-secondary w-full justify-start flex items-center gap-2 px-4">
-            <Building size={18} />
+          <Button className="w-full justify-start" variant="outline">
+            <Building size={18} className="mr-2" />
             Cadastrar Nova Empresa
-          </button>
+          </Button>
         </Link>
         <Link to="/associados/pendentes" className="w-full block">
-          <button className="wp-button-secondary w-full justify-start flex items-center gap-2 px-4">
-            <ClipboardCheck size={18} />
+          <Button className="w-full justify-start" variant="outline">
+            <ClipboardCheck size={18} className="mr-2" />
             Gerenciar Aprovações Pendentes
-          </button>
+          </Button>
         </Link>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };

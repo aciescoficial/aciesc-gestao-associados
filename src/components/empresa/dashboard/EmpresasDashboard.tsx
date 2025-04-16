@@ -24,7 +24,7 @@ const EmpresasDashboard: React.FC = () => {
       <h1 className="wp-header">Área da Empresa</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-2 border-blue-500">
+        <Card className="border-2 border-green-500">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-medium">
               Gerenciar Cadastro

@@ -79,7 +79,7 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
                       <LoadingSpinner size="large" text="Carregando página..." />
                     </div>
                   }>
-                    <div className="w-full max-w-full px-2 md:px-4">{children}</div>
+                    <div className="w-full max-w-full">{children}</div>
                   </Suspense>
                 </MainContent>
               </ErrorBoundary>

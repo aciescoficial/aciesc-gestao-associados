@@ -12,8 +12,6 @@ import { useAuth } from '@/components/auth/hooks/useAuthContext';
 
 const AdminDashboard: React.FC = () => {
   const { stats, recentActivity, loading, systemStatus, refreshData } = useDashboardData();
-  const { user } = useAuth();
-
   const handleRefresh = useMemo(() => refreshData, [refreshData]);
 
   return (
@@ -40,13 +38,6 @@ const AdminDashboard: React.FC = () => {
           )}
         </Button>
       </div>
-      
-      {process.env.NODE_ENV !== 'production' && (
-        <div className="p-2 bg-amber-50 text-amber-800 rounded-md text-xs">
-          Status de autenticação: {user ? `Autenticado (${user.email})` : 'Não autenticado'} 
-          {!user && ' - Os dados podem não aparecer sem autenticação'}
-        </div>
-      )}
       
       <DashboardStats stats={stats} loading={loading} />
       <RecentActivity recentActivity={recentActivity} loading={loading} />
