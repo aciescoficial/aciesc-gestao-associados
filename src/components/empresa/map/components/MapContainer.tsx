@@ -7,6 +7,23 @@ import CompanyMarkers from './CompanyMarkers';
 import { EmpresaData } from '../../types';
 import L from 'leaflet';
 
+// Define type augmentation for react-leaflet components
+declare module 'react-leaflet' {
+  export interface MapContainerProps extends L.MapOptions {
+    center: L.LatLngExpression;
+    zoom: number;
+    scrollWheelZoom?: boolean;
+    zoomControl?: boolean;
+    whenReady?: () => void;
+    style?: React.CSSProperties;
+  }
+
+  export interface TileLayerProps {
+    url: string;
+    attribution?: string;
+  }
+}
+
 interface MapComponentProps {
   companies: EmpresaData[];
   selectedCompany: EmpresaData | null;
@@ -28,14 +45,9 @@ export const MapContainerComponent: React.FC<MapComponentProps> = ({
 
   return (
     <div className="relative h-[600px] w-full">
-      {/* 
-       * The issue is how we're typing props for the react-leaflet components.
-       * Instead of creating custom interfaces, we'll let TypeScript infer types.
-       * This is a valid workaround for react-leaflet type issues.
-       */}
       <LeafletMapContainer 
         style={{ height: "100%", width: "100%" }}
-        center={currentLocation as [number, number]}
+        center={currentLocation}
         zoom={zoom}
         scrollWheelZoom={true}
         zoomControl={true}
