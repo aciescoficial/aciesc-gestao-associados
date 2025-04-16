@@ -3,7 +3,7 @@
 export { default as LoginPage } from './login/LoginPage';
 
 // Re-export AuthProvider
-export { AuthProvider } from './AuthProvider';
+export { AuthProvider } from './hooks/useAuthContext';
 
 // Export useAuth hook from the correct path
 export { useAuth } from './hooks/useAuthContext';

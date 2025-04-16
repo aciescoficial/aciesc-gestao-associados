@@ -5,7 +5,7 @@ import AppRoutes from './AppRoutes';
 import { Toaster } from '@/components/ui/toaster';
 import { AssociadoFirstLoginPopup } from './components/associado/AssociadoFirstLoginPopup';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from './components/auth/AuthProvider';
+import { AuthProvider } from './components/auth/hooks/useAuthContext';
 
 function App() {
   return (

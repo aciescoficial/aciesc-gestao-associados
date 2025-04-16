@@ -133,11 +133,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Derived properties for user permissions
-  const isAdmin = userRole === 'admin' || userRole === 'diretoria';
+  const isAdmin = userRole === 'admin' || userRole === 'diretoria' as UserRole;
   
   const hasFinanceiroAccess = isAdmin || 
     (userTags && userTags.some(tag => tag === 'financeiro')) || 
-    userRole === 'diretoria';
+    userRole === 'diretoria' as UserRole;
 
   const value = {
     user,
