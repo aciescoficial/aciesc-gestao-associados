@@ -1,152 +1,75 @@
 
 import { useState, useEffect } from 'react';
-import { extendedSupabase } from '@/integrations/supabase/extendedClient';
-import { SystemConfigValues } from '../../types/systemConfig';
 import { supabase } from '@/integrations/supabase/client';
+import { SystemConfigKey } from '../../types/systemConfig';
 
 export const useSystemConfig = () => {
-  const [config, setConfig] = useState<SystemConfigValues | null>(null);
+  const [configValues, setConfigValues] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        setIsLoading(true);
-        
-        // First try to fetch from configuracoes table
-        try {
-          const { data, error } = await extendedSupabase
-            .from('configuracoes')
-            .select('*')
-            .eq('tipo', 'sistema')
-            .single();
-
-          if (data) {
-            setConfig(data.configuracoes as SystemConfigValues);
-            return;
-          }
-        } catch (configError) {
-          console.warn('Error fetching from configuracoes table, falling back to system_config:', configError);
-        }
-        
-        // Fall back to system_config table
-        const { data: systemConfigData } = await supabase
-          .from('system_config')
-          .select('*')
-          .eq('key', 'SHOW_SYSTEM_MESSAGES')
-          .single();
-        
-        if (systemConfigData) {
-          setConfig({
-            showSystemMessages: systemConfigData.value === 'true'
-          });
-        } else {
-          // Default configuration if none exists
-          setConfig({
-            showSystemMessages: true,
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching system config:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error'));
-        
-        // Set default values on error
-        setConfig({
-          showSystemMessages: true,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchConfig();
+    fetchConfigValues();
   }, []);
 
-  const saveConfig = async (values: SystemConfigValues): Promise<void> => {
+  const fetchConfigValues = async () => {
+    setIsLoading(true);
     try {
-      console.log('Saving system config:', values);
-      
-      // Try to save to configuracoes table if it exists
-      try {
-        // Check if config already exists
-        const { data: existingConfig, error: checkError } = await extendedSupabase
-          .from('configuracoes')
-          .select('id')
-          .eq('tipo', 'sistema')
-          .maybeSingle();
-        
-        if (checkError) {
-          console.error('Error checking configuracoes:', checkError);
-        }
+      // Load configs from database table
+      const { data, error } = await supabase
+        .from('system_config')
+        .select('key, value');
 
-        if (existingConfig) {
-          // Update existing configuration
-          const { error: updateError } = await extendedSupabase
-            .from('configuracoes')
-            .update({
-              configuracoes: values,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', existingConfig.id);
-            
-          if (updateError) {
-            console.error('Error updating configuracoes:', updateError);
-            throw updateError;
-          }
-        } else {
-          // Create new configuration
-          const { error: insertError } = await extendedSupabase
-            .from('configuracoes')
-            .insert({
-              tipo: 'sistema',
-              configuracoes: values,
-            });
-            
-          if (insertError) {
-            console.error('Error inserting configuracoes:', insertError);
-            throw insertError;
-          }
-        }
-      } catch (configError) {
-        console.warn('Error saving to configuracoes table, falling back to system_config:', configError);
-        
-        // Save to system_config table as fallback
-        const { error: systemConfigError } = await supabase
-          .from('system_config')
-          .upsert({
-            key: 'SHOW_SYSTEM_MESSAGES',
-            value: values.showSystemMessages.toString()
-          });
-        
-        if (systemConfigError) {
-          console.error('Error saving to system_config:', systemConfigError);
-          throw systemConfigError;
-        }
+      if (error) throw error;
+
+      // Convert array of configs to a key-value object
+      const configObject: Record<string, string> = {};
+      (data || []).forEach(item => {
+        configObject[item.key] = item.value;
+      });
+
+      // Also load Google Maps API key from localStorage for compatibility
+      const mapsApiKey = localStorage.getItem('google_maps_api_key');
+      if (mapsApiKey && !configObject['google_maps_api_key']) {
+        configObject['google_maps_api_key'] = mapsApiKey;
       }
 
+      setConfigValues(configObject);
+    } catch (error) {
+      console.error('Error fetching system config:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveConfig = async (key: string, value: string) => {
+    try {
+      const { error } = await supabase
+        .from('system_config')
+        .upsert({
+          key, 
+          value,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
       // Update local state
-      setConfig(values);
-      
-      // Update localStorage to immediately reflect changes
-      localStorage.setItem('systemConfig', JSON.stringify(values));
-      
-      // Dispatch an event so other components can react
-      window.dispatchEvent(new CustomEvent('system-config-updated', { 
-        detail: values 
+      setConfigValues(prev => ({
+        ...prev,
+        [key]: value
       }));
-      
-      console.log('System config saved successfully');
-    } catch (err) {
-      console.error('Error saving system config:', err);
-      throw err;
+
+      return true;
+    } catch (error) {
+      console.error('Error saving system config:', error);
+      throw error;
     }
   };
 
   return {
-    config,
+    configValues,
     isLoading,
-    error,
     saveConfig,
+    fetchConfigValues
   };
 };

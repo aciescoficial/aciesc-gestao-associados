@@ -1,15 +1,19 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Map } from 'lucide-react';
+import { Map, List } from 'lucide-react';
 import { useGoogleMapsApi } from '@/hooks/use-google-maps-api';
 import { useLoadScript } from '@react-google-maps/api';
 import { EmpresaData } from './types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/card';
 import ApiKeyRedirect from './ApiKeyRedirect';
 import SearchForm from './SearchForm';
 import MapView from './MapView';
 import ResultsTable from './ResultsTable';
 import { useEmpresaSearch } from './empresaSearchService';
 import { useToast } from '@/hooks/use-toast';
+import LatestCompanies from '../empresa/components/LatestCompanies';
+import PaginatedCompanyList from '../empresa/components/PaginatedCompanyList';
+import VectorMapView from '../empresa/map/VectorMapView';
 
 const PesquisaEmpresaRefactored: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,6 +22,7 @@ const PesquisaEmpresaRefactored: React.FC = () => {
   const [results, setResults] = useState<EmpresaData[]>([]);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
   const [selectedEmpresa, setSelectedEmpresa] = useState<EmpresaData | null>(null);
+  const [activeTab, setActiveTab] = useState<'mapa' | 'lista'>('mapa');
   const { toast } = useToast();
   const { apiKey, isLoading: isLoadingApiKey } = useGoogleMapsApi();
   const { searchNearbyCompanies, searchByTerm } = useEmpresaSearch();
@@ -102,18 +107,17 @@ const PesquisaEmpresaRefactored: React.FC = () => {
     
     setSelectedEmpresa(empresa);
     setCurrentLocation({ lat: empresa.latitude, lng: empresa.longitude });
+    setActiveTab('mapa');
   }, [isLoaded]);
 
   return (
     <div className="space-y-6">
       <h1 className="wp-header flex items-center gap-2">
         <Map className="h-6 w-6" />
-        GeoDirectório de Empresas Conveniadas
+        Pesquisa de Empresas Conveniadas
       </h1>
       
-      {searchType === 'mapa' && !apiKey && !isLoadingApiKey && (
-        <ApiKeyRedirect />
-      )}
+      <LatestCompanies onLocateEmpresa={locateEmpresa} />
       
       <div className="wp-card">
         <SearchForm 
@@ -128,22 +132,37 @@ const PesquisaEmpresaRefactored: React.FC = () => {
         />
       </div>
       
-      {apiKey && (
-        <MapView 
-          apiKey={apiKey}
-          currentLocation={currentLocation}
-          results={results}
-          selectedEmpresa={selectedEmpresa}
-          setSelectedEmpresa={setSelectedEmpresa}
-          getCurrentLocation={getCurrentLocation}
-        />
-      )}
-      
-      <ResultsTable 
-        results={results}
-        locateEmpresa={locateEmpresa}
-        isLoaded={isLoaded}
-      />
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'mapa' | 'lista')}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="mapa" className="flex items-center gap-1">
+            <Map className="h-4 w-4" />
+            Visualização de Mapa
+          </TabsTrigger>
+          <TabsTrigger value="lista" className="flex items-center gap-1">
+            <List className="h-4 w-4" />
+            Listagem Completa
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="mapa">
+          {searchType === 'mapa' && !apiKey && !isLoadingApiKey && (
+            <ApiKeyRedirect />
+          )}
+          
+          {apiKey && (
+            <VectorMapView 
+              companies={results}
+              selectedCompany={selectedEmpresa}
+              setSelectedCompany={setSelectedEmpresa}
+              apiKey={apiKey}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="lista">
+          <PaginatedCompanyList onLocateEmpresa={locateEmpresa} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -1,8 +1,11 @@
 
-import { z } from 'zod';
+export type SystemConfigKey = 
+  | 'google_maps_api_key'
+  | 'system_name'
+  | 'enable_feature_x'
+  | 'max_upload_size';
 
-export const systemConfigSchema = z.object({
-  showSystemMessages: z.boolean().default(true),
-});
-
-export type SystemConfigValues = z.infer<typeof systemConfigSchema>;
+export interface SystemConfig {
+  key: SystemConfigKey;
+  value: string;
+}

@@ -1,85 +1,147 @@
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { systemConfigSchema, SystemConfigValues } from '../types/systemConfig';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { SystemConfigKey } from '../types/systemConfig';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Map, Settings } from 'lucide-react';
 import { useSystemConfig } from './hooks/useSystemConfig';
-import { toast } from 'sonner';
-import { AlertCircle, Save } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
-export const SystemConfigForm: React.FC = () => {
-  const { config, isLoading, saveConfig } = useSystemConfig();
-  
-  const form = useForm<SystemConfigValues>({
-    resolver: zodResolver(systemConfigSchema),
-    defaultValues: {
-      showSystemMessages: true,
-    },
-  });
+export const SystemConfigForm = () => {
+  const { configValues, isLoading, saveConfig } = useSystemConfig();
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
-  React.useEffect(() => {
-    if (config) {
-      form.reset(config);
+  useEffect(() => {
+    // Set the API key from configValues when loaded
+    if (configValues['google_maps_api_key']) {
+      setGoogleMapsApiKey(configValues['google_maps_api_key']);
     }
-  }, [config, form]);
+  }, [configValues]);
 
-  const onSubmit = async (values: SystemConfigValues) => {
+  const handleSaveMapConfig = async () => {
+    setIsSaving(true);
     try {
-      await saveConfig(values);
-      toast.success('Configurações salvas com sucesso');
-    } catch (error) {
-      console.error('Error saving system config:', error);
-      toast.error('Erro ao salvar configurações');
+      // Save to database
+      await saveConfig('google_maps_api_key', googleMapsApiKey);
+      
+      // Also update localStorage for compatibility with existing code
+      localStorage.setItem('google_maps_api_key', googleMapsApiKey);
+      
+      toast({
+        title: "Configuração salva",
+        description: "A chave da API do Google Maps foi salva com sucesso.",
+      });
+    } catch (error: any) {
+      console.error('Erro ao salvar chave da API:', error);
+      toast({
+        title: "Erro ao salvar configuração",
+        description: error.message || "Ocorreu um erro ao salvar a chave da API.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   if (isLoading) {
-    return <div className="animate-pulse">Carregando configurações...</div>;
+    return (
+      <div className="flex justify-center items-center h-48">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Estas configurações afetam o comportamento global do sistema.
-          </AlertDescription>
-        </Alert>
-
-        <FormField
-          control={form.control}
-          name="showSystemMessages"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Mostrar mensagens de sistema</FormLabel>
-                <FormDescription>
-                  Quando ativado, exibe mensagens importantes do sistema no topo da página.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
+    <Tabs defaultValue="general">
+      <TabsList className="mb-4">
+        <TabsTrigger value="general" className="flex items-center gap-1">
+          <Settings className="h-4 w-4" />
+          Gerais
+        </TabsTrigger>
+        <TabsTrigger value="maps" className="flex items-center gap-1">
+          <Map className="h-4 w-4" />
+          Google Maps
+        </TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="general">
+        <Card>
+          <CardHeader>
+            <CardTitle>Configurações Gerais</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Configure os parâmetros gerais do sistema.
+            </p>
+            
+            {/* General system configurations can be added here */}
+            <div className="text-center py-8 text-muted-foreground">
+              Configurações adicionais serão implementadas aqui.
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+      
+      <TabsContent value="maps">
+        <Card>
+          <CardHeader>
+            <CardTitle>Configuração do Google Maps</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Para usar os recursos de mapa, insira sua chave da API do Google Maps. 
+              Você pode obter uma chave em{" "}
+              <a 
+                href="https://console.cloud.google.com/google/maps-apis/start" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="text-blue-500 hover:underline"
+              >
+                Google Cloud Console
+              </a>
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="google-maps-key" className="block text-sm font-medium mb-1">
+                  Chave da API do Google Maps
+                </label>
+                <Input 
+                  id="google-maps-key"
+                  type="text" 
+                  placeholder="AIza..." 
+                  value={googleMapsApiKey}
+                  onChange={(e) => setGoogleMapsApiKey(e.target.value)}
                 />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <Button 
-          type="submit" 
-          className="w-full sm:w-auto"
-          disabled={!form.formState.isDirty}
-        >
-          <Save className="mr-2 h-4 w-4" /> Salvar configurações
-        </Button>
-      </form>
-    </Form>
+              </div>
+              
+              <Button 
+                disabled={isSaving || !googleMapsApiKey.trim()}
+                onClick={handleSaveMapConfig}
+              >
+                {isSaving ? 'Salvando...' : 'Salvar configuração'}
+              </Button>
+            </div>
+            
+            <div className="mt-4 text-sm">
+              <p className="font-medium">Instruções:</p>
+              <ol className="list-decimal pl-5 space-y-1 mt-2">
+                <li>Acesse o <a href="https://console.cloud.google.com/google/maps-apis/start" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">Google Cloud Console</a></li>
+                <li>Crie um projeto ou selecione um existente</li>
+                <li>Ative as APIs: Maps JavaScript API, Places API e Geocoding API</li>
+                <li>Crie uma chave de API na seção "Credenciais"</li>
+                <li>Copie a chave e cole no campo acima</li>
+                <li>Recomendamos restringir a chave para seu domínio na configuração da chave no Console Google</li>
+              </ol>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 };
