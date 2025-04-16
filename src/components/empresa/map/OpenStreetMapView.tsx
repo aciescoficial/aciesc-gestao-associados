@@ -13,16 +13,16 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'rea
 import L from 'leaflet';
 
 // Fix for Leaflet marker icons in production build
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
 
 // Set default Leaflet icon paths
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon.src || markerIcon,
-  iconRetinaUrl: markerIcon2x.src || markerIcon2x,
-  shadowUrl: markerShadow.src || markerShadow,
+  iconUrl: icon,
+  iconRetinaUrl: iconRetina,
+  shadowUrl: iconShadow,
 });
 
 interface OpenStreetMapViewProps {
@@ -215,6 +215,10 @@ const OpenStreetMapView: React.FC<OpenStreetMapViewProps> = ({
     });
   };
 
+  useEffect(() => {
+    setMapLoaded(true);
+  }, []);
+
   return (
     <Card className="relative overflow-hidden">
       <CardHeader className="pb-2">
@@ -258,8 +262,8 @@ const OpenStreetMapView: React.FC<OpenStreetMapViewProps> = ({
         {/* Map */}
         <div className="relative h-[600px] w-full">
           <MapContainer 
-            center={currentLocation} 
-            zoom={6} 
+            defaultCenter={currentLocation} 
+            defaultZoom={6} 
             style={{ height: "100%", width: "100%" }}
             zoomControl={false}
           >
@@ -272,11 +276,7 @@ const OpenStreetMapView: React.FC<OpenStreetMapViewProps> = ({
             {currentLocation && (
               <Marker 
                 position={currentLocation}
-                icon={new L.Icon({
-                  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiMxYTU2ZGIiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjMiLz48L3N2Zz4=',
-                  iconSize: [30, 30],
-                  iconAnchor: [15, 15],
-                })}>
+              >
                 <Popup>Sua localização atual</Popup>
               </Marker>
             )}
@@ -289,7 +289,6 @@ const OpenStreetMapView: React.FC<OpenStreetMapViewProps> = ({
                 <Marker
                   key={company.id}
                   position={[company.latitude, company.longitude]}
-                  icon={getMarkerIcon(company.nicho)}
                   eventHandlers={{
                     click: () => setSelectedCompany(company),
                   }}

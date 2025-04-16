@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Map } from 'lucide-react';
 import { useGoogleMapsApi } from '@/hooks/use-google-maps-api';
@@ -6,7 +5,7 @@ import { useEmpresaSearch } from './hooks/useEmpresaSearch';
 import EmpresaSearchForm from './components/EmpresaSearchForm';
 import EmpresaResultsTable from './components/EmpresaResultsTable';
 import ApiKeyRedirect from './components/ApiKeyRedirect';
-import OpenStreetMapView from './map/OpenStreetMapView';
+import { OpenStreetMapView } from './map';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EmpresasPesquisa: React.FC = () => {
