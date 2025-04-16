@@ -17,6 +17,9 @@ export const FotoField: React.FC<FotoFieldProps> = ({
 }) => {
   return (
     <div className="w-32">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Foto
+      </label>
       <FotoUpload 
         fotoPreview={fotoPreview}
         onUpload={onFotoUpload}

@@ -4,9 +4,10 @@ import { Map } from 'lucide-react';
 import { useGoogleMapsApi } from '@/hooks/use-google-maps-api';
 import { useEmpresaSearch } from './hooks/useEmpresaSearch';
 import EmpresaSearchForm from './components/EmpresaSearchForm';
-import EmpresaMapView from './components/EmpresaMapView';
 import EmpresaResultsTable from './components/EmpresaResultsTable';
 import ApiKeyRedirect from './components/ApiKeyRedirect';
+import VectorMapView from './map/VectorMapView';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EmpresasPesquisa: React.FC = () => {
   const { apiKey, isLoading: isLoadingApiKey } = useGoogleMapsApi();
@@ -38,10 +39,6 @@ const EmpresasPesquisa: React.FC = () => {
         GeoDirectório de Empresas Conveniadas
       </h1>
       
-      {searchType === 'mapa' && !apiKey && !isLoadingApiKey && (
-        <ApiKeyRedirect />
-      )}
-      
       <EmpresaSearchForm
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -58,23 +55,36 @@ const EmpresasPesquisa: React.FC = () => {
         apiKey={apiKey}
       />
       
-      {apiKey && searchType === 'mapa' && (
-        <EmpresaMapView
-          apiKey={apiKey}
-          results={results}
-          currentLocation={currentLocation}
-          selectedEmpresa={selectedEmpresa}
-          setSelectedEmpresa={setSelectedEmpresa}
-          getCurrentLocation={getCurrentLocation}
-        />
+      {searchType === 'mapa' && !apiKey && !isLoadingApiKey && (
+        <ApiKeyRedirect />
       )}
       
-      <EmpresaResultsTable
-        results={results}
-        isSearching={isSearching}
-        locateEmpresa={locateEmpresa}
-        isMapEnabled={!!apiKey && searchType === 'mapa'}
-      />
+      <Tabs defaultValue="mapa" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="mapa">Visualização de Mapa</TabsTrigger>
+          <TabsTrigger value="lista">Listagem Completa</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="mapa">
+          {apiKey && (
+            <VectorMapView
+              companies={results}
+              selectedCompany={selectedEmpresa}
+              setSelectedCompany={setSelectedEmpresa}
+              apiKey={apiKey}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="lista">
+          <EmpresaResultsTable
+            results={results}
+            isSearching={isSearching}
+            locateEmpresa={locateEmpresa}
+            isMapEnabled={!!apiKey && searchType === 'mapa'}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

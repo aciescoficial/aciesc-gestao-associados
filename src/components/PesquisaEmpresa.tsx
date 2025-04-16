@@ -1,9 +1,9 @@
 
 import React from 'react';
-import PesquisaEmpresaRefactored from './pesquisa-empresa/PesquisaEmpresaRefactored';
+import EmpresasPesquisa from './empresa/EmpresasPesquisa';
 
 const PesquisaEmpresa: React.FC = () => {
-  return <PesquisaEmpresaRefactored />;
+  return <EmpresasPesquisa />;
 };
 
 export default PesquisaEmpresa;
