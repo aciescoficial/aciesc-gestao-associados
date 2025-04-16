@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Map } from 'lucide-react';
 import { useEmpresaSearch } from './hooks/useEmpresaSearch';
@@ -8,6 +7,7 @@ import { OpenStreetMapView } from './map';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EmpresasPesquisa: React.FC = () => {
+  // Keep using the refactored hook with the same interface
   const { 
     searchTerm,
     setSearchTerm,

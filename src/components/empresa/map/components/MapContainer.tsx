@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import MapUpdater from './MapUpdater';
 import CompanyMarkers from './CompanyMarkers';
 import { EmpresaData } from '../../types';
+import L from 'leaflet';
 
 interface MapContainerProps {
   companies: EmpresaData[];
@@ -29,9 +30,9 @@ export const MapContainerComponent: React.FC<MapContainerProps> = ({
     <div className="relative h-[600px] w-full">
       <LeafletMapContainer 
         style={{ height: "100%", width: "100%" }}
-        // Using center and zoom as props on the MapUpdater component instead
-        // @ts-ignore - Adding scrollWheelZoom props
+        // @ts-ignore - Adding scrollWheelZoom and zoomControl props
         scrollWheelZoom={true}
+        zoomControl={true}
         whenReady={() => {
           setMapInitialized(true);
         }}
