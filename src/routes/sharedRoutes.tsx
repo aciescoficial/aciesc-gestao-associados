@@ -64,13 +64,4 @@ export const SharedRoutes = [
       </PluginLayout>
     </ProtectedRoute>
   } />,
-
-  // Rota de sugestões de empresas
-  <Route key="empresas-sugestoes" path="/empresas/sugestoes" element={
-    <ProtectedRoute>
-      <PluginLayout>
-        <EmpresaSugestoes />
-      </PluginLayout>
-    </ProtectedRoute>
-  } />
 ];

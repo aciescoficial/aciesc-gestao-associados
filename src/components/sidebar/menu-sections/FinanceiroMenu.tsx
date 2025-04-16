@@ -10,9 +10,9 @@ export const getFinanceiroMenuItems = (): MenuItem[] => {
       roles: ['admin'],
       requiredTags: ['financeiro'],
       submenu: [
-        { icon: BarChart, label: "Resumo", path: "/financeiro", roles: ['admin'], requiredTags: ['financeiro'] },
+        { icon: BarChart, label: "Resumo", path: "/financeiro/resumo", roles: ['admin'], requiredTags: ['financeiro'] },
         { icon: UserCheck, label: "Associados", path: "/financeiro/associados", roles: ['admin'], requiredTags: ['financeiro'] },
-        { icon: DollarSign, label: "Integrações", path: "/financeiro/integracao", roles: ['admin'], requiredTags: ['financeiro'] },
+        { icon: DollarSign, label: "Integrações", path: "/financeiro/integracoes", roles: ['admin'], requiredTags: ['financeiro'] },
         { icon: FileText, label: "Relatórios", path: "/financeiro/relatorios", roles: ['admin'], requiredTags: ['financeiro'] },
       ]
     }

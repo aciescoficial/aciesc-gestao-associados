@@ -11,7 +11,7 @@ export const getEmpresasMenuItems = (): MenuItem[] => {
       roles: ['admin'],
       submenu: [
         { icon: Building, label: "Cadastrar", path: "/empresas/cadastrar", roles: ['admin'] },
-        { icon: Search, label: "Pesquisar", path: "/empresas/pesquisa", roles: ['admin'] },
+        { icon: Search, label: "Pesquisar", path: "/empresas/pesquisar", roles: ['admin'] },
         { icon: Inbox, label: "Sugestões", path: "/empresas/sugestoes", roles: ['admin'] },
       ]
     }

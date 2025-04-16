@@ -12,7 +12,7 @@ import IntegracaoFinanceira from "../components/IntegracaoFinanceira";
 const PageLoading = () => <div className="flex justify-center items-center h-48">Carregando...</div>;
 
 export const FinanceiroRoutes = [
-  <Route key="financeiro" path="/financeiro" element={
+  <Route key="financeiro-resumo" path="/financeiro/resumo" element={
     <FinanceRoute>
       <PluginLayout>
         <FinanceiroResumoPage />
@@ -36,7 +36,7 @@ export const FinanceiroRoutes = [
     </FinanceRoute>
   } />,
   
-  <Route key="financeiro-integracao" path="/financeiro/integracao" element={
+  <Route key="financeiro-integracoes" path="/financeiro/integracoes" element={
     <FinanceRoute>
       <PluginLayout>
         <IntegracaoFinanceira />

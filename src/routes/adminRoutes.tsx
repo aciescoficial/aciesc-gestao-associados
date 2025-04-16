@@ -19,6 +19,7 @@ const PermissionPanel = lazy(() => import("../components/usuarios/permission/Per
 const ConfiguracoesPage = lazy(() => import("../components/configuracoes/ConfiguracoesPage"));
 const AprovacaoInteressePage = lazy(() => import("../components/associado/AprovacaoInteressePage"));
 const GeradorCarteirinha = lazy(() => import("../components/carteirinha/GeradorCarteirinha"));
+const EmpresaSugestoes = lazy(() => import("../components/empresa/EmpresaSugestoes"));
 
 // Fallback component with custom loading time
 const PageLoading = () => <AppLoading message="Carregando página..." />;
@@ -35,7 +36,7 @@ export const AdminRoutes = [
     </ProtectedRoute>
   } />,
   
-  <Route key="empresas-cadastro" path="/empresas/cadastro" element={
+  <Route key="empresas-cadastrar" path="/empresas/cadastrar" element={
     <ProtectedRoute allowedRoles={["admin"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
@@ -45,7 +46,7 @@ export const AdminRoutes = [
     </ProtectedRoute>
   } />,
   
-  <Route key="empresas-pesquisa" path="/empresas/pesquisa" element={
+  <Route key="empresas-pesquisar" path="/empresas/pesquisar" element={
     <ProtectedRoute allowedRoles={["admin"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
@@ -55,8 +56,18 @@ export const AdminRoutes = [
     </ProtectedRoute>
   } />,
   
+  <Route key="empresas-sugestoes" path="/empresas/sugestoes" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <EmpresaSugestoes />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
   // Admin approval routes
-  <Route key="aprovacoes" path="/aprovacoes" element={
+  <Route key="associados-pendentes" path="/associados/pendentes" element={
     <ProtectedRoute allowedRoles={["admin"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
@@ -76,7 +87,7 @@ export const AdminRoutes = [
     </ProtectedRoute>
   } />,
 
-  <Route key="carteirinhas" path="/carteirinhas" element={
+  <Route key="associados-carteirinha" path="/associados/carteirinha" element={
     <ProtectedRoute allowedRoles={["admin"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
