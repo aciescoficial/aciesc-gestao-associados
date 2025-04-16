@@ -5,7 +5,7 @@ import { useAuth } from '@/components/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { logOperation } from '@/components/audit/auditLogService';
 import Papa from 'papaparse';
-import { EmpresaData, ImportError } from './types';
+import { EmpresaData, ImportError, FieldMapping } from './types';
 import { validateEmpresaData } from './validationUtils';
 
 interface UseImportExportProps {
@@ -19,6 +19,9 @@ export const useImportExport = ({ onImportSuccess, onExportSuccess }: UseImportE
   const [isImporting, setIsImporting] = useState(false);
   const [importData, setImportData] = useState<EmpresaData[]>([]);
   const [importErrors, setImportErrors] = useState<ImportError[]>([]);
+  const [rawCsvData, setRawCsvData] = useState<Record<string, string>[]>([]);
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [fieldMapping, setFieldMapping] = useState<FieldMapping>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { isAdmin } = useAuth();
@@ -44,11 +47,12 @@ export const useImportExport = ({ onImportSuccess, onExportSuccess }: UseImportE
       complete: (results) => {
         console.log("CSV parse results:", results);
         
-        const parsedData = results.data as Record<string, string>[];
-        const { processedData, errors } = validateEmpresaData(parsedData);
+        const headers = results.meta.fields || [];
+        setCsvHeaders(headers);
         
-        setImportData(processedData);
-        setImportErrors(errors);
+        const rawData = results.data as Record<string, string>[];
+        setRawCsvData(rawData);
+        
         setIsImportDialogOpen(true);
         setIsImporting(false);
       },
@@ -65,6 +69,31 @@ export const useImportExport = ({ onImportSuccess, onExportSuccess }: UseImportE
     
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFieldMappingChange = (mapping: FieldMapping) => {
+    setFieldMapping(mapping);
+    
+    // Now we transform the data using the mapping
+    if (rawCsvData.length > 0) {
+      const transformedData: Record<string, string>[] = rawCsvData.map(row => {
+        const transformedRow: Record<string, string> = {};
+        
+        // Apply the mapping to transform the data
+        Object.entries(mapping).forEach(([field, header]) => {
+          if (header) {
+            transformedRow[field] = row[header] || '';
+          }
+        });
+        
+        return transformedRow;
+      });
+      
+      // Validate the transformed data
+      const { processedData, errors } = validateEmpresaData(transformedData);
+      setImportData(processedData);
+      setImportErrors(errors);
     }
   };
 
@@ -168,6 +197,13 @@ export const useImportExport = ({ onImportSuccess, onExportSuccess }: UseImportE
       onImportSuccess();
       setIsImportDialogOpen(false);
       setImportData([]);
+      setRawCsvData([]);
+      setCsvHeaders([]);
+      
+      toast({
+        title: 'Importação concluída',
+        description: `${importData.length} empresas foram importadas com sucesso.`,
+      });
     } catch (error: any) {
       console.error('Import error:', error);
       toast({
@@ -187,8 +223,12 @@ export const useImportExport = ({ onImportSuccess, onExportSuccess }: UseImportE
     isImporting,
     importData,
     importErrors,
+    rawCsvData,
+    csvHeaders,
+    fieldMapping,
     fileInputRef,
     handleFileSelect,
+    handleFieldMappingChange,
     handleExportEmpresas,
     handleConfirmImport
   };

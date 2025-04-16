@@ -1,9 +1,4 @@
 
-import { Database } from '@/integrations/supabase/types';
-
-type NichoType = Database['public']['Enums']['nicho_type'];
-type StatusType = Database['public']['Enums']['status_type'];
-
 export interface EmpresaData {
   id?: string;
   razao_social: string;
@@ -12,19 +7,16 @@ export interface EmpresaData {
   responsavel: string;
   telefone: string;
   email: string;
+  endereco: string;
   cidade: string;
-  nicho: NichoType;
-  status: StatusType;
+  cep: string;
+  nicho: 'Alimentação' | 'Saúde' | 'Educação' | 'Serviços' | 'Comércio' | 'Lazer' | 'Tecnologia' | 'Outro';
+  desconto: string;
+  produtos: string;
   site?: string;
   instagram?: string;
   whatsapp?: string;
-  produtos: string;
-  endereco: string;
-  cep: string;
-  latitude?: number;
-  longitude?: number;
-  desconto: string;
-  created_at?: string;
+  status?: 'ativo' | 'pendente' | 'inativo';
   logo_url?: string;
   capa_url?: string;
   video_url?: string;
@@ -32,7 +24,11 @@ export interface EmpresaData {
 
 export interface ImportError {
   row: number;
-  field?: string;
+  field: string;
   message: string;
-  data: any;
+  data: Record<string, any>;
+}
+
+export interface FieldMapping {
+  [key: string]: string;
 }

@@ -17,6 +17,7 @@ export const useAprovacaoInteresse = () => {
   const [isProcessingApproval, setIsProcessingApproval] = useState(false);
   const [selectedInterestForApproval, setSelectedInterestForApproval] = useState<AssociadoInteresse | null>(null);
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
+  const [approvalError, setApprovalError] = useState<string | null>(null);
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
@@ -94,12 +95,14 @@ export const useAprovacaoInteresse = () => {
   const openApprovalDialog = (interesse: AssociadoInteresse) => {
     setSelectedInterestForApproval(interesse);
     setIsApprovalDialogOpen(true);
+    setApprovalError(null);
   };
   
   // Close approval dialog
   const closeApprovalDialog = () => {
     setIsApprovalDialogOpen(false);
     setSelectedInterestForApproval(null);
+    setApprovalError(null);
   };
 
   const handleApprove = async (associationTypeId: string) => {
@@ -108,7 +111,10 @@ export const useAprovacaoInteresse = () => {
     const interesse = selectedInterestForApproval;
     
     try {
+      setApprovalError(null);
       setIsProcessingApproval(true);
+      
+      console.log('Starting approval process for:', interesse);
       
       // Generate a signup token valid for 7 days
       const expiresAt = new Date();
@@ -128,65 +134,76 @@ export const useAprovacaoInteresse = () => {
         });
       
       if (tokenError) {
-        throw tokenError;
+        console.error('Error creating signup token:', tokenError);
+        throw new Error(`Erro ao gerar token: ${tokenError.message}`);
       }
       
       // Generate payment for the associate
-      const { paymentUrl, paymentId } = await generateAssociadoPayment({
-        associadoInteresseId: interesse.id,
-        associationTypeId,
-        email: interesse.email,
-        nome: interesse.nome,
-        sobrenome: interesse.sobrenome,
-        cpf: interesse.cpf
-      });
-      
-      // Create a user account for the approved associate
       try {
-        await createUserForAssociado({
-          id: interesse.id,
+        console.log('Generating payment with association type:', associationTypeId);
+        const { paymentUrl, paymentId } = await generateAssociadoPayment({
+          associadoInteresseId: interesse.id,
+          associationTypeId,
           email: interesse.email,
           nome: interesse.nome,
           sobrenome: interesse.sobrenome,
           cpf: interesse.cpf
         });
         
-        console.log('User created successfully for associate interest:', interesse.id);
-      } catch (userError) {
-        console.error('Failed to create user for associate:', userError);
+        console.log('Payment generated successfully:', { paymentUrl, paymentId });
+        
+        // Create a user account for the approved associate
+        try {
+          await createUserForAssociado({
+            id: interesse.id,
+            email: interesse.email,
+            nome: interesse.nome,
+            sobrenome: interesse.sobrenome,
+            cpf: interesse.cpf
+          });
+          
+          console.log('User created successfully for associate interest:', interesse.id);
+        } catch (userError: any) {
+          console.error('Failed to create user for associate:', userError);
+          toast({
+            title: 'Alerta',
+            description: 'O interesse foi aprovado, mas houve um problema ao criar o usuário. Verifique os logs.',
+            variant: 'default',
+          });
+        }
+        
+        // Send approval email with payment link
+        const emailSent = await sendApprovalEmail(
+          interesse.email, 
+          interesse.nome, 
+          interesse.sobrenome, 
+          token, 
+          paymentUrl
+        );
+        
+        // Update local state
+        setInteresses(prev => prev.filter(item => item.id !== interesse.id));
+        
         toast({
-          title: 'Alerta',
-          description: 'O interesse foi aprovado, mas houve um problema ao criar o usuário. Verifique os logs.',
-          variant: 'default',
+          title: 'Interesse aprovado',
+          description: emailSent 
+            ? `Uma notificação foi enviada para ${interesse.nome} ${interesse.sobrenome} com instruções para pagamento.`
+            : `Interesse aprovado, mas não foi possível enviar o email para ${interesse.email}.`,
+          variant: emailSent ? 'default' : 'destructive',
         });
+        
+        closeApprovalDialog();
+      } catch (paymentError: any) {
+        console.error('Payment generation error:', paymentError);
+        setApprovalError(`Erro ao gerar pagamento: ${paymentError.message}`);
+        throw new Error(`Erro ao gerar pagamento: ${paymentError.message}`);
       }
-      
-      // Send approval email with payment link
-      const emailSent = await sendApprovalEmail(
-        interesse.email, 
-        interesse.nome, 
-        interesse.sobrenome, 
-        token, 
-        paymentUrl
-      );
-      
-      // Update local state
-      setInteresses(prev => prev.filter(item => item.id !== interesse.id));
-      
-      toast({
-        title: 'Interesse aprovado',
-        description: emailSent 
-          ? `Uma notificação foi enviada para ${interesse.nome} ${interesse.sobrenome} com instruções para pagamento.`
-          : `Interesse aprovado, mas não foi possível enviar o email para ${interesse.email}.`,
-        variant: emailSent ? 'default' : 'destructive',
-      });
-      
-      closeApprovalDialog();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving interest:', error);
+      setApprovalError(error.message || 'Ocorreu um erro desconhecido ao aprovar o interesse');
       toast({
         title: 'Erro',
-        description: 'Ocorreu um erro ao aprovar o interesse. Tente novamente.',
+        description: error.message || 'Ocorreu um erro ao aprovar o interesse. Tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -233,6 +250,7 @@ export const useAprovacaoInteresse = () => {
     handleReject,
     isApprovalDialogOpen,
     isProcessingApproval,
-    selectedInterestForApproval
+    selectedInterestForApproval,
+    approvalError
   };
 };

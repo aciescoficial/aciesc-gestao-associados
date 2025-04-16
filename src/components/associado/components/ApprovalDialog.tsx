@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, AlertTriangle } from 'lucide-react';
 import AssociationTypeSelector from './AssociationTypeSelector';
 
 interface AssociationType {
@@ -23,6 +24,7 @@ interface ApprovalDialogProps {
   sobrenome: string;
   email: string;
   isProcessing: boolean;
+  error?: string | null;
 }
 
 const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
@@ -32,7 +34,8 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   nome,
   sobrenome,
   email,
-  isProcessing
+  isProcessing,
+  error
 }) => {
   const [selectedType, setSelectedType] = useState<AssociationType | null>(null);
 
@@ -51,6 +54,14 @@ const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
             Selecione o tipo de associação para {nome} {sobrenome}
           </DialogDescription>
         </DialogHeader>
+
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Erro ao processar aprovação</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
         <div className="py-4">
           <AssociationTypeSelector

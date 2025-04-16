@@ -31,7 +31,8 @@ const AprovacaoInteresse: React.FC = () => {
     handleReject,
     isApprovalDialogOpen,
     isProcessingApproval,
-    selectedInterestForApproval
+    selectedInterestForApproval,
+    approvalError
   } = useAprovacaoInteresse();
   const isMobile = useIsMobile();
 
@@ -156,6 +157,7 @@ const AprovacaoInteresse: React.FC = () => {
           sobrenome={selectedInterestForApproval.sobrenome}
           email={selectedInterestForApproval.email}
           isProcessing={isProcessingApproval}
+          error={approvalError}
         />
       )}
     </div>

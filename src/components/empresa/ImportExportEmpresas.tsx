@@ -21,9 +21,13 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
     isExporting,
     isImporting,
     importData,
+    rawCsvData,
+    csvHeaders,
     importErrors,
+    fieldMapping,
     fileInputRef,
     handleFileSelect,
+    handleFieldMappingChange,
     handleExportEmpresas,
     handleConfirmImport
   } = useImportExport({ 
@@ -107,15 +111,20 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
             <DialogHeader>
               <DialogTitle>Revisar Dados para Importação</DialogTitle>
               <DialogDescription>
-                Revise os dados antes de confirmar a importação. Registros com erros são destacados em vermelho.
+                Mapeie os campos do seu arquivo CSV para os campos do sistema e revise os dados antes de confirmar a importação.
               </DialogDescription>
             </DialogHeader>
             
             <ImportPreview 
-              data={importData} 
+              data={importData}
+              rawData={rawCsvData}
+              csvHeaders={csvHeaders} 
               errors={importErrors}
+              fieldMapping={fieldMapping}
+              onFieldMappingChange={handleFieldMappingChange}
               onConfirm={handleConfirmImport}
               onCancel={() => setIsImportDialogOpen(false)}
+              isImporting={isImporting}
             />
           </DialogContent>
         </Dialog>

@@ -1,262 +1,228 @@
 
-import React, { useRef, useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EmpresaData } from '../types';
-import { Plus, Minus, Compass, List, Map, Info } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Search, MapPin, Phone, Mail, ExternalLink, Navigation, Home } from 'lucide-react';
+import { EmpresaData } from '../types';
+import { getBadgeColors, formatPhoneNumber } from '../utils/helpers';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
-import L from 'leaflet';
 
-// Fix for Leaflet marker icons in production build
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
+// Fix for default marker icons in Leaflet with webpack/vite
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// Set default Leaflet icon paths
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: icon,
-  iconRetinaUrl: iconRetina,
-  shadowUrl: iconShadow,
+// Custom marker icon for selected company
+const selectedIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
 });
 
-interface OpenStreetMapViewProps {
+// Regular marker icon
+const defaultIcon = new L.Icon({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+// Fix for the missing default icon in webpack/vite
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+// Company card component for the popup
+const CompanyCard = ({ company }: { company: EmpresaData }) => {
+  const [badgeColor, badgeBgColor] = getBadgeColors(company.nicho);
+  
+  return (
+    <div className="w-64 p-1">
+      <h3 className="font-medium text-lg">{company.nome_fantasia}</h3>
+      <Badge 
+        className="my-1" 
+        style={{ 
+          backgroundColor: badgeBgColor, 
+          color: badgeColor
+        }}
+      >
+        {company.nicho}
+      </Badge>
+      
+      <div className="mt-2 space-y-2 text-sm">
+        <div className="flex items-start gap-2">
+          <Home className="h-4 w-4 mt-1 text-gray-500" />
+          <span>{company.endereco}, {company.cidade}</span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Phone className="h-4 w-4 text-gray-500" />
+          <a href={`tel:${company.telefone}`} className="hover:underline">
+            {formatPhoneNumber(company.telefone)}
+          </a>
+        </div>
+        
+        {company.email && (
+          <div className="flex items-center gap-2">
+            <Mail className="h-4 w-4 text-gray-500" />
+            <a href={`mailto:${company.email}`} className="hover:underline">
+              {company.email}
+            </a>
+          </div>
+        )}
+        
+        <div className="pt-2">
+          <Button size="sm" variant="outline" className="w-full flex items-center gap-1">
+            <Navigation className="h-4 w-4" />
+            <span>Como chegar</span>
+          </Button>
+        </div>
+        
+        {company.site && (
+          <div className="pt-1">
+            <a 
+              href={company.site.startsWith('http') ? company.site : `https://${company.site}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-blue-600 hover:underline"
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span>Visitar site</span>
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+interface MapViewProps {
   companies: EmpresaData[];
   selectedCompany: EmpresaData | null;
   setSelectedCompany: (company: EmpresaData | null) => void;
 }
 
-// Custom control component to handle getting user location
-function LocationButton({ onClick }: { onClick: () => void }) {
-  const map = useMap();
-  
-  return (
-    <div className="leaflet-top leaflet-left" style={{ marginTop: "80px" }}>
-      <div className="leaflet-control leaflet-bar">
-        <Button
-          variant="secondary"
-          size="icon"
-          className="h-8 w-8 bg-white shadow-md"
-          onClick={onClick}
-        >
-          <Compass size={16} className="text-blue-500" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// Custom zoom controls
-function CustomZoomControl() {
-  const map = useMap();
-  
-  const handleZoomIn = () => {
-    map.zoomIn();
-  };
-  
-  const handleZoomOut = () => {
-    map.zoomOut();
-  };
-  
-  return (
-    <div className="leaflet-bottom leaflet-right" style={{ marginBottom: "20px" }}>
-      <div className="leaflet-control leaflet-bar flex flex-col">
-        <Button
-          variant="secondary"
-          size="icon"
-          className="h-8 w-8 rounded-t-md bg-white shadow-md"
-          onClick={handleZoomIn}
-        >
-          <Plus size={16} />
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          className="h-8 w-8 rounded-b-md bg-white shadow-md border-t"
-          onClick={handleZoomOut}
-        >
-          <Minus size={16} />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// Custom map center update component
-function SetViewOnChange({ center }: { center: [number, number] }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (center) {
-      map.setView(center, 13);
-    }
-  }, [center, map]);
-  
-  return null;
-}
-
-const nichoColors: Record<string, string> = {
-  'Saúde': '#4CAF50',
-  'Educação': '#2196F3', 
-  'Alimentação': '#FF9800',
-  'Lazer': '#9C27B0',
-  'Serviços': '#F44336',
-  'Construção': '#795548',
-  'Tecnologia': '#607D8B',
-  'Varejo': '#FFC107',
-  'Automotivo': '#3F51B5',
-  'Imobiliário': '#E91E63',
-  'Financeiro': '#009688',
-  'Outros': '#9E9E9E'
-};
-
-const OpenStreetMapView: React.FC<OpenStreetMapViewProps> = ({
-  companies,
+export const OpenStreetMapView: React.FC<MapViewProps> = ({ 
+  companies, 
   selectedCompany,
-  setSelectedCompany
+  setSelectedCompany 
 }) => {
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<[number, number]>([-15.7801, -47.9292]);
-  const [visibleCompanies, setVisibleCompanies] = useState<EmpresaData[]>([]);
-  const [activeNichoFilters, setActiveNichoFilters] = useState<string[]>([]);
+  const [currentLocation, setCurrentLocation] = useState<[number, number]>([-15.7801, -47.9292]); // Brazil center
+  const [loading, setLoading] = useState(false);
+  const [mapInitialized, setMapInitialized] = useState(false);
+  const [mapRef, setMapRef] = useState<any>(null);
   
-  // Get unique nichos from companies
-  const uniqueNichos = React.useMemo(() => {
-    const nichoSet = new Set<string>();
-    companies.forEach(company => {
-      if (company.nicho) {
-        nichoSet.add(company.nicho);
-      }
-    });
-    return Array.from(nichoSet);
-  }, [companies]);
-
-  // Set visible companies
-  useEffect(() => {
-    // Filter companies by nicho if needed
-    const filtered = companies.filter(company => {
-      if (activeNichoFilters.length === 0) return true;
-      return activeNichoFilters.includes(company.nicho);
-    });
-    setVisibleCompanies(filtered);
-  }, [companies, activeNichoFilters]);
-
-  // Handle user location
-  const handleLocateUser = () => {
+  // Find company's geo position (latitude, longitude)
+  const geocodeCompany = async (company: EmpresaData) => {
+    try {
+      // Here we need to use a geocoding service
+      // For now, we return a random position in Brazil for testing
+      const lat = -15.7801 + (Math.random() - 0.5) * 10;
+      const lng = -47.9292 + (Math.random() - 0.5) * 10;
+      
+      return [lat, lng];
+    } catch (error) {
+      console.error('Error geocoding company:', error);
+      return null;
+    }
+  };
+  
+  // Get user's current location
+  const getCurrentLocation = useCallback(() => {
     if (navigator.geolocation) {
+      setLoading(true);
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setCurrentLocation([position.coords.latitude, position.coords.longitude]);
+          const { latitude, longitude } = position.coords;
+          setCurrentLocation([latitude, longitude]);
+          
+          if (mapRef) {
+            mapRef.setView([latitude, longitude], 13);
+          }
+          
+          setLoading(false);
         },
-        () => {
-          alert("Não foi possível obter sua localização.");
+        (error) => {
+          console.error('Error getting location:', error);
+          setLoading(false);
         }
       );
     } else {
-      alert("Seu navegador não suporta geolocalização.");
+      console.error('Geolocation is not supported by this browser.');
     }
-  };
+  }, [mapRef]);
   
-  // Toggle nicho filters
-  const toggleNichoFilter = (nicho: string) => {
-    setActiveNichoFilters(prev => {
-      if (prev.includes(nicho)) {
-        return prev.filter(n => n !== nicho);
-      } else {
-        return [...prev, nicho];
-      }
-    });
-  };
-
-  // Update map view when selected company changes
+  // When selected company changes, center map on it
   useEffect(() => {
-    if (!selectedCompany) return;
-    
-    const lat = selectedCompany.latitude || -15.7801;
-    const lng = selectedCompany.longitude || -47.9292;
-    setCurrentLocation([lat, lng]);
-  }, [selectedCompany]);
+    if (selectedCompany && mapRef) {
+      geocodeCompany(selectedCompany).then(coords => {
+        if (coords) {
+          mapRef.setView(coords, 15);
+        }
+      });
+    }
+  }, [selectedCompany, mapRef]);
 
-  // Custom marker icons for different nichos
-  const getMarkerIcon = (nicho: string) => {
-    const nichoColor = nichoColors[nicho] || '#9E9E9E';
-    
-    return L.divIcon({
-      html: `
-        <div style="
-          background-color: ${nichoColor};
-          width: 24px;
-          height: 24px;
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          border: 2px solid white;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        ">
-          <div style="
-            transform: rotate(45deg);
-            height: 10px;
-            width: 10px;
-            background-color: white;
-            border-radius: 50%;
-          "></div>
-        </div>
-      `,
-      className: '',
-      iconSize: [24, 24],
-      iconAnchor: [12, 24]
+  // Markers for all companies
+  const markers = useMemo(() => {
+    return companies.map((company, index) => {
+      // Generate random positions for demo
+      const lat = -15.7801 + (Math.random() - 0.5) * 10;
+      const lng = -47.9292 + (Math.random() - 0.5) * 10;
+      const position: [number, number] = [lat, lng];
+      
+      const isSelected = selectedCompany?.id === company.id;
+      
+      return (
+        <Marker 
+          key={company.id || index}
+          position={position}
+          icon={isSelected ? selectedIcon : defaultIcon}
+          eventHandlers={{
+            click: () => {
+              setSelectedCompany(company);
+            }
+          }}
+        >
+          <Popup>
+            <CompanyCard company={company} />
+          </Popup>
+        </Marker>
+      );
     });
-  };
-
-  useEffect(() => {
-    setMapLoaded(true);
-  }, []);
+  }, [companies, selectedCompany, setSelectedCompany]);
 
   return (
-    <Card className="relative overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <Map className="h-5 w-5 text-blue-500" />
-            Mapa de Empresas Conveniadas
-          </span>
-          <Badge variant="outline" className="ml-2">
-            {visibleCompanies.length} empresas visíveis
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      
+    <Card className="mt-4">
       <CardContent className="p-0">
-        {/* Nicho filters */}
-        <div className="absolute top-16 left-2 right-2 z-10 flex flex-wrap gap-1 bg-white bg-opacity-90 p-2 rounded-md shadow-md max-w-full overflow-x-auto">
-          {uniqueNichos.map(nicho => {
-            const isActive = activeNichoFilters.includes(nicho);
-            const nichoColor = nichoColors[nicho] || '#9E9E9E';
-            
-            return (
-              <Badge 
-                key={nicho}
-                variant={isActive ? "default" : "outline"}
-                style={{
-                  backgroundColor: isActive ? nichoColor : 'transparent',
-                  borderColor: nichoColor,
-                  color: isActive ? 'white' : nichoColor,
-                  cursor: 'pointer'
-                }}
-                onClick={() => toggleNichoFilter(nicho)}
-                className="transition-all duration-200 hover:opacity-80"
-              >
-                {nicho}
-              </Badge>
-            );
-          })}
+        <div className="p-4 flex justify-between items-center">
+          <div>
+            <h3 className="font-medium">Mapa de Empresas Conveniadas</h3>
+            <p className="text-sm text-gray-500">{companies.length} empresas encontradas</p>
+          </div>
+          
+          <div className="flex space-x-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={getCurrentLocation}
+              disabled={loading}
+            >
+              {loading ? "Localizando..." : "Minha Localização"}
+            </Button>
+          </div>
         </div>
         
         {/* Map */}
@@ -266,140 +232,18 @@ const OpenStreetMapView: React.FC<OpenStreetMapViewProps> = ({
             zoom={6} 
             style={{ height: "100%", width: "100%" }}
             zoomControl={false}
+            whenReady={(map) => {
+              setMapRef(map.target);
+              setMapInitialized(true);
+            }}
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
-
-            {/* User location marker */}
-            {currentLocation && (
-              <Marker 
-                position={currentLocation}
-              >
-                <Popup>Sua localização atual</Popup>
-              </Marker>
-            )}
-
-            {/* Company markers */}
-            {visibleCompanies.map(company => {
-              if (!company.latitude || !company.longitude) return null;
-              
-              return (
-                <Marker
-                  key={company.id}
-                  position={[company.latitude, company.longitude]}
-                  eventHandlers={{
-                    click: () => setSelectedCompany(company),
-                  }}
-                >
-                  <Popup>
-                    <div className="p-1 max-w-[300px]">
-                      <h3 className="font-medium text-base">{company.nome_fantasia}</h3>
-                      <p className="text-sm text-gray-600">{company.endereco}</p>
-                      <p className="text-sm text-gray-600">{company.cidade}</p>
-                      {company.desconto && (
-                        <p className="text-sm font-medium text-green-600 mt-1">
-                          Desconto: {company.desconto}
-                        </p>
-                      )}
-                      {company.telefone && (
-                        <div className="mt-1">
-                          <a href={`tel:${company.telefone}`} className="text-blue-600 hover:underline text-sm">
-                            {company.telefone}
-                          </a>
-                        </div>
-                      )}
-                      <div className="flex justify-between mt-2">
-                        <a 
-                          href={`/empresas/${company.id}`}
-                          className="text-xs bg-blue-500 text-white px-2 py-1 rounded"
-                        >
-                          Ver detalhes
-                        </a>
-                        <a 
-                          href={`https://www.openstreetmap.org/directions?from=${currentLocation[0]},${currentLocation[1]}&to=${company.latitude},${company.longitude}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs bg-green-500 text-white px-2 py-1 rounded"
-                        >
-                          Como chegar
-                        </a>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
-
-            {/* Custom controls */}
-            <CustomZoomControl />
-            <LocationButton onClick={handleLocateUser} />
-            
-            {/* Update map view when selected company or location changes */}
-            <SetViewOnChange center={currentLocation} />
+            {mapInitialized && markers}
           </MapContainer>
-
-          {/* Map legend */}
-          <div className="absolute bottom-3 left-3 z-10 bg-white bg-opacity-90 p-2 rounded-md shadow-md max-w-[200px]">
-            <p className="text-xs font-medium mb-1 flex items-center">
-              <Info className="h-3 w-3 mr-1" />
-              Legenda
-            </p>
-            <Separator className="my-1" />
-            <div className="space-y-1">
-              {Object.entries(nichoColors).slice(0, 6).map(([nicho, color]) => (
-                <div key={nicho} className="flex items-center gap-1 text-xs">
-                  <div style={{ backgroundColor: color }} className="h-2 w-2 rounded-full" />
-                  <span>{nicho}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
-
-        {/* Company list below map */}
-        {visibleCompanies.length > 0 && (
-          <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium flex items-center gap-2">
-                <List className="h-4 w-4" />
-                Empresas Visíveis no Mapa
-              </h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {visibleCompanies.slice(0, 6).map(company => {
-                const nichoColor = nichoColors[company.nicho as string] || '#9E9E9E';
-                
-                return (
-                  <div 
-                    key={company.id} 
-                    className="flex items-center p-2 rounded-md hover:bg-gray-50 border cursor-pointer"
-                    onClick={() => setSelectedCompany(company)}
-                  >
-                    <div 
-                      className="w-2 h-10 mr-2 rounded-sm" 
-                      style={{ backgroundColor: nichoColor }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{company.nome_fantasia}</p>
-                      <p className="text-xs text-gray-500 truncate">{company.endereco}</p>
-                    </div>
-                  </div>
-                );
-              })}
-              
-              {visibleCompanies.length > 6 && (
-                <div className="md:col-span-3 text-center mt-2">
-                  <Button variant="link" size="sm">
-                    Ver todas as {visibleCompanies.length} empresas
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

@@ -13,16 +13,32 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { EmpresaData, ImportError } from './types';
+import { EmpresaData, ImportError, FieldMapping } from './types';
+import FieldMapping from './FieldMapping';
 
 interface ImportPreviewProps {
   data: EmpresaData[];
+  rawData: Record<string, string>[];
+  csvHeaders: string[];
   onConfirm: () => void;
   onCancel: () => void;
   errors: ImportError[];
+  fieldMapping: FieldMapping;
+  onFieldMappingChange: (mapping: FieldMapping) => void;
+  isImporting: boolean;
 }
 
-const ImportPreview: React.FC<ImportPreviewProps> = ({ data, onConfirm, onCancel, errors }) => {
+const ImportPreview: React.FC<ImportPreviewProps> = ({ 
+  data, 
+  rawData,
+  csvHeaders,
+  onConfirm, 
+  onCancel, 
+  errors,
+  fieldMapping,
+  onFieldMappingChange,
+  isImporting
+}) => {
   // Group errors by row for display
   const errorsByRow: Record<number, ImportError[]> = {};
   errors.forEach(error => {
@@ -35,11 +51,18 @@ const ImportPreview: React.FC<ImportPreviewProps> = ({ data, onConfirm, onCancel
   return (
     <>
       <div className="mb-4">
-        <h4 className="text-sm font-medium mb-2">Validação dos campos</h4>
-        <div className="bg-slate-50 p-4 rounded-md border">
+        <h4 className="text-sm font-medium mb-2">Mapeamento de Campos</h4>
+        
+        <FieldMapping 
+          csvHeaders={csvHeaders}
+          sampleData={rawData.slice(0, 3)}
+          onFieldMappingChange={onFieldMappingChange}
+        />
+        
+        <div className="mt-4 bg-slate-50 p-4 rounded-md border">
           <div className="flex items-center gap-2 mb-3">
             <Info size={16} className="text-blue-500" />
-            <span className="text-sm">Campos obrigatórios: nome_fantasia, razao_social, cnpj, responsavel, telefone, email, cidade, nicho, endereco, cep</span>
+            <span className="text-sm">Campos obrigatórios: nome_fantasia, razao_social, cnpj, responsavel, telefone, email, cidade, nicho, endereco, cep, desconto, produtos</span>
           </div>
           
           {errors.length > 0 && (
@@ -73,6 +96,7 @@ const ImportPreview: React.FC<ImportPreviewProps> = ({ data, onConfirm, onCancel
         </div>
       </div>
 
+      <h4 className="text-sm font-medium mb-2">Pré-visualização dos dados</h4>
       <ScrollArea className="h-[300px] border rounded-md">
         <Table>
           <TableHeader className="bg-slate-50 sticky top-0">
@@ -140,9 +164,11 @@ const ImportPreview: React.FC<ImportPreviewProps> = ({ data, onConfirm, onCancel
             )}
           </div>
           <div className="flex space-x-2">
-            <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-            <Button onClick={onConfirm} disabled={errors.length > 0}>
-              Confirmar Importação
+            <Button variant="outline" onClick={onCancel} disabled={isImporting}>
+              Cancelar
+            </Button>
+            <Button onClick={onConfirm} disabled={errors.length > 0 || isImporting}>
+              {isImporting ? 'Processando...' : 'Confirmar Importação'}
             </Button>
           </div>
         </div>
