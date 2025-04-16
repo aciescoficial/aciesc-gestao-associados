@@ -23,7 +23,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 interface InteresseDesktopTableProps {
   interesses: AssociadoInteresse[];
-  onApprove: (id: string, email: string, nome: string, sobrenome: string) => void;
+  onApprove: (interesse: AssociadoInteresse) => void;
   onReject: (id: string) => void;
 }
 
@@ -159,14 +159,7 @@ const InteresseDesktopTable: React.FC<InteresseDesktopTableProps> = ({
                     <>
                       <Button
                         size="sm"
-                        onClick={() => 
-                          onApprove(
-                            interesse.id, 
-                            interesse.email,
-                            interesse.nome,
-                            interesse.sobrenome
-                          )
-                        }
+                        onClick={() => onApprove(interesse)}
                         className="flex items-center"
                       >
                         <UserPlus className="w-4 h-4 mr-1" />

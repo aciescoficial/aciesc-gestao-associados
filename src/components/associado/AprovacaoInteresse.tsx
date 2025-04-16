@@ -10,11 +10,9 @@ import InteresseDesktopTable from './components/InteresseDesktopTable';
 import InteresseMobileCard from './components/InteresseMobileCard';
 import AprovacaoAlertas from './components/AprovacaoAlertas';
 import { Search, RefreshCw } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import ApprovalDialog from './components/ApprovalDialog';
 
 const AprovacaoInteresse: React.FC = () => {
-  const { toast } = useToast();
-  
   const { 
     interesses,
     isLoading, 
@@ -27,8 +25,13 @@ const AprovacaoInteresse: React.FC = () => {
     setSearchField,
     fetchPendingInterests, 
     handleSearch,
-    handleApprove, 
-    handleReject 
+    openApprovalDialog,
+    closeApprovalDialog,
+    handleApprove,
+    handleReject,
+    isApprovalDialogOpen,
+    isProcessingApproval,
+    selectedInterestForApproval
   } = useAprovacaoInteresse();
   const isMobile = useIsMobile();
 
@@ -123,7 +126,7 @@ const AprovacaoInteresse: React.FC = () => {
                 <InteresseMobileCard 
                   key={interesse.id}
                   interesse={interesse} 
-                  onApprove={handleApprove}
+                  onApprove={() => openApprovalDialog(interesse)}
                   onReject={handleReject}
                 />
               ))}
@@ -135,12 +138,25 @@ const AprovacaoInteresse: React.FC = () => {
             <div className="hidden md:block overflow-x-auto">
               <InteresseDesktopTable 
                 interesses={interesses} 
-                onApprove={handleApprove}
+                onApprove={(interesse) => openApprovalDialog(interesse)}
                 onReject={handleReject}
               />
             </div>
           )}
         </div>
+      )}
+
+      {/* Approval Dialog */}
+      {selectedInterestForApproval && (
+        <ApprovalDialog 
+          isOpen={isApprovalDialogOpen}
+          onClose={closeApprovalDialog}
+          onApprove={handleApprove}
+          nome={selectedInterestForApproval.nome}
+          sobrenome={selectedInterestForApproval.sobrenome}
+          email={selectedInterestForApproval.email}
+          isProcessing={isProcessingApproval}
+        />
       )}
     </div>
   );

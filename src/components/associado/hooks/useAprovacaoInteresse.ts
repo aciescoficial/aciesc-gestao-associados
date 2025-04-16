@@ -6,6 +6,7 @@ import { useAuth } from '@/components/auth';
 import { AssociadoInteresse } from '../types/associadoInteresse';
 import { getAssociadoInteresses, updateInterestStatus } from '../services/associadoInteressesService';
 import { createUserForAssociado } from '../services/associadoUserService';
+import { generateAssociadoPayment } from '../services/associadoPaymentService';
 
 export const useAprovacaoInteresse = () => {
   const [interesses, setInteresses] = useState<AssociadoInteresse[]>([]);
@@ -13,6 +14,9 @@ export const useAprovacaoInteresse = () => {
   const [statusFilter, setStatusFilter] = useState<string>('pendente');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [searchField, setSearchField] = useState<'nome' | 'email'>('nome');
+  const [isProcessingApproval, setIsProcessingApproval] = useState(false);
+  const [selectedInterestForApproval, setSelectedInterestForApproval] = useState<AssociadoInteresse | null>(null);
+  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
   const { isAdmin } = useAuth();
   const { toast } = useToast();
 
@@ -48,10 +52,10 @@ export const useAprovacaoInteresse = () => {
     await fetchPendingInterests();
   };
 
-  const sendApprovalEmail = async (email: string, nome: string, sobrenome: string, token: string) => {
+  const sendApprovalEmail = async (email: string, nome: string, sobrenome: string, token: string, paymentUrl: string) => {
     try {
       // Generate payment link with token
-      const paymentLink = `${window.location.origin}/associado-signup?token=${token}`;
+      const paymentLink = `${paymentUrl}&token=${token}`;
       
       console.log('Sending approval email to:', email, 'with payment link:', paymentLink);
       
@@ -86,10 +90,25 @@ export const useAprovacaoInteresse = () => {
     }
   };
 
-  const handleApprove = async (id: string, email: string, nome: string, sobrenome: string) => {
+  // Open approval dialog for an interest
+  const openApprovalDialog = (interesse: AssociadoInteresse) => {
+    setSelectedInterestForApproval(interesse);
+    setIsApprovalDialogOpen(true);
+  };
+  
+  // Close approval dialog
+  const closeApprovalDialog = () => {
+    setIsApprovalDialogOpen(false);
+    setSelectedInterestForApproval(null);
+  };
+
+  const handleApprove = async (associationTypeId: string) => {
+    if (!selectedInterestForApproval) return;
+    
+    const interesse = selectedInterestForApproval;
+    
     try {
-      // Update interest status to approved
-      await updateInterestStatus(id, 'aprovado');
+      setIsProcessingApproval(true);
       
       // Generate a signup token valid for 7 days
       const expiresAt = new Date();
@@ -102,7 +121,7 @@ export const useAprovacaoInteresse = () => {
       const { error: tokenError } = await supabase
         .from('signup_tokens')
         .insert({
-          associado_interesse_id: id,
+          associado_interesse_id: interesse.id,
           token,
           expires_at: expiresAt.toISOString(),
           used: false
@@ -112,39 +131,57 @@ export const useAprovacaoInteresse = () => {
         throw tokenError;
       }
       
+      // Generate payment for the associate
+      const { paymentUrl, paymentId } = await generateAssociadoPayment({
+        associadoInteresseId: interesse.id,
+        associationTypeId,
+        email: interesse.email,
+        nome: interesse.nome,
+        sobrenome: interesse.sobrenome,
+        cpf: interesse.cpf
+      });
+      
       // Create a user account for the approved associate
       try {
         await createUserForAssociado({
-          id,
-          email,
-          nome,
-          sobrenome,
-          cpf: interesses.find(i => i.id === id)?.cpf || ''
+          id: interesse.id,
+          email: interesse.email,
+          nome: interesse.nome,
+          sobrenome: interesse.sobrenome,
+          cpf: interesse.cpf
         });
         
-        console.log('User created successfully for associate interest:', id);
+        console.log('User created successfully for associate interest:', interesse.id);
       } catch (userError) {
         console.error('Failed to create user for associate:', userError);
         toast({
           title: 'Alerta',
           description: 'O interesse foi aprovado, mas houve um problema ao criar o usuário. Verifique os logs.',
-          variant: 'default', // Changed from 'warning' to 'default' to fix the type error
+          variant: 'default',
         });
       }
       
       // Send approval email with payment link
-      const emailSent = await sendApprovalEmail(email, nome, sobrenome, token);
+      const emailSent = await sendApprovalEmail(
+        interesse.email, 
+        interesse.nome, 
+        interesse.sobrenome, 
+        token, 
+        paymentUrl
+      );
       
       // Update local state
-      setInteresses(prev => prev.filter(item => item.id !== id));
+      setInteresses(prev => prev.filter(item => item.id !== interesse.id));
       
       toast({
         title: 'Interesse aprovado',
         description: emailSent 
-          ? `Uma notificação foi enviada para ${nome} ${sobrenome} com instruções para cadastro.`
-          : `Interesse aprovado, mas não foi possível enviar o email para ${email}.`,
+          ? `Uma notificação foi enviada para ${interesse.nome} ${interesse.sobrenome} com instruções para pagamento.`
+          : `Interesse aprovado, mas não foi possível enviar o email para ${interesse.email}.`,
         variant: emailSent ? 'default' : 'destructive',
       });
+      
+      closeApprovalDialog();
     } catch (error) {
       console.error('Error approving interest:', error);
       toast({
@@ -152,6 +189,8 @@ export const useAprovacaoInteresse = () => {
         description: 'Ocorreu um erro ao aprovar o interesse. Tente novamente.',
         variant: 'destructive',
       });
+    } finally {
+      setIsProcessingApproval(false);
     }
   };
   
@@ -188,7 +227,12 @@ export const useAprovacaoInteresse = () => {
     setSearchField,
     fetchPendingInterests,
     handleSearch,
+    openApprovalDialog,
+    closeApprovalDialog,
     handleApprove,
-    handleReject
+    handleReject,
+    isApprovalDialogOpen,
+    isProcessingApproval,
+    selectedInterestForApproval
   };
 };

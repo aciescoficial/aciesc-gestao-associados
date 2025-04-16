@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { UserPlus, X, CheckCircle2, Eye } from 'lucide-react';
+import { UserPlus, X, Eye } from 'lucide-react';
 import { AssociadoInteresse } from '../types/associadoInteresse';
 import { 
   Dialog, 
@@ -13,7 +13,7 @@ import {
 
 interface InteresseMobileCardProps {
   interesse: AssociadoInteresse;
-  onApprove: (id: string, email: string, nome: string, sobrenome: string) => void;
+  onApprove: (interesse: AssociadoInteresse) => void;
   onReject: (id: string) => void;
 }
 
@@ -130,7 +130,6 @@ const InteresseMobileCard: React.FC<InteresseMobileCardProps> = ({
             className="flex-1 bg-green-600 hover:bg-green-700"
             disabled
           >
-            <CheckCircle2 className="w-4 h-4 mr-1" />
             Já Aprovado
           </Button>
         ) : (
@@ -138,14 +137,7 @@ const InteresseMobileCard: React.FC<InteresseMobileCardProps> = ({
             <Button
               size="sm"
               className="flex-1"
-              onClick={() => 
-                onApprove(
-                  interesse.id, 
-                  interesse.email,
-                  interesse.nome,
-                  interesse.sobrenome
-                )
-              }
+              onClick={() => onApprove(interesse)}
             >
               <UserPlus className="w-4 h-4 mr-1" />
               Aprovar
