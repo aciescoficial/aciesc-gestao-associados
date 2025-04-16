@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Map, List } from 'lucide-react';
 import { EmpresaData } from './types';
@@ -27,7 +26,7 @@ const PesquisaEmpresaRefactored: React.FC = () => {
       getCurrentLocation();
     }
   }, [searchType]);
-
+  
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast({

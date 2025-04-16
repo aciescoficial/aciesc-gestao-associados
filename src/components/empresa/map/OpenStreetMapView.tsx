@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -108,6 +108,20 @@ const CompanyCard = ({ company }: { company: EmpresaData }) => {
   );
 };
 
+// Component to handle map updates
+const MapUpdater = ({ center, zoom, mapRef }: { center: [number, number], zoom: number, mapRef: React.MutableRefObject<L.Map | null> }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (map) {
+      map.setView(center, zoom);
+      if (mapRef) mapRef.current = map;
+    }
+  }, [map, center, zoom, mapRef]);
+  
+  return null;
+};
+
 interface MapViewProps {
   companies: EmpresaData[];
   selectedCompany: EmpresaData | null;
@@ -120,9 +134,10 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
   setSelectedCompany 
 }) => {
   const [currentLocation, setCurrentLocation] = useState<[number, number]>([-15.7801, -47.9292]); // Brazil center
+  const [zoom, setZoom] = useState<number>(6);
   const [loading, setLoading] = useState(false);
   const [mapInitialized, setMapInitialized] = useState(false);
-  const [mapRef, setMapRef] = useState<any>(null);
+  const mapRef = React.useRef<L.Map | null>(null);
   
   // Find company's geo position (latitude, longitude)
   const geocodeCompany = async (company: EmpresaData) => {
@@ -132,7 +147,7 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
       const lat = -15.7801 + (Math.random() - 0.5) * 10;
       const lng = -47.9292 + (Math.random() - 0.5) * 10;
       
-      return [lat, lng];
+      return [lat, lng] as [number, number];
     } catch (error) {
       console.error('Error geocoding company:', error);
       return null;
@@ -147,11 +162,7 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
         (position) => {
           const { latitude, longitude } = position.coords;
           setCurrentLocation([latitude, longitude]);
-          
-          if (mapRef) {
-            mapRef.setView([latitude, longitude], 13);
-          }
-          
+          setZoom(13);
           setLoading(false);
         },
         (error) => {
@@ -162,18 +173,19 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
     } else {
       console.error('Geolocation is not supported by this browser.');
     }
-  }, [mapRef]);
+  }, []);
   
   // When selected company changes, center map on it
   useEffect(() => {
-    if (selectedCompany && mapRef) {
+    if (selectedCompany) {
       geocodeCompany(selectedCompany).then(coords => {
         if (coords) {
-          mapRef.setView(coords, 15);
+          setCurrentLocation(coords);
+          setZoom(15);
         }
       });
     }
-  }, [selectedCompany, mapRef]);
+  }, [selectedCompany]);
 
   // Markers for all companies
   const markers = useMemo(() => {
@@ -189,7 +201,6 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
         <Marker 
           key={company.id || index}
           position={position}
-          // Fix for the icon property
           icon={isSelected ? selectedIcon : defaultIcon}
           eventHandlers={{
             click: () => {
@@ -229,15 +240,14 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
         {/* Map */}
         <div className="relative h-[600px] w-full">
           <MapContainer 
-            center={currentLocation}
-            zoom={6}
             style={{ height: "100%", width: "100%" }}
             zoomControl={false}
-            whenCreated={(map) => {
-              setMapRef(map);
+            scrollWheelZoom={true}
+            whenReady={() => {
               setMapInitialized(true);
             }}
           >
+            <MapUpdater center={currentLocation} zoom={zoom} mapRef={mapRef} />
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
