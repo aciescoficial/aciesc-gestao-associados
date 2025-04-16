@@ -69,8 +69,12 @@ export const useRegisterForm = () => {
     try {
       console.log("Tentando registrar com email:", email, "e tipo:", organizationType);
       
-      // Call the signUp function from auth service
-      const { data, error } = await signUp(email, password, name, organizationType, skipEmailVerification);
+      // Call the signUp function from auth service with the correct number of arguments
+      // The fifth argument (skipEmailVerification) was causing the error
+      const { data, error } = await signUp(email, password, name, {
+        role: organizationType,
+        skipEmailVerification
+      });
       
       if (error) {
         console.error("Signup error:", error);

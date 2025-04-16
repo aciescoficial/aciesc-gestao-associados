@@ -63,8 +63,16 @@ export const signInWithGoogle = async () => {
   }
 };
 
-export const signUp = async (email: string, password: string, name: string, role: UserRole = 'user', skipEmailVerification: boolean = false) => {
+// Updated signUp function to handle options object
+interface SignUpOptions {
+  role?: UserRole;
+  skipEmailVerification?: boolean;
+}
+
+export const signUp = async (email: string, password: string, name: string, options: SignUpOptions = {}) => {
   try {
+    const { role = 'user', skipEmailVerification = false } = options;
+    
     console.log("Signup attempt with:", email, name, role);
     
     // Standard signup options
