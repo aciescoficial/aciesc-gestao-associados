@@ -54,33 +54,15 @@ export const ActivityLogsTab = ({ userId }: ActivityLogsProps) => {
         
         if (data) {
           // Filter out any items that aren't valid objects
-          const validData = data.filter((item): item is {
-            id: string;
-            event: string;
-            created_at: string;
-            is_login?: boolean;
-          } => (
-            typeof item === 'object' &&
+          const validData = data.filter((item): item is ActivityLog => (
             item !== null &&
+            typeof item === 'object' &&
             'id' in item &&
             'event' in item &&
             'created_at' in item
           ));
           
-          // Map valid data to ActivityLog objects
-          const formattedLogs: ActivityLog[] = validData.map(item => {
-            if (!item) return null as unknown as ActivityLog; // This line should never run due to filter above
-            
-            return {
-              id: item.id,
-              event: item.event,
-              created_at: item.created_at,
-              // Only include is_login if it exists in the database schema
-              ...(hasLoginField && 'is_login' in item ? { is_login: !!item.is_login } : {})
-            };
-          });
-          
-          setLogs(formattedLogs);
+          setLogs(validData);
         } else {
           // If no data or invalid format, set empty array
           setLogs([]);

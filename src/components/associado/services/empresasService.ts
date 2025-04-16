@@ -41,3 +41,35 @@ export const getEmpresaDetails = async (id: string): Promise<Empresa | null> => 
     throw error;
   }
 };
+
+/**
+ * Get simplified company type for dashboard display
+ */
+export type EmpresaConveniada = {
+  id: string;
+  nome_fantasia: string;
+  logo_url?: string;
+  desconto: string;
+  cidade: string;
+};
+
+/**
+ * Get latest partnered companies for dashboard
+ */
+export const buscarUltimasEmpresas = async (limit: number = 3): Promise<EmpresaConveniada[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('empresas')
+      .select('id, nome_fantasia, logo_url, desconto, cidade')
+      .eq('status', 'ativo')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    
+    return data as EmpresaConveniada[];
+  } catch (error) {
+    console.error('Error fetching latest empresas:', error);
+    return [];
+  }
+};
