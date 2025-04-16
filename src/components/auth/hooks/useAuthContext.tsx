@@ -11,6 +11,8 @@ interface AuthContextType {
   userRole: UserRole | null;
   userTags: UserTag[] | null;
   loading: boolean;
+  isAdmin: boolean;
+  hasFinanceiroAccess: boolean;
   signIn: (email: string, password: string) => Promise<{
     data: any;
     error: any;
@@ -20,6 +22,10 @@ interface AuthContextType {
     error: any;
   }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{
+    data: any;
+    error: any;
+  }>;
   refreshSession: () => Promise<void>;
 }
 
@@ -113,15 +119,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initAuth();
   }, []);
 
+  // Add resetPassword function
+  const resetPassword = async (email: string) => {
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      return { data, error };
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      return { data: null, error };
+    }
+  };
+
+  // Derived properties for user permissions
+  const isAdmin = userRole === 'admin' || userRole === 'diretoria';
+  
+  const hasFinanceiroAccess = isAdmin || 
+    (userTags && userTags.some(tag => tag === 'financeiro')) || 
+    userRole === 'diretoria';
+
   const value = {
     user,
     session,
     userRole,
     userTags,
     loading,
+    isAdmin,
+    hasFinanceiroAccess,
     signIn,
     signUp,
     signOut,
+    resetPassword,
     refreshSession,
   };
 

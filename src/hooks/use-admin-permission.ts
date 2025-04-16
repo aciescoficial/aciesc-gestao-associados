@@ -1,25 +1,40 @@
 
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/components/auth";
+import { useAuth } from "@/components/auth/hooks/useAuthContext";
 
 export function useAdminPermission() {
-  const { userRole, userTags } = useAuth();
+  const { userRole, userTags, isAdmin, hasFinanceiroAccess } = useAuth();
   const { toast } = useToast();
 
-  // Always return true for permission checks
   const checkAdminPermission = (): boolean => {
+    if (!isAdmin) {
+      toast({
+        title: "Permissão Negada",
+        description: "Você não tem permissão para realizar esta ação.",
+        variant: "destructive",
+      });
+      return false;
+    }
     return true;
   };
 
   const checkFinanceiroPermission = (): boolean => {
+    if (!hasFinanceiroAccess) {
+      toast({
+        title: "Permissão Negada",
+        description: "Você não tem permissão para acessar recursos financeiros.",
+        variant: "destructive",
+      });
+      return false;
+    }
     return true;
   };
 
   return { 
-    isAdmin: true,
+    isAdmin,
     userRole, 
     checkAdminPermission,
     checkFinanceiroPermission,
-    hasFinanceiroAccess: true
+    hasFinanceiroAccess
   };
 }
