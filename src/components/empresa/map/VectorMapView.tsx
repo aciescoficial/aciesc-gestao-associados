@@ -362,7 +362,7 @@ const VectorMapView: React.FC<VectorMapViewProps> = ({
         </div>
 
         <div style="margin: 8px 0; font-size: 13px; color: #444;">
-          <p style="margin: 4px 0;"><strong>Desconto:</strong> ${company.desconto}</p>
+          ${company.desconto ? `<p style="margin: 4px 0;"><strong>Desconto:</strong> ${company.desconto}</p>` : ''}
           <p style="margin: 4px 0;"><strong>Endereço:</strong> ${company.endereco}, ${company.cidade}</p>
           ${company.telefone ? `<p style="margin: 4px 0;"><strong>Telefone:</strong> <a href="tel:${company.telefone}" style="color: #1e88e5;">${company.telefone}</a></p>` : ''}
           ${company.email ? `<p style="margin: 4px 0;"><strong>E-mail:</strong> <a href="mailto:${company.email}" style="color: #1e88e5;">${company.email}</a></p>` : ''}

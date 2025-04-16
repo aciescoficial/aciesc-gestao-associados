@@ -23,4 +23,6 @@ export interface EmpresaData {
   site?: string;
   instagram?: string;
   whatsapp?: string;
+  desconto?: string;
+  produtos?: string;
 }
