@@ -95,11 +95,15 @@ export const useRegisterForm = () => {
       if (!success) {
         console.error("Signup error:", error);
         
-        let errorMessage = typeof error === 'object' && error !== null ? 
-          (error.message || "Erro ao criar conta") : 
-          (error || "Erro ao criar conta");
+        let errorMessage = "Erro ao criar conta";
         
-        if (typeof error === 'object' && error !== null && 
+        if (error !== null && typeof error === 'object') {
+          errorMessage = error.message || "Erro ao criar conta";
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+        
+        if (error !== null && typeof error === 'object' && 
             ((error.code === 'rate_limit') || 
              (errorMessage && typeof errorMessage === 'string' && 
               (errorMessage.includes('rate limit') || errorMessage.includes('limite'))))) {
@@ -108,7 +112,7 @@ export const useRegisterForm = () => {
           setRetryCount(prev => prev + 1);
           
           // Safely access retryAfter property if it exists
-          const retryTime = typeof error === 'object' && error !== null && 
+          const retryTime = error !== null && typeof error === 'object' && 
                            'retryAfter' in error && error.retryAfter !== null ? 
                            Number(error.retryAfter) : 60;
           
@@ -123,7 +127,7 @@ export const useRegisterForm = () => {
           toast({
             variant: "destructive",
             title: "Erro ao criar conta",
-            description: errorMessage as string,
+            description: errorMessage,
           });
         }
       } else {
