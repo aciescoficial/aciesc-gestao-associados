@@ -97,24 +97,27 @@ export const useRegisterForm = () => {
         
         let errorMessage = "Erro ao criar conta";
         
-        if (error !== null && typeof error === 'object') {
-          errorMessage = error.message || "Erro ao criar conta";
+        // Safely check if error is an object and has a message property
+        if (error && typeof error === 'object' && 'message' in error) {
+          errorMessage = error.message as string || "Erro ao criar conta";
         } else if (typeof error === 'string') {
           errorMessage = error;
         }
         
-        if (error !== null && typeof error === 'object' && 
+        // Safely check for rate limit error conditions
+        if (error && typeof error === 'object' && 
             ((error.code === 'rate_limit') || 
-             (errorMessage && typeof errorMessage === 'string' && 
+             (errorMessage && 
               (errorMessage.includes('rate limit') || errorMessage.includes('limite'))))) {
           
           setIsRateLimited(true);
           setRetryCount(prev => prev + 1);
           
           // Safely access retryAfter property if it exists
-          const retryTime = error !== null && typeof error === 'object' && 
-                           'retryAfter' in error && error.retryAfter !== null ? 
-                           Number(error.retryAfter) : 60;
+          let retryTime = 60; // Default
+          if (error && typeof error === 'object' && 'retryAfter' in error) {
+            retryTime = error.retryAfter !== null ? Number(error.retryAfter) : 60;
+          }
           
           setRetryCountdown(retryTime);
           
