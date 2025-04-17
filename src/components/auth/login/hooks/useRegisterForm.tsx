@@ -158,7 +158,7 @@ export const useRegisterForm = () => {
       toast({
         variant: "destructive",
         title: "Erro ao criar conta",
-        description: error.message || "Ocorreu um erro ao criar sua conta",
+        description: error.message || "Ocorreu um erro durante o cadastro",
       });
     } finally {
       setIsLoading(false);
