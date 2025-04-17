@@ -109,7 +109,7 @@ export const useRegisterForm = () => {
           
           // Safely access retryAfter property if it exists
           const retryTime = typeof error === 'object' && error !== null && 
-                           'retryAfter' in error ? 
+                           'retryAfter' in error && error.retryAfter !== null ? 
                            Number(error.retryAfter) : 60;
           
           setRetryCountdown(retryTime);
