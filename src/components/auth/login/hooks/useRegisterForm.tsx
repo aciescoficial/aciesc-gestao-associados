@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../AuthProvider';
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +17,9 @@ export const useRegisterForm = () => {
   const [organizationType, setOrganizationType] = useState<UserRole>('user');
   const [skipEmailVerification, setSkipEmailVerification] = useState(false);
   const [isRateLimited, setIsRateLimited] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [retryCountdown, setRetryCountdown] = useState(0);
+  const [retryTimerId, setRetryTimerId] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -28,6 +30,27 @@ export const useRegisterForm = () => {
       setPasswordsMatch(true);
     }
   }, [password, confirmPassword]);
+
+  useEffect(() => {
+    if (retryCountdown > 0) {
+      const timerId = setTimeout(() => {
+        setRetryCountdown(prev => prev - 1);
+      }, 1000);
+      setRetryTimerId(timerId);
+      return () => clearTimeout(timerId);
+    } else if (retryTimerId) {
+      clearTimeout(retryTimerId);
+      setRetryTimerId(null);
+    }
+  }, [retryCountdown]);
+
+  useEffect(() => {
+    return () => {
+      if (retryTimerId) {
+        clearTimeout(retryTimerId);
+      }
+    };
+  }, []);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,31 +83,44 @@ export const useRegisterForm = () => {
     }
     
     setIsLoading(true);
-    setIsRateLimited(false);
     
     try {
       console.log("Tentando registrar com email:", email, "e tipo:", organizationType);
       
       const { success, error } = await signUp(email, password, name, {
         role: organizationType,
-        skipEmailVerification
+        skipEmailVerification,
+        retryCount
       });
       
       if (!success) {
         console.error("Signup error:", error);
         
-        let errorMessage = error || "Erro ao criar conta";
+        let errorMessage = error?.message || "Erro ao criar conta";
         
-        if (error?.includes('rate limit') || error?.includes('limite')) {
+        if (error?.code === 'rate_limit' || errorMessage.includes('rate limit') || errorMessage.includes('limite')) {
           setIsRateLimited(true);
+          setRetryCount(prev => prev + 1);
+          
+          const retryAfter = error?.retryAfter || 60;
+          setRetryCountdown(retryAfter);
+          
+          toast({
+            variant: "destructive",
+            title: "Limite de tentativas excedido",
+            description: `${errorMessage} Tentativa: ${retryCount + 1}. Tente novamente em ${retryAfter} segundos.`,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Erro ao criar conta",
+            description: errorMessage,
+          });
         }
-        
-        toast({
-          variant: "destructive",
-          title: "Erro ao criar conta",
-          description: errorMessage,
-        });
       } else {
+        setIsRateLimited(false);
+        setRetryCount(0);
+        
         toast({
           title: "Conta criada com sucesso",
           description: skipEmailVerification 
@@ -133,6 +169,8 @@ export const useRegisterForm = () => {
     skipEmailVerification,
     setSkipEmailVerification,
     isRateLimited,
+    retryCount,
+    retryCountdown,
     handleSignUp
   };
 };

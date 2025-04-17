@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, RefreshCcw } from "lucide-react";
 import { UserRole } from '@/components/usuarios/types';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
 
 interface RegisterFormFieldsProps {
   email: string;
@@ -28,6 +29,8 @@ interface RegisterFormFieldsProps {
   skipEmailVerification?: boolean;
   setSkipEmailVerification?: (skip: boolean) => void;
   isRateLimited?: boolean;
+  retryCount?: number;
+  retryCountdown?: number;
   isLoading: boolean;
   handleSubmit: (e: React.FormEvent) => void;
 }
@@ -51,6 +54,8 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
   skipEmailVerification = false,
   setSkipEmailVerification,
   isRateLimited = false,
+  retryCount = 0,
+  retryCountdown = 0,
   isLoading,
   handleSubmit
 }) => {
@@ -67,6 +72,9 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
       setShowRoleWarning(false);
     }
   }, [organizationType]);
+
+  // Calculate progress percentage for the countdown
+  const progressPercentage = retryCountdown > 0 ? (retryCountdown / 60) * 100 : 0;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -184,10 +192,26 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
       {isRateLimited && (
         <Alert variant="destructive" className="mt-2">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Limite de cadastros excedido. Se estiver em ambiente de desenvolvimento, 
-            tente habilitar "Pular verificação de e-mail" ou configure o Supabase para não requerer verificação.
-          </AlertDescription>
+          <div className="space-y-2 w-full">
+            <AlertDescription className="block">
+              Limite de cadastros excedido. Tentativa #{retryCount}.
+              {isDevelopment && (
+                <span className="block mt-1">
+                  Em ambiente de desenvolvimento, tente habilitar "Pular verificação de e-mail".
+                </span>
+              )}
+            </AlertDescription>
+            
+            {retryCountdown > 0 && (
+              <div className="space-y-1 w-full">
+                <div className="flex justify-between text-xs">
+                  <span>Aguarde</span>
+                  <span>{retryCountdown} segundos</span>
+                </div>
+                <Progress value={progressPercentage} className="h-1" />
+              </div>
+            )}
+          </div>
         </Alert>
       )}
 
@@ -195,9 +219,18 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
         <Button 
           type="submit" 
           className="w-full"
-          disabled={isLoading || !passwordsMatch}
+          disabled={isLoading || !passwordsMatch || (isRateLimited && retryCountdown > 0)}
         >
-          {isLoading ? "Criando conta..." : "Criar Conta"}
+          {isLoading ? (
+            "Criando conta..."
+          ) : isRateLimited && retryCountdown > 0 ? (
+            <>
+              <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
+              Aguarde {retryCountdown}s...
+            </>
+          ) : (
+            "Criar Conta"
+          )}
         </Button>
       </div>
     </form>

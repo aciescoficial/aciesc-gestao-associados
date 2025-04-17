@@ -65,13 +65,14 @@ export const signInWithGoogle = async () => {
 export interface SignUpOptions {
   role?: UserRole;
   skipEmailVerification?: boolean;
+  retryCount?: number;
 }
 
 export const signUp = async (email: string, password: string, name: string, options: SignUpOptions = {}) => {
   try {
-    const { role = 'user', skipEmailVerification = false } = options;
+    const { role = 'user', skipEmailVerification = false, retryCount = 0 } = options;
     
-    console.log("Signup attempt with:", email, name, role);
+    console.log("Signup attempt with:", email, name, role, "retry:", retryCount);
     
     // Standard signup options
     const signUpOptions: any = {
@@ -108,15 +109,18 @@ export const signUp = async (email: string, password: string, name: string, opti
         };
       }
       
-      // Handle rate limit errors specifically
+      // Handle rate limit errors specifically with detailed information
       if (error.message.includes('rate limit') || error.message.includes('limite') || 
           error.status === 429 || error.code === 'over_email_send_rate_limit') {
+        
         return {
           data: null,
           error: {
-            message: 'Limite de cadastros excedido. Por favor, tente novamente mais tarde ou contate o administrador.',
+            message: 'Limite de envio de emails excedido. Por favor, tente novamente mais tarde ou escolha a opção para pular verificação de email (disponível em ambiente de desenvolvimento).',
             code: 'rate_limit',
-            status: 429
+            status: 429,
+            retryAfter: 60, // Suggest waiting 60 seconds before retry
+            retryCount: retryCount
           }
         };
       }

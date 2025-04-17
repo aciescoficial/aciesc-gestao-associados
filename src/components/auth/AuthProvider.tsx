@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { UserRole, UserTag } from '../usuarios/types';
 import { useToast } from '@/hooks/use-toast';
 
-// Define our interface for auth context
 interface AuthContextType {
   user: User | null;
   userRole: UserRole | null;
@@ -13,18 +12,17 @@ interface AuthContextType {
   isAdmin: boolean;
   hasFinanceiroAccess: boolean;
   
-  // Auth methods with simplified signatures
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string, name: string, options?: {
     role?: UserRole;
     skipEmailVerification?: boolean;
+    retryCount?: number;
   }) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   refreshSession: () => Promise<void>;
 }
 
-// Create context with undefined default
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -35,18 +33,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userTags, setUserTags] = useState<UserTag[]>([]);
   const { toast } = useToast();
 
-  // Fetch additional user data like role and tags
   const fetchUserData = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('user')
         .select('role, tags, active, associado_id, empresa_id')
         .eq('id', userId)
-        .maybeSingle(); // Using maybeSingle instead of single to avoid errors
+        .maybeSingle();
       
       if (error) {
         console.error("Error fetching user data:", error);
-        setUserRole('user'); // Default role
+        setUserRole('user');
         setUserTags([]);
         return;
       }
@@ -55,9 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log("User data fetched:", data);
         setUserRole(data.role as UserRole);
         
-        // Process user tags - ensure they are properly cast to UserTag[]
         if (Array.isArray(data.tags)) {
-          // Filter and cast tags to ensure they are valid UserTag values
           const validUserTags = data.tags
             .filter(tag => 
               ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
@@ -67,11 +62,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           setUserTags(validUserTags);
           
-          // Update user state with extended properties - fix the type casting
           setUser(prevUser => {
             if (!prevUser) return null;
             
-            // Create a proper extended user object with correctly typed properties
             const extendedUser = {
               ...prevUser,
               role: data.role as UserRole,
@@ -84,10 +77,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
         }
 
-        // Log system access
         try {
           const { error: logError } = await supabase
-            .from('user_access_logs') // Changed from user_activity_log to user_access_logs
+            .from('user_access_logs')
             .insert({ 
               user_id: userId,
               event: 'login',
@@ -98,7 +90,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.error("Error in activity logging:", logErr);
         }
       } else {
-        // No user data found, set defaults
         setUserRole('user');
         setUserTags([]);
       }
@@ -109,7 +100,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Simplified sign in method
   const signIn = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -121,7 +111,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { success: false, error: error.message };
       }
       
-      // Check if user account is active in our custom table
       if (data?.user?.id) {
         const { data: userData, error: userError } = await supabase
           .from('user')
@@ -132,7 +121,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (userError) {
           console.error('Error fetching user status:', userError);
         } else if (userData && userData.active === false) {
-          // Force sign out if account is deactivated
           await supabase.auth.signOut();
           return { 
             success: false, 
@@ -151,18 +139,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Simplified sign up method
   const signUp = async (
     email: string, 
     password: string, 
     name: string, 
-    options?: { role?: UserRole; skipEmailVerification?: boolean }
+    options?: { role?: UserRole; skipEmailVerification?: boolean; retryCount?: number }
   ) => {
     try {
       const role = options?.role || 'user';
       const skipEmailVerification = options?.skipEmailVerification || false;
+      const retryCount = options?.retryCount || 0;
       
-      // Standard signup options
       const signUpOptions: any = {
         email,
         password,
@@ -172,16 +159,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       };
       
-      // For development environments, auto-confirm email
       if (skipEmailVerification) {
         signUpOptions.options.emailConfirm = true;
       }
       
-      // Register the user with Supabase Auth
       const { data, error } = await supabase.auth.signUp(signUpOptions);
       
       if (error) {
-        // Handle rate limiting and existing user errors
         if (error.message.includes('User already registered')) {
           return { 
             success: false, 
@@ -189,17 +173,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           };
         }
         
-        if (error.status === 429 || error.message.includes('rate limit')) {
+        if (error.status === 429 || error.message.includes('rate limit') || 
+            error.message.includes('limite') || error.message.includes('exceeded')) {
           return {
             success: false,
-            error: 'Limite de cadastros excedido. Tente novamente mais tarde.'
+            error: {
+              message: 'Limite de envio de emails excedido. Por favor, tente novamente mais tarde ou use a opção para pular verificação.',
+              code: 'rate_limit',
+              status: 429,
+              retryAfter: 60,
+              retryCount: retryCount
+            }
           };
         }
         
         return { success: false, error: error.message };
       }
       
-      // If signup was successful, create user profile in custom table
       if (data?.user) {
         try {
           const { error: profileError } = await supabase
@@ -233,17 +223,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Sign out method
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      // We'll let the auth state listener handle clearing the state
+      setSession(null);
+      setUser(null);
     } catch (error) {
       console.error('Error during sign out:', error);
     }
   };
 
-  // Password reset method
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(
@@ -266,7 +255,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Session refresh method
   const refreshSession = async () => {
     try {
       const { data } = await supabase.auth.getSession();
@@ -281,11 +269,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Set up auth state listener
   useEffect(() => {
     console.log("AuthProvider mounted");
     
-    // First set up auth state listener to avoid missing auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         console.log('Auth state changed:', event);
@@ -293,7 +279,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(newSession?.user || null);
         
         if (newSession?.user) {
-          // Use setTimeout to avoid potential recursive calls
           setTimeout(() => {
             fetchUserData(newSession.user!.id);
           }, 0);
@@ -304,7 +289,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
     
-    // Then check for existing session
     const initAuth = async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -323,14 +307,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     initAuth();
     
-    // Cleanup subscription on unmount
     return () => {
       console.log("Unsubscribing from auth state changes");
       subscription.unsubscribe();
     };
   }, []);
-  
-  // Derived user permissions
+
   const isAdmin = userRole === 'admin' || userRole === 'diretoria' as UserRole;
   
   const hasFinanceiroAccess = isAdmin || 
@@ -354,7 +336,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Create and export the auth hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
