@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, EyeOff, AlertCircle, RefreshCcw } from "lucide-react";
 import { UserRole } from '@/components/usuarios/types';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 
 interface RegisterFormFieldsProps {
@@ -26,8 +25,6 @@ interface RegisterFormFieldsProps {
   passwordsMatch: boolean;
   organizationType: UserRole;
   setOrganizationType: (type: UserRole) => void;
-  skipEmailVerification?: boolean;
-  setSkipEmailVerification?: (skip: boolean) => void;
   isRateLimited?: boolean;
   retryCount?: number;
   retryCountdown?: number;
@@ -51,8 +48,6 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
   passwordsMatch,
   organizationType,
   setOrganizationType,
-  skipEmailVerification = false,
-  setSkipEmailVerification,
   isRateLimited = false,
   retryCount = 0,
   retryCountdown = 0,
@@ -60,9 +55,6 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
   handleSubmit
 }) => {
   const [showRoleWarning, setShowRoleWarning] = useState(false);
-  const isDevelopment = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1' ||
-                        window.location.hostname.includes('.lovableproject.com');
 
   // Show warning when restricted roles are selected
   useEffect(() => {
@@ -175,19 +167,6 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
           </AlertDescription>
         </Alert>
       )}
-
-      {isDevelopment && setSkipEmailVerification && (
-        <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="skip-verification" 
-            checked={skipEmailVerification}
-            onCheckedChange={(checked) => setSkipEmailVerification(checked as boolean)}
-          />
-          <Label htmlFor="skip-verification" className="cursor-pointer">
-            Pular verificação de e-mail (apenas para desenvolvimento)
-          </Label>
-        </div>
-      )}
       
       {isRateLimited && (
         <Alert variant="destructive" className="mt-2">
@@ -195,11 +174,6 @@ const RegisterFormFields: React.FC<RegisterFormFieldsProps> = ({
           <div className="space-y-2 w-full">
             <AlertDescription className="block">
               Limite de cadastros excedido. Tentativa #{retryCount}.
-              {isDevelopment && (
-                <span className="block mt-1">
-                  Em ambiente de desenvolvimento, tente habilitar "Pular verificação de e-mail".
-                </span>
-              )}
             </AlertDescription>
             
             {retryCountdown > 0 && (

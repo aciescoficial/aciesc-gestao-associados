@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../AuthProvider';
 import { useToast } from "@/hooks/use-toast";
-import { UserRole } from '@/components/usuarios/types';
 import { useNavigate } from 'react-router-dom';
 
 export const useLoginForm = (onForgotPassword: () => void) => {
@@ -11,7 +10,6 @@ export const useLoginForm = (onForgotPassword: () => void) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [organizationType, setOrganizationType] = useState<UserRole>('user');
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -70,8 +68,6 @@ export const useLoginForm = (onForgotPassword: () => void) => {
     isLoading,
     showPassword,
     setShowPassword,
-    organizationType,
-    setOrganizationType,
     handleSignIn,
     onForgotPassword
   };

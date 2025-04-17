@@ -58,10 +58,6 @@ const LoginPage = () => {
     return <Navigate to={from} />;
   }
 
-  const isDevelopment = window.location.hostname === 'localhost' || 
-                      window.location.hostname === '127.0.0.1' ||
-                      window.location.hostname.includes('.lovableproject.com');
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4">
       <div className="w-full max-w-md">
@@ -75,15 +71,6 @@ const LoginPage = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{loginError}</AlertDescription>
           </Alert>
-        )}
-
-        {isDevelopment && (
-          <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mb-4 text-sm">
-            <p className="font-medium">Ambiente de desenvolvimento detectado</p>
-            <p className="text-muted-foreground">
-              Email de verificação pode ser desativado na aba de registro.
-            </p>
-          </div>
         )}
 
         {showForgotPassword ? (

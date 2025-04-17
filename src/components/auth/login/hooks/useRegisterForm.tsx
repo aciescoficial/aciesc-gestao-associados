@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../AuthProvider';
 import { useToast } from "@/hooks/use-toast";
@@ -96,13 +97,22 @@ export const useRegisterForm = () => {
       if (!success) {
         console.error("Signup error:", error);
         
-        let errorMessage = error?.message || "Erro ao criar conta";
+        let errorMessage = typeof error === 'object' && error !== null ? 
+          (error.message || "Erro ao criar conta") : 
+          (error || "Erro ao criar conta");
         
-        if (error?.code === 'rate_limit' || errorMessage.includes('rate limit') || errorMessage.includes('limite')) {
+        if (typeof error === 'object' && error !== null && 
+            ((error.code === 'rate_limit') || 
+             (errorMessage && typeof errorMessage === 'string' && 
+              (errorMessage.includes('rate limit') || errorMessage.includes('limite'))))) {
+          
           setIsRateLimited(true);
           setRetryCount(prev => prev + 1);
           
-          const retryAfter = error?.retryAfter || 60;
+          // Safely access retryAfter property if it exists
+          const retryAfter = error && typeof error === 'object' && 'retryAfter' in error ? 
+            Number(error.retryAfter) : 60;
+          
           setRetryCountdown(retryAfter);
           
           toast({
@@ -114,7 +124,7 @@ export const useRegisterForm = () => {
           toast({
             variant: "destructive",
             title: "Erro ao criar conta",
-            description: errorMessage,
+            description: errorMessage as string,
           });
         }
       } else {
