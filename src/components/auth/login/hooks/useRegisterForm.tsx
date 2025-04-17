@@ -105,9 +105,9 @@ export const useRegisterForm = () => {
           errorMessage = error;
         }
         
-        // Fixed line 101 - add null check before accessing properties
+        // Fixed line 101 - add null check before accessing code property
         if (error && typeof error === 'object' && (
-            ('code' in error && error.code === 'rate_limit') || 
+            ('code' in error && error.code && error.code === 'rate_limit') || 
             (errorMessage && 
              (errorMessage.includes('rate limit') || errorMessage.includes('limite')))
           )) {
@@ -115,9 +115,9 @@ export const useRegisterForm = () => {
           setIsRateLimited(true);
           setRetryCount(prev => prev + 1);
           
-          // Fixed line 110 - add null check and default value
+          // Fixed line 110 - add null check for the object and its properties
           let retryTime = 60; // Default
-          if (error && typeof error === 'object' && 'retryAfter' in error) {
+          if (error && typeof error === 'object' && 'retryAfter' in error && error.retryAfter !== undefined) {
             const errorWithRetry = error as { retryAfter: number | null };
             retryTime = errorWithRetry.retryAfter !== null ? Number(errorWithRetry.retryAfter) : 60;
           }
