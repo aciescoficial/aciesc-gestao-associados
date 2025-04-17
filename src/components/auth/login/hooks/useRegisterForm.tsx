@@ -16,7 +16,6 @@ export const useRegisterForm = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordsMatch, setPasswordsMatch] = useState(true);
   const [organizationType, setOrganizationType] = useState<UserRole>('user');
-  const [skipEmailVerification, setSkipEmailVerification] = useState(false);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [retryCountdown, setRetryCountdown] = useState(0);
@@ -90,7 +89,6 @@ export const useRegisterForm = () => {
       
       const { success, error } = await signUp(email, password, name, {
         role: organizationType,
-        skipEmailVerification,
         retryCount
       });
       
@@ -110,15 +108,16 @@ export const useRegisterForm = () => {
           setRetryCount(prev => prev + 1);
           
           // Safely access retryAfter property if it exists
-          const retryAfter = error && typeof error === 'object' && 'retryAfter' in error ? 
-            Number(error.retryAfter) : 60;
+          const retryTime = typeof error === 'object' && error !== null && 
+                           'retryAfter' in error ? 
+                           Number(error.retryAfter) : 60;
           
-          setRetryCountdown(retryAfter);
+          setRetryCountdown(retryTime);
           
           toast({
             variant: "destructive",
             title: "Limite de tentativas excedido",
-            description: `${errorMessage} Tentativa: ${retryCount + 1}. Tente novamente em ${retryAfter} segundos.`,
+            description: `${errorMessage} Tentativa: ${retryCount + 1}. Tente novamente em ${retryTime} segundos.`,
           });
         } else {
           toast({
@@ -133,9 +132,7 @@ export const useRegisterForm = () => {
         
         toast({
           title: "Conta criada com sucesso",
-          description: skipEmailVerification 
-            ? "Sua conta foi criada. Você já pode fazer login."
-            : "Sua conta foi criada. Verifique seu email para confirmar o cadastro.",
+          description: "Sua conta foi criada. Verifique seu email para confirmar o cadastro.",
         });
         
         setEmail('');
@@ -143,7 +140,6 @@ export const useRegisterForm = () => {
         setConfirmPassword('');
         setName('');
         setOrganizationType('user');
-        setSkipEmailVerification(false);
         
         navigate('/login?registered=true');
       }
@@ -176,8 +172,6 @@ export const useRegisterForm = () => {
     passwordsMatch,
     organizationType,
     setOrganizationType,
-    skipEmailVerification,
-    setSkipEmailVerification,
     isRateLimited,
     retryCount,
     retryCountdown,

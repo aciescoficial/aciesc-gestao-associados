@@ -1,3 +1,4 @@
+
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,7 +16,6 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string, name: string, options?: {
     role?: UserRole;
-    skipEmailVerification?: boolean;
     retryCount?: number;
   }) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
@@ -102,6 +102,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('SignIn attempt with email:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email, password
       });
@@ -143,25 +145,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email: string, 
     password: string, 
     name: string, 
-    options?: { role?: UserRole; skipEmailVerification?: boolean; retryCount?: number }
+    options?: { role?: UserRole; retryCount?: number }
   ) => {
     try {
       const role = options?.role || 'user';
-      const skipEmailVerification = options?.skipEmailVerification || false;
       const retryCount = options?.retryCount || 0;
+      
+      // Verificar se o papel de usuário é permitido com base no cliente
+      let userRole = role;
+      
+      // Verificar associação de papel - Diretoria -> admin
+      if (userRole === 'admin') {
+        userRole = 'diretoria';
+      }
       
       const signUpOptions: any = {
         email,
         password,
         options: {
-          data: { name, role },
+          data: { name, role: userRole },
           emailRedirectTo: `${window.location.origin}/login`
         }
       };
-      
-      if (skipEmailVerification) {
-        signUpOptions.options.emailConfirm = true;
-      }
       
       const { data, error } = await supabase.auth.signUp(signUpOptions);
       
@@ -178,7 +183,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return {
             success: false,
             error: {
-              message: 'Limite de envio de emails excedido. Por favor, tente novamente mais tarde ou use a opção para pular verificação.',
+              message: 'Limite de envio de emails excedido. Por favor, tente novamente mais tarde.',
               code: 'rate_limit',
               status: 429,
               retryAfter: 60,
@@ -192,15 +197,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (data?.user) {
         try {
+          // Definir tags com base no papel
+          let userTags: UserTag[] = [];
+          if (userRole === 'diretoria') {
+            userTags = ['diretoria_aciesc'];
+          }
+          
           const { error: profileError } = await supabase
             .from('user')
             .insert({
               id: data.user.id,
               email,
               name,
-              role,
+              role: userRole,
               active: true,
-              tags: role === 'diretoria' ? ['diretoria_aciesc'] : []
+              tags: userTags
             });
           
           if (profileError) {

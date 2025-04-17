@@ -19,8 +19,6 @@ const LoginForm = ({
     isLoading,
     showPassword,
     setShowPassword,
-    organizationType,
-    setOrganizationType,
     handleSignIn
   } = useLoginForm(onForgotPassword);
 
@@ -44,8 +42,6 @@ const LoginForm = ({
           setPassword={setPassword}
           showPassword={showPassword}
           setShowPassword={setShowPassword}
-          organizationType={organizationType}
-          setOrganizationType={setOrganizationType}
           isLoading={isLoading}
           handleSubmit={handleFormSubmit}
         />
