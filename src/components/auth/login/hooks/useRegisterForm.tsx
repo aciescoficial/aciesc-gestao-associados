@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../hooks/useAuthContext';
+import { useAuth } from '../../AuthProvider';
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from '@/components/usuarios/types';
 import { useNavigate } from 'react-router-dom';
@@ -64,25 +65,18 @@ export const useRegisterForm = () => {
     try {
       console.log("Tentando registrar com email:", email, "e tipo:", organizationType);
       
-      const { data, error } = await signUp(email, password, name, {
+      const { success, error } = await signUp(email, password, name, {
         role: organizationType,
         skipEmailVerification
       });
       
-      if (error) {
+      if (!success) {
         console.error("Signup error:", error);
         
-        let errorMessage = error.message || "Erro ao criar conta";
+        let errorMessage = error || "Erro ao criar conta";
         
-        if (error.message?.includes('already registered') || error.message?.includes('já está registrado')) {
-          errorMessage = "Este email já está registrado. Tente fazer login.";
-        } else if (error.message?.includes('rate limit') || error.message?.includes('limite') || error.code === 'rate_limit' || error.status === 429) {
-          errorMessage = "Limite de cadastros excedido. Por favor, tente novamente mais tarde.";
+        if (error?.includes('rate limit') || error?.includes('limite')) {
           setIsRateLimited(true);
-        } else if (error.message?.includes('violates row-level security') || error.message?.includes('policy')) {
-          errorMessage = "Erro de permissão: Novos usuários só podem ser criados por administradores do sistema.";
-        } else if (error.message?.includes('not allowed') || error.message?.includes('permission denied')) {
-          errorMessage = "Usuário não autorizado. Entre em contato com um administrador para criar este tipo de conta.";
         }
         
         toast({
@@ -90,7 +84,7 @@ export const useRegisterForm = () => {
           title: "Erro ao criar conta",
           description: errorMessage,
         });
-      } else if (data) {
+      } else {
         toast({
           title: "Conta criada com sucesso",
           description: skipEmailVerification 

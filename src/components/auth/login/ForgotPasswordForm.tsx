@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '../hooks/useAuthContext';
+import { useAuth } from '../AuthProvider';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
@@ -24,16 +24,20 @@ const ForgotPasswordForm = ({ onBack }: ForgotPasswordFormProps) => {
     setIsLoading(true);
     
     try {
-      const { error } = await resetPassword(email);
+      const { success, error } = await resetPassword(email);
       
-      if (error) {
+      if (!success) {
         toast({
           variant: "destructive",
           title: "Erro ao recuperar senha",
-          description: error.message,
+          description: error,
         });
       } else {
         setIsSubmitted(true);
+        toast({
+          title: "Email enviado",
+          description: "Verifique sua caixa de entrada para redefinir sua senha.",
+        });
       }
     } catch (error: any) {
       toast({

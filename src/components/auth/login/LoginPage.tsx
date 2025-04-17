@@ -1,15 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuthContext';
+import { useAuth } from '../AuthProvider';
 import { useToast } from "@/hooks/use-toast";
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
-import { useMigrationCheck } from './hooks/useMigrationCheck';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 const LoginPage = () => {
   const { user, loading } = useAuth();
@@ -19,7 +18,6 @@ const LoginPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState<string | null>(null);
-  const { migrationNeeded, checking } = useMigrationCheck();
   
   useEffect(() => {
     // Check for registration success query param
@@ -45,10 +43,10 @@ const LoginPage = () => {
   }, [location, toast]);
 
   // Don't show anything while checking auth status
-  if (loading || checking) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
@@ -60,8 +58,12 @@ const LoginPage = () => {
     return <Navigate to={from} />;
   }
 
+  const isDevelopment = window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1' ||
+                      window.location.hostname.includes('.lovableproject.com');
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-wp-body p-4">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold">ACIESC</h1>
@@ -75,14 +77,13 @@ const LoginPage = () => {
           </Alert>
         )}
 
-        {migrationNeeded && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              É necessário executar a migração do banco de dados. 
-              Por favor, contate o administrador e execute o script SQL em src/migrations/create-user-policy.sql.
-            </AlertDescription>
-          </Alert>
+        {isDevelopment && (
+          <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mb-4 text-sm">
+            <p className="font-medium">Ambiente de desenvolvimento detectado</p>
+            <p className="text-muted-foreground">
+              Email de verificação pode ser desativado na aba de registro.
+            </p>
+          </div>
         )}
 
         {showForgotPassword ? (

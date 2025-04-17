@@ -1,234 +1,354 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import { AuthContext } from './context/AuthContext';
+import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { signIn, signOut, signUp, resetPassword, signInWithGoogle, fetchUserRole, SignUpOptions } from './services/authService';
 import { UserRole, UserTag } from '../usuarios/types';
-import { logSystemAccess } from '../audit/services/userActivityService';
+import { useToast } from '@/hooks/use-toast';
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<(User & { 
-    role?: UserRole; 
-    associado_id?: string; 
-    empresa_id?: string;
-    userTags?: UserTag[];
-  }) | null>(null);
+// Define our interface for auth context
+interface AuthContextType {
+  user: User | null;
+  userRole: UserRole | null;
+  userTags: UserTag[];
+  loading: boolean;
+  isAdmin: boolean;
+  hasFinanceiroAccess: boolean;
+  
+  // Auth methods with simplified signatures
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string, name: string, options?: {
+    role?: UserRole;
+    skipEmailVerification?: boolean;
+  }) => Promise<{ success: boolean; error?: string }>;
+  signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  refreshSession: () => Promise<void>;
+}
+
+// Create context with undefined default
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [userTags, setUserTags] = useState<UserTag[]>([]);
-  
-  // Function to fetch user data from the database
-  const fetchUserData = useCallback(async (userId: string) => {
+  const { toast } = useToast();
+
+  // Fetch additional user data like role and tags
+  const fetchUserData = async (userId: string) => {
     try {
-      console.log("Fetching user data for:", userId);
-      
       const { data, error } = await supabase
         .from('user')
-        .select('role, tags, active, id, associado_id, empresa_id')
+        .select('role, tags, active, associado_id, empresa_id')
         .eq('id', userId)
-        .maybeSingle(); // Use maybeSingle instead of single
+        .maybeSingle(); // Using maybeSingle instead of single to avoid errors
       
       if (error) {
         console.error("Error fetching user data:", error);
         setUserRole('user'); // Default role
         setUserTags([]);
-        
-        // Try to create a new user record if none exists
-        const authUserResponse = await supabase.auth.getUser();
-        if (authUserResponse.data.user) {
-          const { error: insertError } = await supabase
-            .from('user')
-            .insert({
-              id: userId,
-              email: authUserResponse.data.user.email,
-              name: authUserResponse.data.user.user_metadata?.name || '',
-              role: 'user'
-            });
-            
-          if (insertError) {
-            console.error("Error creating user record:", insertError);
-          }
-        }
         return;
       }
       
-      console.log("User data fetched:", data);
-      
       if (data) {
-        // Explicitly cast the role to UserRole type to ensure TypeScript recognizes it
-        const userRole = data.role as UserRole;
-        setUserRole(userRole || 'user');
-        
-        // Update user state with extended properties from the user table
-        setUser(prevUser => {
-          if (!prevUser) return null;
-          return {
-            ...prevUser,
-            role: userRole,
-            associado_id: data.associado_id,
-            empresa_id: data.empresa_id,
-            userTags: Array.isArray(data.tags) ? data.tags as UserTag[] : []
-          };
-        });
+        console.log("User data fetched:", data);
+        setUserRole(data.role as UserRole);
         
         // Process user tags
-        processUserTags(data.tags);
-        
+        if (Array.isArray(data.tags)) {
+          setUserTags(data.tags as UserTag[]);
+          
+          // Update user state with extended properties
+          setUser(prevUser => {
+            if (!prevUser) return null;
+            return {
+              ...prevUser,
+              role: data.role,
+              associado_id: data.associado_id,
+              empresa_id: data.empresa_id,
+              userTags: data.tags
+            };
+          });
+        }
+
         // Log system access
-        logSystemAccess(userId).catch(err => 
-          console.error("Error logging system access:", err)
-        );
+        try {
+          const { error: logError } = await supabase
+            .from('user_activity_log')
+            .insert({ 
+              user_id: userId,
+              event: 'login',
+              details: 'User logged in successfully'
+            });
+            
+          if (logError) console.error("Error logging activity:", logError);
+        } catch (logErr) {
+          console.error("Error in activity logging:", logErr);
+        }
       } else {
         // No user data found, set defaults
         setUserRole('user');
         setUserTags([]);
-        
-        // Try to create a new user record
-        const authUserResponse = await supabase.auth.getUser();
-        if (authUserResponse.data.user) {
-          const { error: insertError } = await supabase
-            .from('user')
-            .insert({
-              id: userId,
-              email: authUserResponse.data.user.email,
-              name: authUserResponse.data.user.user_metadata?.name || '',
-              role: 'user'
-            });
-            
-          if (insertError) {
-            console.error("Error creating user record:", insertError);
-          }
-        }
       }
     } catch (error) {
       console.error("Error in fetchUserData:", error);
       setUserRole('user');
       setUserTags([]);
     }
-  }, []);
+  };
 
-  // Function to process user tags from database
-  const processUserTags = useCallback((tags: string[] | null) => {
-    // Ensure tags are properly cast to UserTag array
-    if (tags && Array.isArray(tags)) {
-      const validTags = tags.filter(tag => 
-        ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
-          'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc']
-        .includes(tag)
-      ) as UserTag[];
+  // Simplified sign in method
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email, password
+      });
       
-      console.log("Processed tags:", validTags);
-      setUserTags(validTags);
-    } else {
-      console.log("No tags found or invalid tags format");
-      setUserTags([]);
+      if (error) {
+        console.error('SignIn error:', error);
+        return { success: false, error: error.message };
+      }
+      
+      // Check if user account is active in our custom table
+      if (data?.user?.id) {
+        const { data: userData, error: userError } = await supabase
+          .from('user')
+          .select('active')
+          .eq('id', data.user.id)
+          .maybeSingle();
+          
+        if (userError) {
+          console.error('Error fetching user status:', userError);
+        } else if (userData && userData.active === false) {
+          // Force sign out if account is deactivated
+          await supabase.auth.signOut();
+          return { 
+            success: false, 
+            error: 'Conta desativada. Por favor, contate o administrador.' 
+          };
+        }
+      }
+      
+      return { success: true };
+    } catch (error: any) {
+      console.error('Exception during sign in:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Ocorreu um erro durante o login' 
+      };
     }
-  }, []);
+  };
 
-  // Handle auth state change
-  const handleAuthStateChange = useCallback((event: string, currentSession: Session | null) => {
-    console.log("Auth state change:", event);
-    setSession(currentSession);
-    
-    if (currentSession?.user) {
-      // Update user with extended properties initially
-      const enhancedUser = {
-        ...currentSession.user,
-        role: undefined as UserRole | undefined,
-        associado_id: undefined,
-        empresa_id: undefined,
-        userTags: [] as UserTag[]
+  // Simplified sign up method
+  const signUp = async (
+    email: string, 
+    password: string, 
+    name: string, 
+    options?: { role?: UserRole; skipEmailVerification?: boolean }
+  ) => {
+    try {
+      const role = options?.role || 'user';
+      const skipEmailVerification = options?.skipEmailVerification || false;
+      
+      // Standard signup options
+      const signUpOptions: any = {
+        email,
+        password,
+        options: {
+          data: { name, role },
+          emailRedirectTo: `${window.location.origin}/login`
+        }
       };
       
-      setUser(enhancedUser);
+      // For development environments, auto-confirm email
+      if (skipEmailVerification) {
+        signUpOptions.options.emailConfirm = true;
+      }
       
-      // Defer Supabase calls with setTimeout
-      setTimeout(() => {
-        fetchUserData(currentSession.user.id);
-      }, 0);
-    } else {
-      setUser(null);
-      setUserRole(null);
-      setUserTags([]);
-    }
-  }, [fetchUserData]);
-
-  // Initialize session on component mount
-  const initializeSession = useCallback(async () => {
-    try {
-      console.log("Checking for existing session");
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
-      console.log("Existing session:", existingSession ? "found" : "not found");
+      // Register the user with Supabase Auth
+      const { data, error } = await supabase.auth.signUp(signUpOptions);
       
-      setSession(existingSession);
-      
-      if (existingSession?.user) {
-        // Set initial enhanced user
-        const enhancedUser = {
-          ...existingSession.user,
-          role: undefined as UserRole | undefined,
-          associado_id: undefined,
-          empresa_id: undefined,
-          userTags: [] as UserTag[]
-        };
+      if (error) {
+        // Handle rate limiting and existing user errors
+        if (error.message.includes('User already registered')) {
+          return { 
+            success: false, 
+            error: 'Este email já está registrado. Tente fazer login.' 
+          };
+        }
         
-        setUser(enhancedUser);
-        await fetchUserData(existingSession.user.id);
-      } else {
-        setUser(null);
+        if (error.status === 429 || error.message.includes('rate limit')) {
+          return {
+            success: false,
+            error: 'Limite de cadastros excedido. Tente novamente mais tarde.'
+          };
+        }
+        
+        return { success: false, error: error.message };
+      }
+      
+      // If signup was successful, create user profile in custom table
+      if (data?.user) {
+        try {
+          const { error: profileError } = await supabase
+            .from('user')
+            .insert({
+              id: data.user.id,
+              email,
+              name,
+              role,
+              active: true,
+              tags: role === 'diretoria' ? ['diretoria_aciesc'] : []
+            });
+          
+          if (profileError) {
+            console.error('Error creating user profile:', profileError);
+            return { success: false, error: profileError.message };
+          }
+        } catch (profileError: any) {
+          console.error('Exception creating user profile:', profileError);
+          return { success: false, error: profileError.message };
+        }
+      }
+      
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error during sign up:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Ocorreu um erro durante o cadastro' 
+      };
+    }
+  };
+
+  // Sign out method
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      // We'll let the auth state listener handle clearing the state
+    } catch (error) {
+      console.error('Error during sign out:', error);
+    }
+  };
+
+  // Password reset method
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email,
+        { redirectTo: `${window.location.origin}/reset-password` }
+      );
+      
+      if (error) {
+        console.error('Reset password error:', error);
+        return { success: false, error: error.message };
+      }
+      
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error during password reset:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Ocorreu um erro durante a recuperação de senha' 
+      };
+    }
+  };
+
+  // Session refresh method
+  const refreshSession = async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+      setUser(data.session?.user || null);
+      
+      if (data.session?.user) {
+        await fetchUserData(data.session.user.id);
       }
     } catch (error) {
-      console.error('Error checking auth session:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error refreshing session:', error);
     }
-  }, [fetchUserData]);
-  
+  };
+
   // Set up auth state listener
   useEffect(() => {
     console.log("AuthProvider mounted");
     
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
+    // First set up auth state listener to avoid missing auth events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        console.log('Auth state changed:', event);
+        setSession(newSession);
+        setUser(newSession?.user || null);
+        
+        if (newSession?.user) {
+          // Use setTimeout to avoid potential recursive calls
+          setTimeout(() => {
+            fetchUserData(newSession.user!.id);
+          }, 0);
+        } else {
+          setUserRole(null);
+          setUserTags([]);
+        }
+      }
+    );
     
-    // Initialize session
-    initializeSession();
+    // Then check for existing session
+    const initAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        setSession(data.session);
+        setUser(data.session?.user || null);
+        
+        if (data.session?.user) {
+          await fetchUserData(data.session.user.id);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initAuth();
     
     // Cleanup subscription on unmount
     return () => {
       console.log("Unsubscribing from auth state changes");
       subscription.unsubscribe();
     };
-  }, [handleAuthStateChange, initializeSession]);
+  }, []);
   
-  // Derived state for user permissions
-  // Ensure TypeScript recognizes valid UserRole values by using type assertions
-  const isAdmin = userRole === 'admin' || userRole === ('diretoria' as UserRole);
+  // Derived user permissions
+  const isAdmin = userRole === 'admin' || userRole === 'diretoria' as UserRole;
   
   const hasFinanceiroAccess = isAdmin || 
     userTags.some(tag => tag === 'financeiro') || 
-    userRole === ('diretoria' as UserRole);
+    userRole === 'diretoria' as UserRole;
   
-  // Prepare context value
-  const authContextValue = {
+  const value = {
     user,
+    userRole,
+    userTags,
     loading,
+    isAdmin,
+    hasFinanceiroAccess,
     signIn,
     signUp,
     signOut,
     resetPassword,
-    signInWithGoogle,
-    userRole,
-    userTags,
-    isAdmin,
-    hasFinanceiroAccess,
+    refreshSession,
   };
   
-  return (
-    <AuthContext.Provider value={authContextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// Create and export the auth hook
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

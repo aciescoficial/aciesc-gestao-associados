@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useAuth } from '../../hooks/useAuthContext';
+import { useAuth } from '../../AuthProvider';
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from '@/components/usuarios/types';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +20,7 @@ export const useLoginForm = (onForgotPassword: () => void) => {
     setIsLoading(true);
     
     try {
-      console.log('Tentando login com email:', email, 'e tipo de organização:', organizationType);
+      console.log('Tentando login com email:', email);
       
       if (!email || !password) {
         toast({
@@ -32,26 +32,17 @@ export const useLoginForm = (onForgotPassword: () => void) => {
         return;
       }
       
-      const { data, error } = await signIn(email, password);
+      const { success, error } = await signIn(email, password);
       
-      if (error) {
-        console.error('Login error:', error);
-        
-        let errorMessage = "Ocorreu um erro durante o login";
-        
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = "Credenciais inválidas. Verifique seu email e senha.";
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = "Email não confirmado. Verifique sua caixa de entrada.";
-        }
+      if (!success) {
+        let errorMessage = error || "Erro de autenticação";
         
         toast({
           variant: "destructive",
           title: "Erro ao entrar",
           description: errorMessage,
         });
-      } else if (data) {
-        console.log('Login bem sucedido:', data);
+      } else {
         toast({
           title: "Login realizado",
           description: "Você foi autenticado com sucesso.",
