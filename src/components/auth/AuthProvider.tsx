@@ -1,4 +1,3 @@
-
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,31 +55,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log("User data fetched:", data);
         setUserRole(data.role as UserRole);
         
-        // Process user tags
+        // Process user tags - ensure they are properly cast to UserTag[]
         if (Array.isArray(data.tags)) {
-          setUserTags(data.tags as UserTag[]);
+          // Filter and cast tags to ensure they are valid UserTag values
+          const validUserTags = data.tags
+            .filter(tag => 
+              ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
+               'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc']
+              .includes(tag)
+            ) as UserTag[];
           
-          // Update user state with extended properties
+          setUserTags(validUserTags);
+          
+          // Update user state with extended properties - fix the type casting
           setUser(prevUser => {
             if (!prevUser) return null;
-            return {
+            
+            // Create a proper extended user object with correctly typed properties
+            const extendedUser = {
               ...prevUser,
-              role: data.role,
+              role: data.role as UserRole,
               associado_id: data.associado_id,
               empresa_id: data.empresa_id,
-              userTags: data.tags
+              userTags: validUserTags
             };
+            
+            return extendedUser;
           });
         }
 
         // Log system access
         try {
           const { error: logError } = await supabase
-            .from('user_activity_log')
+            .from('user_access_logs') // Changed from user_activity_log to user_access_logs
             .insert({ 
               user_id: userId,
               event: 'login',
-              details: 'User logged in successfully'
             });
             
           if (logError) console.error("Error logging activity:", logError);
