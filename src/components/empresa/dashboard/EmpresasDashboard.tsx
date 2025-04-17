@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Pencil, Building, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useAuth } from '@/components/auth/hooks/useAuthContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 const EmpresasDashboard: React.FC = () => {
   const navigate = useNavigate();

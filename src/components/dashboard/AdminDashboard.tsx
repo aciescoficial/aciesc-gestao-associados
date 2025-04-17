@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
@@ -8,7 +7,7 @@ import { useDashboardData } from '@/components/dashboard/hooks/useDashboardData'
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { useAuth } from '@/components/auth/hooks/useAuthContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 const AdminDashboard: React.FC = () => {
   const { stats, recentActivity, loading, systemStatus, refreshData } = useDashboardData();

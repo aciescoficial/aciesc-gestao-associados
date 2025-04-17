@@ -1,11 +1,10 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchDashboardStats, DashboardStats } from '../services/statsService';
 import { fetchRecentActivity, RecentActivity } from '../services/activityService';
 import { checkSystemStatus, SystemStatus } from '../services/systemStatusService';
 import { useTimeout } from './useTimeout';
 import { toast } from '@/components/ui/use-toast';
-import { useAuth } from '@/components/auth/hooks/useAuthContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 // Cache timeout in milliseconds (5 minutes)
 const CACHE_TIMEOUT = 5 * 60 * 1000;

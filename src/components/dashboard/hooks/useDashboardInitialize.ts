@@ -1,6 +1,5 @@
-
 import { useEffect } from 'react';
-import { useAuth } from '@/components/auth/hooks/useAuthContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export const useDashboardInitialize = (handleRefresh: () => void) => {
   const { user } = useAuth();

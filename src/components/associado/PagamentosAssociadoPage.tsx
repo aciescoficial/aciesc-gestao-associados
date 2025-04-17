@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/components/auth/hooks/useAuthContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { Pagamento, SituacaoPagamento } from './types/pagamentos';
 import { obterPagamentosAssociado, verificarSituacaoPagamento } from './services/pagamentoService';
 import { Card } from '@/components/ui/card';

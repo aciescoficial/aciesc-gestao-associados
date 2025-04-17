@@ -8,7 +8,7 @@ import { CalendarCheck, CreditCard, ExternalLink } from 'lucide-react';
 import { verificarSituacaoPagamento } from '../services/pagamentoService';
 import { SituacaoPagamento } from '../types/pagamentos';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/components/auth/hooks/useAuthContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 

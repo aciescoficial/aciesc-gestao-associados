@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo } from 'react';
-import { useAuth } from '@/components/auth/hooks/useAuthContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { useDashboardData } from '@/components/dashboard/hooks/useDashboardData';
 import { useDashboardInitialize } from '@/components/dashboard/hooks/useDashboardInitialize';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';

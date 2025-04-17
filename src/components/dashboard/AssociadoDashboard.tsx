@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import SituacaoPagamentoCard from '@/components/associado/dashboard/SituacaoPagamentoCard';
@@ -6,7 +5,7 @@ import UltimasEmpresas from '@/components/associado/dashboard/UltimasEmpresas';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { verificarSituacaoPagamento } from '@/components/associado/services/pagamentoService';
 import { SituacaoPagamento } from '@/components/associado/types/pagamentos';
-import { useAuth } from '@/components/auth/hooks/useAuthContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 const AssociadoDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -39,7 +38,6 @@ const AssociadoDashboard: React.FC = () => {
     );
   }
 
-  // If payment is not up to date, only show payment status and user profile update options
   if (!pagamentoStatus?.emDia) {
     return (
       <div className="space-y-6">
@@ -71,7 +69,6 @@ const AssociadoDashboard: React.FC = () => {
     );
   }
 
-  // If payment is up to date, show full associate dashboard
   return (
     <div className="space-y-6">
       <h1 className="wp-header">Dashboard</h1>
