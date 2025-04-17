@@ -92,7 +92,7 @@ export const useRegisterForm = () => {
         retryCount
       });
       
-      if (!success && error) {
+      if (!success && error !== null && error !== undefined) {
         console.error("Signup error:", error);
         
         let errorMessage = "Erro ao criar conta";
