@@ -13,3 +13,6 @@ export { TwoFactorAuth } from './two-factor';
 
 // Export AdminUserSetup
 export { default as AdminUserSetup } from './AdminUserSetup';
+
+// Export UserProfileMenu
+export { default as UserProfileMenu } from './UserProfileMenu';

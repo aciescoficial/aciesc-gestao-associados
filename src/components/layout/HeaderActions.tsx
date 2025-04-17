@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/components/auth/hooks/useAuthContext';
+import { useAuth } from '@/components/auth/AuthProvider'; // Fixed import path
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,

@@ -1,6 +1,6 @@
 
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/components/auth/hooks/useAuthContext";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export function useAdminPermission() {
   const { userRole, userTags, isAdmin, hasFinanceiroAccess } = useAuth();
