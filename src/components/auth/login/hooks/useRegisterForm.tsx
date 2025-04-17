@@ -92,7 +92,7 @@ export const useRegisterForm = () => {
         retryCount
       });
       
-      if (!success) {
+      if (!success && error) {
         console.error("Signup error:", error);
         
         let errorMessage = "Erro ao criar conta";
@@ -107,7 +107,7 @@ export const useRegisterForm = () => {
         
         // Type guard for rate limit error conditions
         if (error && typeof error === 'object' && (
-            ('code' in error && error.code === 'rate_limit') || 
+            ('code' in error && (error as { code?: string }).code === 'rate_limit') || 
             (errorMessage && 
              (errorMessage.includes('rate limit') || errorMessage.includes('limite')))
           )) {
