@@ -105,9 +105,9 @@ export const useRegisterForm = () => {
           errorMessage = error;
         }
         
-        // Type guard for rate limit error conditions
+        // Fixed line 101 - add null check before accessing properties
         if (error && typeof error === 'object' && (
-            ('code' in error && (error as { code?: string }).code === 'rate_limit') || 
+            ('code' in error && error.code === 'rate_limit') || 
             (errorMessage && 
              (errorMessage.includes('rate limit') || errorMessage.includes('limite')))
           )) {
@@ -115,7 +115,7 @@ export const useRegisterForm = () => {
           setIsRateLimited(true);
           setRetryCount(prev => prev + 1);
           
-          // Safely access retryAfter property with type assertion
+          // Fixed line 110 - add null check and default value
           let retryTime = 60; // Default
           if (error && typeof error === 'object' && 'retryAfter' in error) {
             const errorWithRetry = error as { retryAfter: number | null };
@@ -158,7 +158,7 @@ export const useRegisterForm = () => {
       toast({
         variant: "destructive",
         title: "Erro ao criar conta",
-        description: error.message || "Ocorreu um erro durante o cadastro",
+        description: error?.message || "Ocorreu um erro durante o cadastro",
       });
     } finally {
       setIsLoading(false);
