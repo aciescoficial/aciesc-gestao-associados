@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { AuthContext } from './context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { signIn, signOut, signUp, resetPassword, signInWithGoogle, fetchUserRole } from './services/authService';
+import { signIn, signOut, signUp, resetPassword, signInWithGoogle, fetchUserRole, SignUpOptions } from './services/authService';
 import { UserRole, UserTag } from '../usuarios/types';
 import { logSystemAccess } from '../audit/services/userActivityService';
 

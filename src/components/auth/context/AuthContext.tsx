@@ -2,6 +2,7 @@
 import { createContext } from 'react';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { UserRole, UserTag } from '../../usuarios/types';
+import { SignUpOptions } from '../services/authService';
 
 export interface AuthContextType {
   user: (SupabaseUser & { 
@@ -16,7 +17,7 @@ export interface AuthContextType {
     data: any;
   }>;
   signOut: () => Promise<void>;
-  signUp: (email: string, password: string, name: string, role: UserRole) => Promise<{
+  signUp: (email: string, password: string, name: string, options?: SignUpOptions) => Promise<{
     error: Error | null;
     data: any;
   }>;

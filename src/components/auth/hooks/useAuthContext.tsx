@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole, UserTag } from '@/components/usuarios/types';
-import { signIn, signUp, signOut } from '../services/authService';
+import { signIn, signUp, signOut, SignUpOptions } from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
@@ -17,7 +17,7 @@ interface AuthContextType {
     data: any;
     error: any;
   }>;
-  signUp: (email: string, password: string, name: string, role?: UserRole) => Promise<{
+  signUp: (email: string, password: string, name: string, options?: SignUpOptions) => Promise<{
     data: any;
     error: any;
   }>;

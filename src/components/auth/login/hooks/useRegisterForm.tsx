@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuthContext';
 import { useToast } from "@/hooks/use-toast";
@@ -21,7 +20,6 @@ export const useRegisterForm = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Check if passwords match whenever either password field changes
   useEffect(() => {
     if (confirmPassword) {
       setPasswordsMatch(password === confirmPassword);
@@ -33,7 +31,6 @@ export const useRegisterForm = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form fields
     if (!name || !email || !password) {
       toast({
         variant: "destructive",
@@ -43,7 +40,6 @@ export const useRegisterForm = () => {
       return;
     }
     
-    // Validate passwords match
     if (password !== confirmPassword) {
       toast({
         variant: "destructive",
@@ -53,7 +49,6 @@ export const useRegisterForm = () => {
       return;
     }
 
-    // Validate password strength
     if (password.length < 6) {
       toast({
         variant: "destructive",
@@ -69,8 +64,6 @@ export const useRegisterForm = () => {
     try {
       console.log("Tentando registrar com email:", email, "e tipo:", organizationType);
       
-      // Call the signUp function from auth service with the correct number of arguments
-      // The fifth argument (skipEmailVerification) was causing the error
       const { data, error } = await signUp(email, password, name, {
         role: organizationType,
         skipEmailVerification
@@ -98,7 +91,6 @@ export const useRegisterForm = () => {
           description: errorMessage,
         });
       } else if (data) {
-        // Registration successful
         toast({
           title: "Conta criada com sucesso",
           description: skipEmailVerification 
@@ -106,7 +98,6 @@ export const useRegisterForm = () => {
             : "Sua conta foi criada. Verifique seu email para confirmar o cadastro.",
         });
         
-        // Reset form fields on success
         setEmail('');
         setPassword('');
         setConfirmPassword('');
@@ -114,7 +105,6 @@ export const useRegisterForm = () => {
         setOrganizationType('user');
         setSkipEmailVerification(false);
         
-        // Navigate to login page
         navigate('/login?registered=true');
       }
     } catch (error: any) {

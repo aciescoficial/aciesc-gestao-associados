@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/components/usuarios/types';
 
@@ -63,8 +62,7 @@ export const signInWithGoogle = async () => {
   }
 };
 
-// Updated signUp function to handle options object
-interface SignUpOptions {
+export interface SignUpOptions {
   role?: UserRole;
   skipEmailVerification?: boolean;
 }
