@@ -6,7 +6,12 @@ import { Card } from '@/components/ui/card';
 import { format } from 'date-fns';
 
 const AprovacaoAprovados = () => {
-  const { interessados, isLoading } = useAprovacaoInteresse('aprovado');
+  const { interesses, isLoading, statusFilter, setStatusFilter } = useAprovacaoInteresse();
+  
+  React.useEffect(() => {
+    // Set the filter to 'aprovado' when this component mounts
+    setStatusFilter('aprovado');
+  }, [setStatusFilter]);
 
   if (isLoading) {
     return <div>Carregando...</div>;
@@ -14,7 +19,7 @@ const AprovacaoAprovados = () => {
 
   return (
     <div className="space-y-4">
-      {interessados.map((interessado) => (
+      {interesses.map((interessado) => (
         <Card key={interessado.id} className="p-4">
           <div className="flex items-start justify-between">
             <div>
@@ -29,7 +34,7 @@ const AprovacaoAprovados = () => {
         </Card>
       ))}
       
-      {interessados.length === 0 && (
+      {interesses.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           Nenhum interessado aprovado encontrado.
         </div>
