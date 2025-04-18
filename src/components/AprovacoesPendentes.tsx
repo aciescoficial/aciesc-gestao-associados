@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Check, X, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -47,20 +46,35 @@ const AprovacoesPendentes: React.FC = () => {
     
     try {
       setIsLoading(true);
+      console.log("Starting to load pending companies");
+      
       const empresas = await fetchPendingEmpresas();
       
       // Transform to our display format and log to check data
       console.log("Pending empresas fetched:", empresas);
       
-      const mappedData: PendenteData[] = empresas.map((empresa: EmpresaData) => ({
-        id: empresa.id,
-        tipo: 'empresa',
-        nome: empresa.nome_fantasia,
-        documento: empresa.cnpj,
-        dataCadastro: new Date(empresa.created_at).toLocaleDateString('pt-BR'),
-        email: empresa.email,
-        telefone: empresa.telefone
-      }));
+      // Make sure we have an array, even if empty
+      const empresasArray = Array.isArray(empresas) ? empresas : [];
+      
+      const mappedData: PendenteData[] = empresasArray.map((empresa: EmpresaData) => {
+        // Ensure we have proper date formatting
+        let formattedDate = "Data não disponível";
+        try {
+          formattedDate = new Date(empresa.created_at).toLocaleDateString('pt-BR');
+        } catch (e) {
+          console.error("Error formatting date for empresa", empresa.id, e);
+        }
+        
+        return {
+          id: empresa.id,
+          tipo: 'empresa',
+          nome: empresa.nome_fantasia,
+          documento: empresa.cnpj,
+          dataCadastro: formattedDate,
+          email: empresa.email,
+          telefone: empresa.telefone
+        };
+      });
       
       console.log("Mapped pending empresas:", mappedData);
       

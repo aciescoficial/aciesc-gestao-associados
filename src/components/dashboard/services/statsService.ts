@@ -63,7 +63,7 @@ export const fetchDashboardStats = async (retries = 1): Promise<DashboardStats> 
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pendente'),
             
-          // Fetch pending empresas count
+          // Fetch pending empresas count - explicitly match 'pendente' status
           extendedSupabase.from('empresas')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pendente'),
@@ -74,16 +74,29 @@ export const fetchDashboardStats = async (retries = 1): Promise<DashboardStats> 
             .eq('status', 'pendente_pagamento')
         ]);
         
-        // Calculate total pending items (associados + empresas)
-        const totalPendentes = (pendentesAssociadosResult.count || 0) + (pendentesEmpresasResult.count || 0);
-
-        console.log('Stats query results:', {
+        // Log detailed information to help troubleshoot
+        console.log('Raw counts from DB:', {
           associados: associadosResult.count,
           empresas: empresasResult.count,
           pendentesAssociados: pendentesAssociadosResult.count,
           pendentesEmpresas: pendentesEmpresasResult.count,
-          totalPendentes,
           carteiras: carteirasResult.count
+        });
+        
+        // Make sure we handle null counts properly
+        const pendingAssociadosCount = pendentesAssociadosResult.count || 0;
+        const pendingEmpresasCount = pendentesEmpresasResult.count || 0;
+        
+        // Calculate total pending items (associados + empresas)
+        const totalPendentes = pendingAssociadosCount + pendingEmpresasCount;
+
+        console.log('Stats calculation:', {
+          associados: associadosResult.count || 0,
+          empresas: empresasResult.count || 0,
+          pendentesAssociados: pendingAssociadosCount,
+          pendentesEmpresas: pendingEmpresasCount,
+          totalPendentes,
+          carteiras: carteirasResult.count || 0
         });
 
         return {

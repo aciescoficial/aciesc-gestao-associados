@@ -20,6 +20,7 @@ const ConfiguracoesPage = lazy(() => import("../components/configuracoes/Configu
 const AprovacaoInteressePage = lazy(() => import("../components/associado/AprovacaoInteressePage"));
 const GeradorCarteirinha = lazy(() => import("../components/carteirinha/GeradorCarteirinha"));
 const EmpresaSugestoes = lazy(() => import("../components/empresa/EmpresaSugestoes"));
+const EmpresaDetailPage = lazy(() => import("../components/empresa/EmpresaDetailPage"));
 
 // Fallback component with custom loading time
 const PageLoading = () => <AppLoading message="Carregando página..." />;
@@ -51,6 +52,26 @@ export const AdminRoutes = [
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
           <PesquisaEmpresa />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="empresas-detalhes" path="/empresas/detalhes/:id" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <EmpresaDetailPage />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="empresas-editar" path="/empresas/editar/:id" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <CadastroEmpresa />
         </Suspense>
       </PluginLayout>
     </ProtectedRoute>

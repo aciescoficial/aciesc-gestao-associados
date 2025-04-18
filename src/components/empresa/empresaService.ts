@@ -7,6 +7,9 @@ export const fetchPendingEmpresas = async () => {
   console.log("Fetching pending empresas");
   
   try {
+    // Explicitly log the query we're about to execute
+    console.log("Executing query: SELECT * FROM empresas WHERE status = 'pendente' ORDER BY created_at DESC");
+    
     const { data, error } = await supabase
       .from('empresas')
       .select('*')
@@ -19,6 +22,8 @@ export const fetchPendingEmpresas = async () => {
     }
     
     console.log("Fetched pending empresas:", data?.length || 0, "items");
+    console.log("First item sample (if available):", data && data.length > 0 ? data[0] : "No data");
+    
     return data || [];
   } catch (error) {
     console.error("Exception fetching pending empresas:", error);
@@ -29,17 +34,22 @@ export const fetchPendingEmpresas = async () => {
 // Update company status (approve or reject)
 export const updateEmpresaStatus = async (id: string, status: 'ativo' | 'inativo') => {
   try {
+    console.log(`Updating empresa ${id} status to ${status}`);
+    
     const { error } = await supabase
       .from('empresas')
       .update({ status })
       .eq('id', id);
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error updating empresa status:", error);
+      throw error;
+    }
     
-    console.log(`Updated empresa ${id} status to ${status}`);
+    console.log(`Successfully updated empresa ${id} status to ${status}`);
     return true;
   } catch (error) {
-    console.error("Error updating empresa status:", error);
+    console.error("Exception updating empresa status:", error);
     throw error;
   }
 };
