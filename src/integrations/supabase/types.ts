@@ -353,7 +353,9 @@ export type Database = {
           endereco: string
           id: string
           instagram: string | null
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           nicho: Database["public"]["Enums"]["nicho_type"]
           nome_fantasia: string
           produtos: string
@@ -377,7 +379,9 @@ export type Database = {
           endereco: string
           id?: string
           instagram?: string | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           nicho: Database["public"]["Enums"]["nicho_type"]
           nome_fantasia: string
           produtos: string
@@ -401,7 +405,9 @@ export type Database = {
           endereco?: string
           id?: string
           instagram?: string | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           nicho?: Database["public"]["Enums"]["nicho_type"]
           nome_fantasia?: string
           produtos?: string
