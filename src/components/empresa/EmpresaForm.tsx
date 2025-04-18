@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +8,7 @@ import EmpresaEndereco from './EmpresaEndereco';
 import EmpresaNichoInfo from './EmpresaNichoInfo';
 import EmpresaImageUpload from './EmpresaImageUpload';
 import { Database } from '@/integrations/supabase/types';
+import LocationPicker from './map/LocationPicker';
 
 type NichoType = Database['public']['Enums']['nicho_type'];
 type StatusType = Database['public']['Enums']['status_type'];
@@ -36,6 +36,8 @@ export interface EmpresaFormData {
 
 const EmpresaForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [latitude, setLatitude] = useState<number | undefined>();
+  const [longitude, setLongitude] = useState<number | undefined>();
   const { toast } = useToast();
   
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<EmpresaFormData>();
@@ -64,6 +66,8 @@ const EmpresaForm: React.FC = () => {
         logo_url: data.logoUrl || null,
         capa_url: data.capaUrl || null,
         video_url: data.videoUrl || null,
+        latitude: latitude,
+        longitude: longitude,
         status: 'pendente' as StatusType
       };
       
@@ -104,6 +108,18 @@ const EmpresaForm: React.FC = () => {
           register={register}
           errors={errors}
           setValue={setValue}
+        />
+      </div>
+
+      <div className="wp-card">
+        <h3 className="wp-subheader mb-4">Localização no Mapa</h3>
+        <LocationPicker
+          onLocationSelected={(lat, lng) => {
+            setLatitude(lat);
+            setLongitude(lng);
+          }}
+          initialLatitude={latitude}
+          initialLongitude={longitude}
         />
       </div>
       
