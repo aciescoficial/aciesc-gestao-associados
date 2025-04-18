@@ -106,11 +106,16 @@ export const useRegisterForm = () => {
         }
         
         // Check if error is related to rate limiting with proper null checks
-        if (error && typeof error === 'object' && 
-            (('code' in error && typeof error.code === 'string' && error.code === 'rate_limit') || 
-            (errorMessage && 
-             (errorMessage.includes('rate limit') || errorMessage.includes('limite')))
-          )) {
+        // Fixed the null check for all possible usages of error
+        if (error !== null && 
+            typeof error === 'object' && 
+            ((error && 'code' in error && 
+              typeof error.code === 'string' && 
+              error.code === 'rate_limit') || 
+             (errorMessage && 
+              (errorMessage.includes('rate limit') || 
+               errorMessage.includes('limite')))
+            )) {
           
           setIsRateLimited(true);
           setRetryCount(prev => prev + 1);
@@ -118,7 +123,8 @@ export const useRegisterForm = () => {
           // Add proper type checking before accessing retryAfter
           let retryTime = 60; // Default
           
-          if (error && 
+          // Fixed null check before accessing properties
+          if (error !== null && 
               typeof error === 'object' && 
               'retryAfter' in error) {
             
