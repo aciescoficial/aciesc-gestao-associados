@@ -2,6 +2,7 @@
 import { empresaCrudService } from './empresaCrudService';
 import { empresaImportService } from './empresaImportService';
 import { empresaStatusService } from './empresaStatusService';
+import { StatusType } from '../types';
 
 // Create a unified service that combines all empresa services
 export const empresaService = {
@@ -12,7 +13,7 @@ export const empresaService = {
   updateEmpresa: empresaCrudService.updateEmpresa,
   deleteEmpresa: async (id: string) => {
     try {
-      await empresaCrudService.updateEmpresa(id, { status: 'inativo' });
+      await empresaStatusService.updateEmpresaStatus(id, 'inativo');
       return true;
     } catch (error) {
       console.error("Error deleting empresa:", error);
