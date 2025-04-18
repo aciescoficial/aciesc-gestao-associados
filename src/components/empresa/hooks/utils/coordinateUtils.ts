@@ -21,4 +21,3 @@ export const addCoordinatesToCompany = (company: EmpresaResponse): EmpresaData =
     longitude: ITAPEMA_COORDINATES.longitude + (Math.random() - 0.5) * 0.05
   } as EmpresaData;
 };
-

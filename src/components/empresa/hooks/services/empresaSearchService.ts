@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logOperation } from "@/components/audit/auditLogService";
 import { EmpresaResponse } from '../types/empresaSearchTypes';
 import { addCoordinatesToCompany } from '../utils/coordinateUtils';
+import { NichoType } from '../../types';
 
 export const searchNearbyCompanies = async (latitude: number, longitude: number) => {
   const { data, error } = await supabase
@@ -56,7 +57,9 @@ export const searchByCityAndNiche = async (cidadeFilter: string, nichoFilter: st
   }
   
   if (nichoFilter) {
-    query = query.eq('nicho', nichoFilter);
+    // Cast nichoFilter to NichoType to satisfy TypeScript
+    // This will ensure we're using a valid nicho type at runtime
+    query = query.eq('nicho', nichoFilter as NichoType);
   }
   
   const { data, error } = await query;
@@ -72,4 +75,3 @@ export const searchByCityAndNiche = async (cidadeFilter: string, nichoFilter: st
   
   return data?.map((company: EmpresaResponse) => addCoordinatesToCompany(company)) || [];
 };
-

@@ -1,5 +1,5 @@
 
-import { EmpresaData, NichoType } from '../../types';
+import { NichoType } from '../../types';
 
 export interface EmpresaResponse {
   id: string;
@@ -28,3 +28,5 @@ export interface EmpresaResponse {
   longitude?: number;
 }
 
+// Export the EmpresaData interface which is imported in coordinateUtils.ts
+export type EmpresaData = EmpresaResponse;
