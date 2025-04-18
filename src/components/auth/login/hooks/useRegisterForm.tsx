@@ -98,10 +98,22 @@ export const useRegisterForm = () => {
             description: `${errorResult.message}. Tentativa: ${retryCount + 1}. Tente novamente em ${errorResult.retryTime} segundos.`,
           });
         } else {
+          // Handle the error object safely regardless of its type
+          let errorMessage = "Ocorreu um erro durante o cadastro";
+          
+          if (typeof error === 'string') {
+            errorMessage = error;
+          } else if (error && typeof error === 'object') {
+            // Check if error is an object with a message property
+            errorMessage = 'message' in error && typeof error.message === 'string' 
+              ? error.message 
+              : errorMessage;
+          }
+          
           toast({
             variant: "destructive",
             title: "Erro ao criar conta",
-            description: typeof error === 'string' ? error : (error && 'message' in error ? error.message : "Ocorreu um erro durante o cadastro"),
+            description: errorMessage,
           });
         }
       } else {
@@ -123,10 +135,22 @@ export const useRegisterForm = () => {
       }
     } catch (error: any) {
       console.error("Exception during signup:", error);
+      
+      // Handle the caught exception safely
+      let errorMessage = "Ocorreu um erro durante o cadastro";
+      
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object') {
+        errorMessage = 'message' in error && typeof error.message === 'string'
+          ? error.message
+          : errorMessage;
+      }
+      
       toast({
         variant: "destructive",
         title: "Erro ao criar conta",
-        description: typeof error === 'string' ? error : (error && 'message' in error ? error.message : "Ocorreu um erro durante o cadastro"),
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);

@@ -39,18 +39,25 @@ export const handleSignUpError = (error: unknown): ErrorResponse => {
     };
   }
 
-  // Handle rate limit errors
-  const typedError = error as RateLimitError;
-  const isRateLimit = 
-    (typedError.code === 'rate_limit') || 
-    (typeof error === 'object' && 
-     'message' in error && 
-     typeof (error as { message: unknown }).message === 'string' &&
-     (error as { message: string }).message.includes('rate limit'));
+  // Handle object errors
+  if (typeof error === 'object' && error !== null) {
+    // Cast to a type that might have message and code properties
+    const typedError = error as RateLimitError;
+    
+    // Check for rate limit indication
+    const isRateLimit = 
+      (typedError.code === 'rate_limit') || 
+      ('message' in typedError && 
+       typeof typedError.message === 'string' &&
+       typedError.message.includes('rate limit'));
 
-  return {
-    isRateLimit,
-    retryTime: typedError.retryAfter ?? defaultResponse.retryTime,
-    message: typedError.message || defaultResponse.message
-  };
+    return {
+      isRateLimit,
+      retryTime: typedError.retryAfter ?? defaultResponse.retryTime,
+      message: typedError.message ?? defaultResponse.message
+    };
+  }
+
+  // Default fallback
+  return defaultResponse;
 };
