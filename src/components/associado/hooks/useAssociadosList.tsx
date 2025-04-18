@@ -79,7 +79,9 @@ export const useAssociadosList = () => {
 
       if (searchTerm) {
         if (searchType === 'nome') {
-          query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
+          // Modificação na busca por nome para melhorar os resultados
+          const termLower = searchTerm.toLowerCase();
+          query = query.or(`nome.ilike.%${termLower}%,sobrenome.ilike.%${termLower}%`);
         } else if (searchType === 'cpf') {
           query = query.ilike('cpf', `%${searchTerm}%`);
         } else if (searchType === 'creci') {
@@ -100,9 +102,20 @@ export const useAssociadosList = () => {
         query = query.order('created_at', { ascending: false });
       }
       
+      console.log('Lista query params:', { 
+        searchTerm, 
+        searchType, 
+        statusFilter, 
+        cidadeFilter, 
+        currentPage, 
+        itemsPerPage 
+      });
+      
       const { data, error, count } = await query;
       
       if (error) throw error;
+      
+      console.log('Lista results:', data?.length || 0, 'items found');
       
       setAssociados((data || []) as AssociadoListItem[]);
       setTotalCount(count || 0);

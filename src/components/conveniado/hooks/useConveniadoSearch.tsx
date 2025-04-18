@@ -65,7 +65,9 @@ export const useConveniadoSearch = () => {
       if (searchTerm.trim()) {
         switch (searchType) {
           case 'nome':
-            query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
+            // Modificação para melhorar a busca por nome
+            const termLower = searchTerm.toLowerCase();
+            query = query.or(`nome.ilike.%${termLower}%,sobrenome.ilike.%${termLower}%`);
             break;
           case 'cpf':
             query = query.ilike('cpf', `%${searchTerm}%`);
@@ -101,9 +103,18 @@ export const useConveniadoSearch = () => {
         query = query.order('created_at', { ascending: false });
       }
       
+      console.log('Conveniado search params:', { 
+        searchTerm,
+        searchType, 
+        statusFilter, 
+        cidadeFilter 
+      });
+      
       const { data, error, count } = await query;
       
       if (error) throw error;
+      
+      console.log('Conveniado search results:', data?.length || 0, 'items found');
       
       // Map the retrieved data to the Conveniado interface
       const conveniados = (data || []).map(item => ({

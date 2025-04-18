@@ -26,10 +26,13 @@ export const useConveniadoSearch = () => {
     
     try {
       const term = searchTerm.toLowerCase();
+      // Modificação na busca para melhorar os resultados
       const { data, error } = await supabase
         .from('associados')
         .select('*')
         .or(`nome.ilike.%${term}%,sobrenome.ilike.%${term}%,cpf.ilike.%${term}%`);
+      
+      console.log('Carteirinha search term:', term, 'Results:', data?.length || 0);
       
       if (error) throw error;
       

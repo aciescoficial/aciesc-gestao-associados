@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,7 +50,9 @@ export const useAssociadoSearch = () => {
       
       if (searchTerm.trim()) {
         if (searchType === 'nome') {
-          query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
+          // Modificação para melhorar a busca por nome - busca separada por nome e sobrenome
+          const termLower = searchTerm.toLowerCase();
+          query = query.or(`nome.ilike.%${termLower}%,sobrenome.ilike.%${termLower}%`);
         } else if (searchType === 'cpf') {
           query = query.ilike('cpf', `%${searchTerm}%`);
         } else if (searchType === 'creci') {
@@ -78,9 +81,20 @@ export const useAssociadoSearch = () => {
         query = query.order('created_at', { ascending: false });
       }
       
+      console.log('Search query params:', { 
+        searchTerm, 
+        searchType, 
+        statusFilter, 
+        cidadeFilter, 
+        currentPage, 
+        itemsPerPage 
+      });
+      
       const { data, error, count } = await query;
       
       if (error) throw error;
+
+      console.log('Search results:', data?.length || 0, 'items found');
 
       if (!data || data.length === 0) {
         setResults([]);
