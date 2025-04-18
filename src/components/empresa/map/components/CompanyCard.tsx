@@ -16,7 +16,10 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   
   const handleGetDirections = () => {
     // Check if we have coordinates
-    if (!company.latitude || !company.longitude) return;
+    if (!company.latitude || !company.longitude) {
+      console.warn('Missing coordinates for company:', company.nome_fantasia);
+      return;
+    }
     
     // Create Google Maps direction URL
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${company.latitude},${company.longitude}&destination_place_id=${company.nome_fantasia}`;
