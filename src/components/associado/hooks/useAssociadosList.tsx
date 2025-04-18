@@ -9,6 +9,7 @@ export interface AssociadoListItem {
   nome: string;
   sobrenome: string;
   cpf: string;
+  rg?: string;
   email: string;
   telefone: string;
   cidade: string;

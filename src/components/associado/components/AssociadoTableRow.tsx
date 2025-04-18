@@ -1,16 +1,19 @@
 
 import React from 'react';
-import { TableRow, TableCell } from '@/components/ui/table';
+import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { UserCheck, UserX, Clock } from 'lucide-react';
+import { UserCheck, UserX, Clock, Edit } from 'lucide-react';
 import { AssociadoListItem } from '../hooks/useAssociadosList';
+import { useNavigate } from 'react-router-dom';
 
 interface AssociadoTableRowProps {
   associado: AssociadoListItem;
 }
 
 const AssociadoTableRow: React.FC<AssociadoTableRowProps> = ({ associado }) => {
+  const navigate = useNavigate();
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'ativo':
@@ -24,24 +27,30 @@ const AssociadoTableRow: React.FC<AssociadoTableRowProps> = ({ associado }) => {
     }
   };
 
+  const handleEdit = () => {
+    navigate(`/associados/editar/${associado.id}`);
+  };
+
   return (
     <TableRow>
-      <TableCell className="font-medium">
-        {associado.nome} {associado.sobrenome}
-      </TableCell>
-      <TableCell>{associado.cpf}</TableCell>
-      <TableCell>{associado.cidade}</TableCell>
-      <TableCell>{associado.creci || "-"}</TableCell>
-      <TableCell className="text-sm">
-        <div>{associado.email}</div>
-        <div>{associado.telefone}</div>
-      </TableCell>
-      <TableCell>{getStatusBadge(associado.status)}</TableCell>
+      <TableCell>{associado.nome}</TableCell>
+      <TableCell>{associado.sobrenome}</TableCell>
+      <TableCell>{associado.creci || '-'}</TableCell>
+      <TableCell>{associado.rg || '-'}</TableCell>
+      <TableCell>{associado.email}</TableCell>
       <TableCell>
-        <div className="flex space-x-2">
-          <Button size="sm" variant="outline">Ver</Button>
-          <Button size="sm" variant="default">Editar</Button>
-        </div>
+        {getStatusBadge(associado.status)}
+      </TableCell>
+      <TableCell>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleEdit}
+          className="hover:bg-muted"
+        >
+          <Edit className="h-4 w-4 mr-2" />
+          Editar
+        </Button>
       </TableCell>
     </TableRow>
   );

@@ -24,10 +24,10 @@ const AssociadosTable: React.FC<AssociadosTableProps> = ({ associados, loading }
         <TableHeader>
           <TableRow>
             <TableHead>Nome</TableHead>
-            <TableHead>CPF</TableHead>
-            <TableHead>Cidade</TableHead>
+            <TableHead>Sobrenome</TableHead>
             <TableHead>CRECI</TableHead>
-            <TableHead>Contato</TableHead>
+            <TableHead>RG</TableHead>
+            <TableHead>Usuário</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Ações</TableHead>
           </TableRow>
