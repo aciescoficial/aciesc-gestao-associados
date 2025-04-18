@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { BaseService } from '@/services/baseService';
 import { EmpresaFormData } from '../EmpresaForm';
@@ -7,6 +6,8 @@ import { mapToEmpresaData } from '../utils/dataTransformers';
 
 class EmpresaCrudService extends BaseService {
   async getLatestCompanies(limit: number = 3): Promise<EmpresaData[]> {
+    console.log("Fetching latest companies");
+    
     try {
       const { data, error } = await supabase
         .from('empresas')
@@ -23,16 +24,60 @@ class EmpresaCrudService extends BaseService {
     }
   }
 
-  async getEmpresaById(id: string) {
-    const { data, error } = await supabase
-      .from('empresas')
-      .select('*')
-      .eq('id', id)
-      .single();
+  async getCompaniesPaginated(
+    page: number = 1,
+    pageSize: number = 10,
+    filters: { searchTerm?: string } = {}
+  ) {
+    try {
+      let query = supabase
+        .from('empresas')
+        .select('*', { count: 'exact' });
       
-    if (error) throw error;
-    
-    return data;
+      if (filters.searchTerm) {
+        query = query.or(
+          `nome_fantasia.ilike.%${filters.searchTerm}%,` +
+          `razao_social.ilike.%${filters.searchTerm}%,` +
+          `cnpj.ilike.%${filters.searchTerm}%`
+        );
+      }
+      
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      
+      query = query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+      
+      const { data, error, count } = await query;
+      
+      if (error) throw error;
+      
+      return {
+        data: data || [],
+        count: count || 0
+      };
+    } catch (error) {
+      console.error("Error fetching paginated companies:", error);
+      throw error;
+    }
+  }
+
+  async getEmpresaById(id: string) {
+    try {
+      const { data, error } = await supabase
+        .from('empresas')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) throw error;
+      
+      return data;
+    } catch (error) {
+      this.handleError(error, "Error fetching company details");
+      throw error;
+    }
   }
 
   async saveEmpresa(data: EmpresaFormData) {

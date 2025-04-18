@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getLatestCompanies } from '../services/empresaService';
+import { empresaCrudService } from '../services/empresaService';
 import { EmpresaData } from '../types';
 import { Eye, MapPin, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,7 @@ const LatestCompanies: React.FC<{ onLocateEmpresa?: (empresa: EmpresaData) => vo
     const fetchLatestCompanies = async () => {
       try {
         setLoading(true);
-        const data = await getLatestCompanies(3);
+        const data = await empresaCrudService.getLatestCompanies(3);
         
         // Add mock coordinates for testing if needed
         const companiesWithCoords = data.map(company => ({
@@ -45,7 +44,6 @@ const LatestCompanies: React.FC<{ onLocateEmpresa?: (empresa: EmpresaData) => vo
     fetchLatestCompanies();
   }, [toast]);
 
-  // Function to get initials for avatar fallback
   const getInitials = (name: string) => {
     return name
       .split(' ')

@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MapPin, Eye, Edit } from 'lucide-react';
 import { EmpresaData } from '../types';
-import { getCompaniesPaginated } from '../services/empresaService';
+import { empresaCrudService } from '../services/empresaService';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -41,7 +41,7 @@ const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({ onLocateEmp
   const fetchCompanies = async () => {
     setLoading(true);
     try {
-      const { data, count } = await getCompaniesPaginated(currentPage, pageSize, {
+      const { data, count } = await empresaCrudService.getCompaniesPaginated(currentPage, pageSize, {
         searchTerm: searchTerm
       });
       
