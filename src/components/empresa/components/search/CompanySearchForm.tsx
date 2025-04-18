@@ -3,7 +3,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Search } from 'lucide-react';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -39,17 +39,18 @@ export const CompanySearchForm: React.FC<CompanySearchFormProps> = ({
             control={form.control}
             name="searchTerm"
             render={({ field }) => (
-              <FormItem className="flex-1">
+              <FormItem>
                 <FormControl>
                   <div className="relative">
                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Buscar empresas..."
+                      placeholder="Digite o termo para busca..."
                       className="pl-10"
                       {...field}
                     />
                   </div>
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -59,7 +60,7 @@ export const CompanySearchForm: React.FC<CompanySearchFormProps> = ({
             name="searchType"
             render={({ field }) => (
               <FormItem>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Tipo de busca" />
                   </SelectTrigger>
@@ -69,6 +70,7 @@ export const CompanySearchForm: React.FC<CompanySearchFormProps> = ({
                     <SelectItem value="nicho">Nicho</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -78,7 +80,7 @@ export const CompanySearchForm: React.FC<CompanySearchFormProps> = ({
             name="status"
             render={({ field }) => (
               <FormItem>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -88,6 +90,7 @@ export const CompanySearchForm: React.FC<CompanySearchFormProps> = ({
                     <SelectItem value="inativo">Inativos</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
               </FormItem>
             )}
           />

@@ -11,7 +11,9 @@ export const useCompanySearch = () => {
   const { toast } = useToast();
 
   const searchCompanies = async (params: CompanySearchFormValues) => {
+    console.log('Searching with params:', params);
     setIsLoading(true);
+    
     try {
       let query = supabase
         .from('empresas')
@@ -34,6 +36,7 @@ export const useCompanySearch = () => {
       }
 
       const { data, error } = await query;
+      console.log('Search results:', data);
 
       if (error) throw error;
 

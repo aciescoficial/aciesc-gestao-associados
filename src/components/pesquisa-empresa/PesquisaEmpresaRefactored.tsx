@@ -25,7 +25,7 @@ const PesquisaEmpresaRefactored: React.FC = () => {
         <div className="mt-6">
           <PaginatedCompanyList 
             initialData={results}
-            searchable={false} // Disable internal search since we're using the form above
+            searchable={false}
           />
         </div>
       </Card>
