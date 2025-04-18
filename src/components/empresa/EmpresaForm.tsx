@@ -14,12 +14,18 @@ import { FormActions } from './components/form/FormActions';
 const EmpresaForm: React.FC = () => {
   const [latitude, setLatitude] = useState<number | undefined>();
   const [longitude, setLongitude] = useState<number | undefined>();
+  const [logoUrl, setLogoUrl] = useState<string>('');
   
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<EmpresaFormData>();
   const { handleSubmit: onSubmit, isSubmitting } = useEmpresaFormSubmit();
 
   const handleFormSubmit = (data: EmpresaFormData) => {
     onSubmit(data, reset, latitude, longitude);
+  };
+
+  const handleImageUpload = (url: string) => {
+    setLogoUrl(url);
+    setValue('logoUrl', url);
   };
 
   return (
@@ -29,11 +35,13 @@ const EmpresaForm: React.FC = () => {
         <EmpresaContato register={register} errors={errors} />
         <EmpresaEndereco register={register} errors={errors} />
         <EmpresaNichoInfo register={register} errors={errors} />
-        <EmpresaImageUpload 
-          register={register}
-          errors={errors}
-          setValue={setValue}
-        />
+        <div className="wp-card p-4">
+          <h3 className="wp-subheader mb-4">Logo da Empresa</h3>
+          <EmpresaImageUpload 
+            onImageUpload={handleImageUpload}
+            existingImageUrl={logoUrl}
+          />
+        </div>
       </div>
 
       <div className="wp-card">
