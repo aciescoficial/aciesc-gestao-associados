@@ -3,12 +3,8 @@ import { supabase, handleSupabaseError } from "@/integrations/supabase/client";
 import { extendedSupabase } from "@/integrations/supabase/extendedClient";
 import { AssociadoFormData, StatusType } from '../types';
 import { logOperation } from '@/components/audit/auditLogService';
-import { uploadFoto, uploadComprovante } from './associadoStorageService';
+import { uploadFoto } from './associadoStorageService';
 import { createUserForAssociado, sendRegistrationEmail } from './associadoUserService';
-
-/**
- * Create and update operations for associados
- */
 
 export const saveAssociado = async (data: AssociadoFormData) => {
   try {
@@ -23,8 +19,8 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       throw new Error("Formato de CPF inválido");
     }
     
-    // Check for existing associate with same CPF
-    const { data: existingCpf } = await supabase
+    // Check for existing associate with same CPF - using extended client
+    const { data: existingCpf } = await extendedSupabase
       .from('associados')
       .select('id, nome')
       .eq('cpf', data.cpf)
@@ -34,8 +30,8 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       throw new Error(`CPF já cadastrado para o associado: ${existingCpf.nome}`);
     }
     
-    // Check for existing associate with same email
-    const { data: existingEmail } = await supabase
+    // Check for existing associate with same email - using extended client
+    const { data: existingEmail } = await extendedSupabase
       .from('associados')
       .select('id, nome')
       .eq('email', data.email)
@@ -70,7 +66,7 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       status: 'pendente' as StatusType
     };
     
-    // Usando o cliente estendido com permissões de administrador para contornar o RLS
+    // Using extended client with service role key to bypass RLS
     const { data: associadoResult, error } = await extendedSupabase
       .from('associados')
       .insert(associadoData)
@@ -95,11 +91,6 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       await uploadFoto(associadoResult.id, data.foto[0]);
     }
     
-    // Upload payment receipt if it exists
-    if (data.comprovantePagamento && data.comprovantePagamento.length > 0) {
-      await uploadComprovante(associadoResult.id, data.comprovantePagamento[0]);
-    }
-    
     // Create user if requested
     if (data.criarUsuario) {
       const userResult = await createUserForAssociado({
@@ -112,7 +103,6 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       
       if (!userResult.success) {
         console.warn("Couldn't create user account, but associate was saved:", userResult.error);
-        // We don't throw here as the associate was created successfully
       }
     } else {
       // Send email with registration link
@@ -125,7 +115,6 @@ export const saveAssociado = async (data: AssociadoFormData) => {
       
       if (!emailResult.success) {
         console.warn("Couldn't send registration email, but associate was saved:", emailResult.error);
-        // We don't throw here as the associate was created successfully
       }
     }
     
@@ -136,3 +125,4 @@ export const saveAssociado = async (data: AssociadoFormData) => {
     throw error;
   }
 };
+

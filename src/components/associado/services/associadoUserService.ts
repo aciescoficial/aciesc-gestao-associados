@@ -1,7 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { extendedSupabase } from "@/integrations/supabase/extendedClient";
-import { getTemplateTestData } from '@/components/configuracoes/services/emailService';
 
 interface CreateUserParams {
   id: string;
@@ -23,8 +21,8 @@ interface SendEmailParams {
  */
 export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }: CreateUserParams) => {
   try {
-    // Check if user already exists with this email
-    const { data: existingUser, error: checkError } = await supabase
+    // Check if user already exists with this email - using extended client
+    const { data: existingUser, error: checkError } = await extendedSupabase
       .from('user')
       .select('id, email')
       .eq('email', email)
@@ -43,7 +41,7 @@ export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }
     // Generate temporary password
     const tempPassword = Math.random().toString(36).slice(2, 10);
     
-    // Create user in auth - usando extended client para permissões de admin
+    // Create user in auth - using extended client with service role key
     const { data: authData, error: authError } = await extendedSupabase.auth.admin.createUser({
       email,
       password: tempPassword,
@@ -57,7 +55,7 @@ export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }
     
     if (authError) throw authError;
 
-    // Update user table with additional data
+    // Update user table with additional data - using extended client
     if (authData && authData.user) {
       const { error: userError } = await extendedSupabase
         .from('user')
