@@ -5,18 +5,33 @@ import AprovacaoInteresse from './AprovacaoInteresse';
 import AprovacaoAprovados from './components/AprovacaoAprovados';
 import FluxoAprovacao from './components/FluxoAprovacao';
 import CodigoIncorporacao from './components/CodigoIncorporacao';
+import { FileCheck, Users, GitFlow, Code } from 'lucide-react';
 
 const AprovacaoInteressePage: React.FC = () => {
   return (
     <div className="space-y-6">
-      <h1 className="wp-header">Aprovação de Associados</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="wp-header">Aprovação de Associados</h1>
+      </div>
       
       <Tabs defaultValue="aprovacao" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="aprovacao">Aprovação Pendentes</TabsTrigger>
-          <TabsTrigger value="aprovados">Lista de Aprovados</TabsTrigger>
-          <TabsTrigger value="fluxo">Fluxo de Aprovação</TabsTrigger>
-          <TabsTrigger value="incorporacao">Código de Incorporação</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-1 md:grid-cols-4 mb-6">
+          <TabsTrigger value="aprovacao" className="flex items-center gap-2">
+            <FileCheck className="h-4 w-4" />
+            <span>Pendentes</span>
+          </TabsTrigger>
+          <TabsTrigger value="aprovados" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            <span>Aprovados</span>
+          </TabsTrigger>
+          <TabsTrigger value="fluxo" className="flex items-center gap-2">
+            <GitFlow className="h-4 w-4" />
+            <span>Fluxo</span>
+          </TabsTrigger>
+          <TabsTrigger value="incorporacao" className="flex items-center gap-2">
+            <Code className="h-4 w-4" />
+            <span>Form Embed</span>
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="aprovacao" className="mt-0">
