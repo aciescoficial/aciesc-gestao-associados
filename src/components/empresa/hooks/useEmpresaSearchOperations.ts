@@ -1,35 +1,12 @@
-import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { EmpresaData, NichoType } from '../types';
-import { logOperation } from "@/components/audit/auditLogService";
 
-export interface EmpresaResponse {
-  id: string;
-  razao_social: string;
-  nome_fantasia: string;
-  cnpj: string;
-  responsavel: string;
-  telefone: string;
-  email: string;
-  cidade: string;
-  nicho: NichoType;
-  status: string;
-  endereco: string;
-  cep: string;
-  logo_url?: string;
-  capa_url?: string;
-  site?: string;
-  instagram?: string;
-  whatsapp?: string;
-  desconto?: string;
-  produtos?: string;
-  video_url?: string;
-  created_at?: string;
-  updated_at?: string;
-  latitude?: number;
-  longitude?: number;
-}
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { EmpresaData } from '../types';
+import { 
+  searchNearbyCompanies as searchNearbyCompaniesService,
+  searchByTerm as searchByTermService,
+  searchByCityAndNiche as searchByCityAndNicheService
+} from './services/empresaSearchService';
 
 export const useEmpresaSearchOperations = () => {
   const [isSearching, setIsSearching] = useState(false);
@@ -40,28 +17,7 @@ export const useEmpresaSearchOperations = () => {
     setIsSearching(true);
     
     try {
-      const { data, error } = await supabase
-        .from('empresas')
-        .select('*');
-      
-      if (error) throw error;
-      
-      const nearbyCompanies = data.map((company: EmpresaResponse) => {
-        if (typeof company.latitude === 'number' && typeof company.longitude === 'number') {
-          return {
-            ...company,
-            latitude: company.latitude,
-            longitude: company.longitude
-          } as EmpresaData;
-        }
-        
-        return {
-          ...company,
-          latitude: latitude + (Math.random() - 0.5) * 0.05,
-          longitude: longitude + (Math.random() - 0.5) * 0.05
-        } as EmpresaData;
-      });
-      
+      const nearbyCompanies = await searchNearbyCompaniesService(latitude, longitude);
       setResults(nearbyCompanies);
       
       if (nearbyCompanies.length === 0) {
@@ -92,50 +48,11 @@ export const useEmpresaSearchOperations = () => {
     setIsSearching(true);
     
     try {
-      let query = supabase
-        .from('empresas')
-        .select('*');
+      const companies = await searchByTermService(searchType, searchTerm);
       
-      if (searchType === 'nome') {
-        query = query.or(`nome_fantasia.ilike.%${searchTerm}%,razao_social.ilike.%${searchTerm}%`);
-      } else if (searchType === 'cnpj') {
-        query = query.ilike('cnpj', `%${searchTerm}%`);
-      } else if (searchType === 'nicho') {
-        query = query.ilike('nicho', `%${searchTerm}%`);
-      } else if (searchType === 'cidade') {
-        query = query.ilike('cidade', `%${searchTerm}%`);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      await logOperation({
-        eventType: 'export',
-        entityType: 'empresa',
-        details: `Pesquisa por ${searchType}: ${searchTerm}`,
-        recordCount: data?.length || 0
-      });
-      
-      if (data && data.length > 0) {
-        const companiesWithCoords = data.map((company: EmpresaResponse) => {
-          if (typeof company.latitude === 'number' && typeof company.longitude === 'number') {
-            return {
-              ...company,
-              latitude: company.latitude,
-              longitude: company.longitude
-            } as EmpresaData;
-          }
-          
-          return {
-            ...company,
-            latitude: -27.0861 + (Math.random() - 0.5) * 0.05,
-            longitude: -48.6161 + (Math.random() - 0.5) * 0.05
-          } as EmpresaData;
-        });
-        
-        setResults(companiesWithCoords);
-        return companiesWithCoords;
+      if (companies.length > 0) {
+        setResults(companies);
+        return companies;
       } else {
         setResults([]);
         toast({
@@ -161,48 +78,11 @@ export const useEmpresaSearchOperations = () => {
     setIsSearching(true);
     
     try {
-      let query = supabase
-        .from('empresas')
-        .select('*');
+      const companies = await searchByCityAndNicheService(cidadeFilter, nichoFilter);
       
-      if (cidadeFilter) {
-        query = query.eq('cidade', cidadeFilter);
-      }
-      
-      if (nichoFilter) {
-        query = query.eq('nicho', nichoFilter as NichoType);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      await logOperation({
-        eventType: 'export',
-        entityType: 'empresa',
-        details: `Pesquisa por Cidade: ${cidadeFilter || 'Todas'} e Nicho: ${nichoFilter || 'Todos'}`,
-        recordCount: data?.length || 0
-      });
-      
-      if (data && data.length > 0) {
-        const companiesWithCoords = data.map((company: EmpresaResponse) => {
-          if (typeof company.latitude === 'number' && typeof company.longitude === 'number') {
-            return {
-              ...company,
-              latitude: company.latitude,
-              longitude: company.longitude
-            } as EmpresaData;
-          }
-          
-          return {
-            ...company,
-            latitude: -27.0861 + (Math.random() - 0.5) * 0.05,
-            longitude: -48.6161 + (Math.random() - 0.5) * 0.05
-          } as EmpresaData;
-        });
-        
-        setResults(companiesWithCoords);
-        return companiesWithCoords;
+      if (companies.length > 0) {
+        setResults(companies);
+        return companies;
       } else {
         setResults([]);
         toast({
@@ -233,3 +113,4 @@ export const useEmpresaSearchOperations = () => {
     searchByCityAndNiche
   };
 };
+
