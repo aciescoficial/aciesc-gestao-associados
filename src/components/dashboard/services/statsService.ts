@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { toast } from '@/components/ui/use-toast';
 
 export interface DashboardStats {
@@ -50,19 +51,19 @@ export const fetchDashboardStats = async (retries = 1): Promise<DashboardStats> 
           pendentesResult,
           carteirasResult
         ] = await Promise.all([
-          // Fetch associados count
-          supabase.from('associados').select('*', { count: 'exact', head: true }),
+          // Use extendedSupabase client to bypass RLS for more reliable count
+          extendedSupabase.from('associados').select('*', { count: 'exact', head: true }),
           
           // Fetch empresas count
-          supabase.from('empresas').select('*', { count: 'exact', head: true }),
+          extendedSupabase.from('empresas').select('*', { count: 'exact', head: true }),
           
           // Fetch pending approvals count
-          supabase.from('associados')
+          extendedSupabase.from('associados')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pendente'),
             
           // Fetch pending carteirinhas count
-          supabase.from('carteirinha_solicitacoes')
+          extendedSupabase.from('carteirinha_solicitacoes')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pendente_pagamento')
         ]);
