@@ -38,7 +38,15 @@ class StatsService extends BaseService {
       this.logInfo("Dashboard stats fetched", stats);
       return stats;
     } catch (error) {
-      return this.handleError(error, "Erro ao buscar estatísticas do dashboard");
+      const errorMessage = "Erro ao buscar estatísticas do dashboard";
+      this.handleError(error, errorMessage);
+      // Return default stats on error to maintain type safety
+      return {
+        associados: 0,
+        empresas: 0,
+        pendentes: 0,
+        carteirasPendentes: 0
+      };
     }
   }
 }
