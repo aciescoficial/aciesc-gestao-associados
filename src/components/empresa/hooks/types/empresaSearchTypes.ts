@@ -1,5 +1,9 @@
 
 import { NichoType } from '../../types';
+import { Database } from "@/integrations/supabase/types";
+
+// Get the StatusType from the Database types
+export type StatusType = Database['public']['Enums']['status_type'];
 
 export interface EmpresaResponse {
   id: string;
@@ -11,7 +15,7 @@ export interface EmpresaResponse {
   email: string;
   cidade: string;
   nicho: NichoType;
-  status: string;
+  status: StatusType; // Update to use the correct StatusType
   endereco: string;
   cep: string;
   logo_url?: string;

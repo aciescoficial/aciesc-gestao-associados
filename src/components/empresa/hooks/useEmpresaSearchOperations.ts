@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { EmpresaData } from '../types';
+import { EmpresaData, EmpresaResponse } from './types/empresaSearchTypes';
 import { 
   searchNearbyCompanies as searchNearbyCompaniesService,
   searchByTerm as searchByTermService,
@@ -113,4 +113,3 @@ export const useEmpresaSearchOperations = () => {
     searchByCityAndNiche
   };
 };
-
