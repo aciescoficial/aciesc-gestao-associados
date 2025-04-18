@@ -3,8 +3,12 @@ import React from 'react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
 import { PaginatedCompanyList } from '../empresa/components/PaginatedCompanyList';
+import { CompanySearchForm } from '../empresa/components/search/CompanySearchForm';
+import { useCompanySearch } from '../empresa/hooks/useCompanySearch';
 
 const PesquisaEmpresaRefactored: React.FC = () => {
+  const { isLoading, results, searchCompanies } = useCompanySearch();
+
   return (
     <div className="space-y-6">
       <PageHeader 
@@ -13,7 +17,14 @@ const PesquisaEmpresaRefactored: React.FC = () => {
       />
       
       <Card className="p-6">
-        <PaginatedCompanyList />
+        <CompanySearchForm 
+          onSearch={searchCompanies}
+          isLoading={isLoading}
+        />
+        
+        <div className="mt-6">
+          <PaginatedCompanyList initialData={results} />
+        </div>
       </Card>
     </div>
   );
