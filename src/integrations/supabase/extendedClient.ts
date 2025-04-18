@@ -16,3 +16,29 @@ export const extendedSupabase = createClient(
   }
 );
 
+/**
+ * Securely delete a record from a table using the extended client with admin privileges.
+ * This bypasses RLS policies and should only be used by admin users.
+ * 
+ * @param table - The table name to delete from
+ * @param id - The ID of the record to delete
+ * @returns Promise with the delete operation result
+ */
+export const secureDelete = async (table: string, id: string): Promise<{ success: boolean, error: any | null }> => {
+  try {
+    const { error } = await extendedSupabase
+      .from(table)
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error(`Error deleting from ${table}:`, error);
+      return { success: false, error };
+    }
+    
+    return { success: true, error: null };
+  } catch (error) {
+    console.error(`Exception deleting from ${table}:`, error);
+    return { success: false, error };
+  }
+};
