@@ -5,7 +5,7 @@ import AprovacaoInteresse from './AprovacaoInteresse';
 import AprovacaoAprovados from './components/AprovacaoAprovados';
 import FluxoAprovacao from './components/FluxoAprovacao';
 import CodigoIncorporacao from './components/CodigoIncorporacao';
-import { FileCheck, Users, GitFlow, Code } from 'lucide-react';
+import { FileCheck, Users, GitBranch, Code } from 'lucide-react';
 
 const AprovacaoInteressePage: React.FC = () => {
   return (
@@ -25,7 +25,7 @@ const AprovacaoInteressePage: React.FC = () => {
             <span>Aprovados</span>
           </TabsTrigger>
           <TabsTrigger value="fluxo" className="flex items-center gap-2">
-            <GitFlow className="h-4 w-4" />
+            <GitBranch className="h-4 w-4" />
             <span>Fluxo</span>
           </TabsTrigger>
           <TabsTrigger value="incorporacao" className="flex items-center gap-2">
@@ -55,3 +55,4 @@ const AprovacaoInteressePage: React.FC = () => {
 };
 
 export default AprovacaoInteressePage;
+
