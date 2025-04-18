@@ -14,16 +14,18 @@ export interface PaginatedCompanyListProps {
   initialSearchTerm?: string;
   onCompanySelected?: (company: EmpresaData) => void;
   title?: string;
+  initialData?: EmpresaData[];
 }
 
 export const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({
   searchable = true,
   initialSearchTerm = '',
   onCompanySelected,
-  title = 'Empresas'
+  title = 'Empresas',
+  initialData = []
 }) => {
-  const [companies, setCompanies] = useState<EmpresaData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [companies, setCompanies] = useState<EmpresaData[]>(initialData);
+  const [loading, setLoading] = useState(initialData.length === 0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -32,8 +34,24 @@ export const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({
   const pageSize = 10;
 
   useEffect(() => {
-    fetchCompanies();
+    if (initialData.length > 0) {
+      setCompanies(initialData);
+      setTotalCount(initialData.length);
+      setTotalPages(Math.ceil(initialData.length / pageSize));
+      setLoading(false);
+    } else {
+      fetchCompanies();
+    }
   }, [currentPage, searchTerm]);
+
+  // Update companies when initialData changes
+  useEffect(() => {
+    if (initialData.length > 0) {
+      setCompanies(initialData);
+      setTotalCount(initialData.length);
+      setTotalPages(Math.ceil(initialData.length / pageSize));
+    }
+  }, [initialData]);
 
   const fetchCompanies = async () => {
     try {
