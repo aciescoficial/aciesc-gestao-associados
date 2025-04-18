@@ -6,7 +6,7 @@ export const companySearchSchema = z.object({
   searchType: z.enum(['nome', 'cnpj', 'nicho']).default('nome'),
   status: z.enum(['ativo', 'inativo', 'todos']).default('todos')
 }).superRefine((data, ctx) => {
-  if (data.searchType !== 'todos' && !data.searchTerm) {
+  if (data.searchTerm === undefined || data.searchTerm.trim() === '') {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "Digite um termo para busca",
