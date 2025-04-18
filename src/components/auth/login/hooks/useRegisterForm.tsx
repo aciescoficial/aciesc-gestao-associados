@@ -105,45 +105,55 @@ export const useRegisterForm = () => {
           errorMessage = error;
         }
         
-        // Check if error is related to rate limiting with proper null checks
-        // Fixed the null check for all possible usages of error
+        // Create a type for the expected error object structure
+        type RateLimitError = {
+          code?: string;
+          retryAfter?: number | null;
+          message?: string;
+        };
+        
+        // Check if error is related to rate limiting with proper null checks and type casting
         if (error !== null && 
-            typeof error === 'object' && 
-            ((error && 'code' in error && 
-              typeof error.code === 'string' && 
-              error.code === 'rate_limit') || 
-             (errorMessage && 
+            typeof error === 'object') {
+          
+          // Cast error to our expected type to safely access properties
+          const typedError = error as RateLimitError;
+          
+          // Check if it's a rate limit error
+          const isRateLimit = 
+            (typedError.code === 'rate_limit') || 
+            (errorMessage && 
               (errorMessage.includes('rate limit') || 
-               errorMessage.includes('limite')))
-            )) {
+               errorMessage.includes('limite')));
           
-          setIsRateLimited(true);
-          setRetryCount(prev => prev + 1);
-          
-          // Add proper type checking before accessing retryAfter
-          let retryTime = 60; // Default
-          
-          // Fixed null check before accessing properties
-          if (error !== null && 
-              typeof error === 'object' && 
-              'retryAfter' in error) {
+          if (isRateLimit) {
+            setIsRateLimited(true);
+            setRetryCount(prev => prev + 1);
             
-            // Create a properly typed variable to access retryAfter
-            const typedError = error as { retryAfter?: number | null };
+            // Add proper type checking before accessing retryAfter
+            let retryTime = 60; // Default
             
+            // Use the typed error to safely access properties
             if (typedError.retryAfter !== undefined && typedError.retryAfter !== null) {
               retryTime = Number(typedError.retryAfter);
             }
+            
+            setRetryCountdown(retryTime);
+            
+            toast({
+              variant: "destructive",
+              title: "Limite de tentativas excedido",
+              description: `${errorMessage} Tentativa: ${retryCount + 1}. Tente novamente em ${retryTime} segundos.`,
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Erro ao criar conta",
+              description: errorMessage,
+            });
           }
-          
-          setRetryCountdown(retryTime);
-          
-          toast({
-            variant: "destructive",
-            title: "Limite de tentativas excedido",
-            description: `${errorMessage} Tentativa: ${retryCount + 1}. Tente novamente em ${retryTime} segundos.`,
-          });
         } else {
+          // Handle non-object errors
           toast({
             variant: "destructive",
             title: "Erro ao criar conta",
