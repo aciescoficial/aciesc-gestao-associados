@@ -12,18 +12,21 @@ import { companySearchSchema, type CompanySearchFormValues } from './schema';
 interface CompanySearchFormProps {
   onSearch: (params: CompanySearchFormValues) => void;
   isLoading?: boolean;
+  defaultValues?: Partial<CompanySearchFormValues>;
 }
 
 export const CompanySearchForm: React.FC<CompanySearchFormProps> = ({
   onSearch,
-  isLoading = false
+  isLoading = false,
+  defaultValues = {}
 }) => {
   const form = useForm<CompanySearchFormValues>({
     resolver: zodResolver(companySearchSchema),
     defaultValues: {
       searchTerm: '',
       searchType: 'nome',
-      status: 'todos'
+      status: 'todos',
+      ...defaultValues
     }
   });
 
@@ -46,11 +49,12 @@ export const CompanySearchForm: React.FC<CompanySearchFormProps> = ({
                     <Input
                       placeholder="Digite o termo para busca..."
                       className="pl-10"
+                      autoComplete="off"
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -70,7 +74,7 @@ export const CompanySearchForm: React.FC<CompanySearchFormProps> = ({
                     <SelectItem value="nicho">Nicho</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -90,7 +94,7 @@ export const CompanySearchForm: React.FC<CompanySearchFormProps> = ({
                     <SelectItem value="inativo">Inativos</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />

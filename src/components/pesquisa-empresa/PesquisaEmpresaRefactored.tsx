@@ -1,13 +1,20 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
 import { PaginatedCompanyList } from '../empresa/components/PaginatedCompanyList';
 import { CompanySearchForm } from '../empresa/components/search/CompanySearchForm';
-import { useCompanySearch } from '../empresa/hooks/useCompanySearch';
+import { useCompanySearchUnified } from '@/hooks/useCompanySearchUnified';
 
 const PesquisaEmpresaRefactored: React.FC = () => {
-  const { isLoading, results, searchCompanies } = useCompanySearch();
+  const { isLoading, results, searchCompanies, resetResults } = useCompanySearchUnified();
+
+  // Reset results when component unmounts
+  useEffect(() => {
+    return () => {
+      resetResults();
+    };
+  }, []);
 
   return (
     <div className="space-y-6">
