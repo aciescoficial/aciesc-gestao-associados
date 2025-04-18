@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AprovacaoInteresse from './AprovacaoInteresse';
 import AprovacaoAprovados from './components/AprovacaoAprovados';
 import FluxoAprovacao from './components/FluxoAprovacao';
@@ -25,7 +26,16 @@ const AprovacaoInteressePage: React.FC = () => {
             <span>Aprovados</span>
           </TabsTrigger>
           <TabsTrigger value="fluxo" className="flex items-center gap-2">
-            <GitBranch className="h-4 w-4" />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <GitBranch className="h-4 w-4" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Visualize o processo de aprovação de associados</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <span>Fluxo</span>
           </TabsTrigger>
           <TabsTrigger value="incorporacao" className="flex items-center gap-2">
