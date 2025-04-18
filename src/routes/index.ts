@@ -1,7 +1,10 @@
 
-export * from './mainRoutes';
-export * from './authRoutes';
-export * from './adminRoutes';
-export * from './userRoutes';
-export * from './publicRoutes';
-export * from './financeiroRoutes';
+import { AdminRoutes } from './adminRoutes';
+import { UserRoutes } from './userRoutes';
+import { SharedRoutes } from './sharedRoutes';
+
+export {
+  AdminRoutes,
+  UserRoutes,
+  SharedRoutes
+};
