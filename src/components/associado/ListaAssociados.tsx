@@ -42,7 +42,7 @@ const ListaAssociados: React.FC = () => {
           cidadeFilter={cidadeFilter}
           setCidadeFilter={setCidadeFilter}
           cidades={cidades}
-          loading={loading}
+          isSearching={loading}
           handleSearch={handleSearch}
           itemsPerPage={itemsPerPage}
           setItemsPerPage={setItemsPerPage}
@@ -51,14 +51,11 @@ const ListaAssociados: React.FC = () => {
         
         <AssociadosTable 
           associados={associados} 
-          loading={loading} 
-        />
-        
-        <AssociadosPagination 
+          loading={loading}
           currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
           totalCount={totalCount}
           itemsPerPage={itemsPerPage}
-          setCurrentPage={setCurrentPage}
         />
       </div>
     </div>

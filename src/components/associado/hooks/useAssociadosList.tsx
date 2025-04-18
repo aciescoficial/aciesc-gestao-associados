@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -53,7 +54,13 @@ export const useAssociadosList = () => {
 
   useEffect(() => {
     fetchCidades();
+    // Load data initially when the component mounts
+    fetchAssociados();
   }, []);
+
+  useEffect(() => {
+    fetchAssociados();
+  }, [currentPage, statusFilter, cidadeFilter, itemsPerPage]);
 
   const fetchAssociados = async () => {
     setLoading(true);
@@ -111,14 +118,10 @@ export const useAssociadosList = () => {
     }
   };
 
-  useEffect(() => {
-    fetchAssociados();
-  }, [currentPage, statusFilter, cidadeFilter, itemsPerPage]);
-
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
-    fetchAssociados();
+    await fetchAssociados();
   };
 
   return {

@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, RefreshCw, Filter, Car } from 'lucide-react';
-import { AssociadoStatus } from '../types';
+import { AssociadoStatus } from '@/components/associado/types';
 
 interface AssociadoSearchFormProps {
   searchTerm: string;
@@ -159,6 +160,7 @@ const AssociadoSearchForm: React.FC<AssociadoSearchFormProps> = ({
               <SelectItem value="20">20 por página</SelectItem>
               <SelectItem value="50">50 por página</SelectItem>
               <SelectItem value="100">100 por página</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
             </SelectContent>
           </Select>
           
