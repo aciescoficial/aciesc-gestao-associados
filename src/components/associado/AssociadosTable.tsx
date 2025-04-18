@@ -9,9 +9,9 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { RefreshCw } from 'lucide-react';
-import AssociadoTableRow from './AssociadoTableRow';
-import AssociadoPagination from './AssociadoPagination';
-import { AssociadoListItem } from '../hooks/useAssociadosList';
+import AssociadoTableRow from './components/AssociadoTableRow';
+import AssociadoPagination from './components/AssociadoPagination';
+import { AssociadoListItem } from './hooks/useAssociadosList';
 
 interface AssociadosTableProps {
   associados: AssociadoListItem[];

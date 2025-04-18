@@ -11,7 +11,7 @@ import {
 import { RefreshCw } from 'lucide-react';
 import AssociadoTableRow from './AssociadoTableRow';
 import AssociadoPagination from './AssociadoPagination';
-import { AssociadoListItem } from '@/components/associado/hooks/useAssociadosList';
+import { AssociadoListItem } from '../hooks/useAssociadosList';
 
 interface AssociadosTableProps {
   associados: AssociadoListItem[];

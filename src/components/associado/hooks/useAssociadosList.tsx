@@ -118,7 +118,7 @@ export const useAssociadosList = () => {
     }
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setCurrentPage(1);
     await fetchAssociados();
