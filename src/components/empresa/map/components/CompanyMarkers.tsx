@@ -22,9 +22,9 @@ export const CompanyMarkers: React.FC<CompanyMarkersProps> = ({
     if (!mapInitialized) return null;
     
     return companies.map((company, index) => {
-      // Generate random positions for demo
-      const lat = -15.7801 + (Math.random() - 0.5) * 10;
-      const lng = -47.9292 + (Math.random() - 0.5) * 10;
+      // Use actual coordinates if available, otherwise generate random positions for demo
+      const lat = company.latitude || -15.7801 + (Math.random() - 0.5) * 10;
+      const lng = company.longitude || -47.9292 + (Math.random() - 0.5) * 10;
       const position: [number, number] = [lat, lng];
       
       const isSelected = selectedCompany?.id === company.id;

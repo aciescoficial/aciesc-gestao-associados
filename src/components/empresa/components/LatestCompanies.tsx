@@ -3,10 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getLatestCompanies } from '../services/empresaService';
 import { EmpresaData } from '../types';
-import { Eye, MapPin } from 'lucide-react';
+import { Eye, MapPin, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Link } from 'react-router-dom';
 
 const LatestCompanies: React.FC<{ onLocateEmpresa?: (empresa: EmpresaData) => void }> = ({ 
   onLocateEmpresa 
@@ -20,7 +21,15 @@ const LatestCompanies: React.FC<{ onLocateEmpresa?: (empresa: EmpresaData) => vo
       try {
         setLoading(true);
         const data = await getLatestCompanies(3);
-        setCompanies(data);
+        
+        // Add mock coordinates for testing if needed
+        const companiesWithCoords = data.map(company => ({
+          ...company,
+          latitude: company.latitude || -15.7801 + (Math.random() - 0.5) * 0.1,
+          longitude: company.longitude || -47.9292 + (Math.random() - 0.5) * 0.1
+        }));
+        
+        setCompanies(companiesWithCoords);
       } catch (error) {
         console.error("Error fetching latest companies:", error);
         toast({
@@ -44,6 +53,22 @@ const LatestCompanies: React.FC<{ onLocateEmpresa?: (empresa: EmpresaData) => vo
       .map(part => part.charAt(0))
       .join('')
       .toUpperCase();
+  };
+  
+  const handleLocate = (company: EmpresaData) => {
+    if (onLocateEmpresa) {
+      // Ensure company has coordinates
+      if (!company.latitude || !company.longitude) {
+        toast({
+          title: "Coordenadas indisponíveis",
+          description: "Esta empresa não possui coordenadas de localização",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      onLocateEmpresa(company);
+    }
   };
 
   if (loading) {
@@ -95,17 +120,30 @@ const LatestCompanies: React.FC<{ onLocateEmpresa?: (empresa: EmpresaData) => vo
                     {company.cidade} • {company.nicho}
                   </p>
                 </div>
-                {onLocateEmpresa && (
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => onLocateEmpresa(company)}
+                <div className="flex flex-col gap-2">
+                  {onLocateEmpresa && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => handleLocate(company)}
+                      className="flex items-center gap-1"
+                    >
+                      <MapPin size={14} />
+                      <span>Localizar</span>
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    asChild
                     className="flex items-center gap-1"
                   >
-                    <MapPin size={14} />
-                    <span>Localizar</span>
+                    <Link to={`/empresas/detalhes/${company.id}`}>
+                      <Info size={14} />
+                      <span>Ver mais</span>
+                    </Link>
                   </Button>
-                )}
+                </div>
               </div>
             ))}
           </div>

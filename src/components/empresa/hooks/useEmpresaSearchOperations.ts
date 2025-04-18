@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,11 +19,20 @@ export const useEmpresaSearchOperations = () => {
       
       if (error) throw error;
       
-      const nearbyCompanies = data.map(company => ({
-        ...company,
-        latitude: latitude + (Math.random() - 0.5) * 0.05,
-        longitude: longitude + (Math.random() - 0.5) * 0.05
-      })) as EmpresaData[];
+      // Add latitude and longitude to companies that don't have them
+      const nearbyCompanies = data.map(company => {
+        // If the company already has coordinates, use them
+        if (company.latitude && company.longitude) {
+          return company as EmpresaData;
+        }
+        
+        // Otherwise, generate coordinates near the user's location
+        return {
+          ...company,
+          latitude: latitude + (Math.random() - 0.5) * 0.05,
+          longitude: longitude + (Math.random() - 0.5) * 0.05
+        } as EmpresaData;
+      });
       
       setResults(nearbyCompanies);
       
@@ -82,13 +90,21 @@ export const useEmpresaSearchOperations = () => {
       });
       
       if (data && data.length > 0) {
-        const companiesWithCoords = data.map(company => ({
-          ...company,
-          latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
-          longitude: -47.9292 + (Math.random() - 0.5) * 0.1
-        }));
-        setResults(companiesWithCoords as EmpresaData[]);
-        return companiesWithCoords as EmpresaData[];
+        // Preserve existing coordinates if available
+        const companiesWithCoords = data.map(company => {
+          if (company.latitude && company.longitude) {
+            return company as EmpresaData;
+          }
+          
+          return {
+            ...company,
+            latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
+            longitude: -47.9292 + (Math.random() - 0.5) * 0.1
+          } as EmpresaData;
+        });
+        
+        setResults(companiesWithCoords);
+        return companiesWithCoords;
       } else {
         setResults([]);
         toast({
@@ -138,13 +154,21 @@ export const useEmpresaSearchOperations = () => {
       });
       
       if (data && data.length > 0) {
-        const companiesWithCoords = data.map(company => ({
-          ...company,
-          latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
-          longitude: -47.9292 + (Math.random() - 0.5) * 0.1
-        }));
-        setResults(companiesWithCoords as EmpresaData[]);
-        return companiesWithCoords as EmpresaData[];
+        // Preserve existing coordinates if available
+        const companiesWithCoords = data.map(company => {
+          if (company.latitude && company.longitude) {
+            return company as EmpresaData;
+          }
+          
+          return {
+            ...company,
+            latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
+            longitude: -47.9292 + (Math.random() - 0.5) * 0.1
+          } as EmpresaData;
+        });
+        
+        setResults(companiesWithCoords);
+        return companiesWithCoords;
       } else {
         setResults([]);
         toast({

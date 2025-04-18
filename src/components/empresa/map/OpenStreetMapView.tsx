@@ -1,11 +1,11 @@
-
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import L from 'leaflet';
 import { EmpresaData } from '../types';
 import { setupLeafletIcons } from './icons/mapIcons';
 import MapContainerComponent from './components/MapContainer';
+import { useToast } from '@/hooks/use-toast';
 
 // Initialize Leaflet icons
 setupLeafletIcons();
@@ -25,12 +25,23 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
   const [zoom, setZoom] = useState<number>(6);
   const [loading, setLoading] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
+  const { toast } = useToast();
   
   // Find company's geo position (latitude, longitude)
   const geocodeCompany = async (company: EmpresaData) => {
     try {
-      // Here we need to use a geocoding service
+      // Use actual coordinates if available
+      if (company.latitude && company.longitude) {
+        return [company.latitude, company.longitude] as [number, number];
+      }
+      
+      // Otherwise, geocode the address or use a fallback
       // For now, we return a random position in Brazil for testing
+      toast({
+        title: "Geocodificação necessária",
+        description: "Esta empresa não possui coordenadas exatas salvas",
+      });
+      
       const lat = -15.7801 + (Math.random() - 0.5) * 10;
       const lng = -47.9292 + (Math.random() - 0.5) * 10;
       
@@ -54,16 +65,26 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
         },
         (error) => {
           console.error('Error getting location:', error);
+          toast({
+            title: "Erro ao obter localização",
+            description: "Não foi possível acessar sua localização atual",
+            variant: "destructive"
+          });
           setLoading(false);
         }
       );
     } else {
       console.error('Geolocation is not supported by this browser.');
+      toast({
+        title: "Geolocalização não suportada",
+        description: "Seu navegador não suporta geolocalização",
+        variant: "destructive"
+      });
     }
-  }, []);
+  }, [toast]);
   
   // When selected company changes, center map on it
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedCompany) {
       geocodeCompany(selectedCompany).then(coords => {
         if (coords) {
@@ -73,6 +94,13 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
       });
     }
   }, [selectedCompany]);
+
+  // Process companies to ensure they all have coordinates
+  const processedCompanies = companies.map(company => ({
+    ...company,
+    latitude: company.latitude || -15.7801 + (Math.random() - 0.5) * 0.1,
+    longitude: company.longitude || -47.9292 + (Math.random() - 0.5) * 0.1
+  }));
 
   return (
     <Card className="mt-4">
@@ -96,7 +124,7 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
         </div>
         
         <MapContainerComponent
-          companies={companies}
+          companies={processedCompanies}
           selectedCompany={selectedCompany}
           setSelectedCompany={setSelectedCompany}
           currentLocation={currentLocation}

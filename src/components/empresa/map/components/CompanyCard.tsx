@@ -2,9 +2,10 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Phone, Mail, ExternalLink, Navigation, Home } from 'lucide-react';
+import { Phone, Mail, ExternalLink, Navigation, Home, Info } from 'lucide-react';
 import { EmpresaData } from '../../types';
 import { getBadgeColors, formatPhoneNumber } from '../../utils/helpers';
+import { Link } from 'react-router-dom';
 
 interface CompanyCardProps {
   company: EmpresaData;
@@ -12,6 +13,15 @@ interface CompanyCardProps {
 
 export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   const [badgeColor, badgeBgColor] = getBadgeColors(company.nicho);
+  
+  const handleGetDirections = () => {
+    // Check if we have coordinates
+    if (!company.latitude || !company.longitude) return;
+    
+    // Create Google Maps direction URL
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${company.latitude},${company.longitude}&destination_place_id=${company.nome_fantasia}`;
+    window.open(mapsUrl, '_blank');
+  };
   
   return (
     <div className="w-64 p-1">
@@ -48,15 +58,34 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           </div>
         )}
         
-        <div className="pt-2">
-          <Button size="sm" variant="outline" className="w-full flex items-center gap-1">
+        <div className="pt-2 flex gap-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="w-full flex items-center gap-1"
+            onClick={handleGetDirections}
+          >
             <Navigation className="h-4 w-4" />
             <span>Como chegar</span>
           </Button>
         </div>
         
-        {company.site && (
-          <div className="pt-1">
+        <div className="pt-1 flex gap-2">
+          {company.id && (
+            <Button
+              size="sm"
+              variant="outline"
+              asChild
+              className="w-full flex items-center gap-1"
+            >
+              <Link to={`/empresas/detalhes/${company.id}`}>
+                <Info className="h-4 w-4" />
+                <span>Ver mais</span>
+              </Link>
+            </Button>
+          )}
+          
+          {company.site && (
             <a 
               href={company.site.startsWith('http') ? company.site : `https://${company.site}`} 
               target="_blank" 
@@ -64,10 +93,10 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
               className="flex items-center gap-1 text-blue-600 hover:underline"
             >
               <ExternalLink className="h-4 w-4" />
-              <span>Visitar site</span>
+              <span>Site</span>
             </a>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

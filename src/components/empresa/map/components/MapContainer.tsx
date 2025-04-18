@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapContainer as LeafletMapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapUpdater from './MapUpdater';
@@ -42,10 +42,13 @@ export const MapContainerComponent: React.FC<MapComponentProps> = ({
   mapRef
 }) => {
   const [mapInitialized, setMapInitialized] = useState(false);
+  const mapId = React.useId(); // Generate unique ID for each map instance
 
   return (
     <div className="relative h-[600px] w-full">
       <LeafletMapContainer 
+        key={mapId} // Add key to force full re-rendering of map
+        id={`map-${mapId}`}
         style={{ height: "100%", width: "100%" }}
         center={currentLocation}
         zoom={zoom}
