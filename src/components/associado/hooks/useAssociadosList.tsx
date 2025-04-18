@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -35,7 +34,6 @@ export const useAssociadosList = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const { toast } = useToast();
 
-  // Fetch available cities for filter dropdown
   const fetchCidades = async () => {
     try {
       const { data, error } = await supabase
@@ -60,22 +58,18 @@ export const useAssociadosList = () => {
   const fetchAssociados = async () => {
     setLoading(true);
     try {
-      // Build the query with filters
       let query = supabase
         .from('associados')
         .select('*', { count: 'exact' });
 
-      // Apply status filter if not 'todos'
       if (statusFilter !== 'todos') {
         query = query.eq('status', statusFilter as AssociadoStatus);
       }
       
-      // Apply city filter if provided and not 'todas'
       if (cidadeFilter !== 'todas') {
         query = query.eq('cidade', cidadeFilter);
       }
 
-      // Apply search term filter if provided
       if (searchTerm) {
         if (searchType === 'nome') {
           query = query.or(`nome.ilike.%${searchTerm}%,sobrenome.ilike.%${searchTerm}%`);
@@ -84,12 +78,10 @@ export const useAssociadosList = () => {
         } else if (searchType === 'creci') {
           query = query.ilike('creci', `%${searchTerm}%`);
         } else if (searchType === 'placa') {
-          // Add search by vehicle plate
           query = query.or(`placa_principal.ilike.%${searchTerm}%,placa_secundaria.ilike.%${searchTerm}%`);
         }
       }
 
-      // Add pagination if not showing all
       if (itemsPerPage !== -1) {
         const from = (currentPage - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
@@ -98,7 +90,6 @@ export const useAssociadosList = () => {
           .order('created_at', { ascending: false })
           .range(from, to);
       } else {
-        // If showing all, just order them
         query = query.order('created_at', { ascending: false });
       }
       
@@ -123,10 +114,10 @@ export const useAssociadosList = () => {
   useEffect(() => {
     fetchAssociados();
   }, [currentPage, statusFilter, cidadeFilter, itemsPerPage]);
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
     fetchAssociados();
   };
 
