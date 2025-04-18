@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Table, 
@@ -9,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { RefreshCw } from 'lucide-react';
 import AssociadoTableRow from './AssociadoTableRow';
-import AssociadoPagination from './AssociadoPagination';
+import AssociadosPagination from './AssociadosPagination';
 import { AssociadoListItem } from '../hooks/useAssociadosList';
 
 interface AssociadosTableProps {
@@ -68,7 +69,7 @@ const AssociadosTable: React.FC<AssociadosTableProps> = ({
         </Table>
       </div>
 
-      <AssociadoPagination 
+      <AssociadosPagination 
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         totalCount={totalCount}

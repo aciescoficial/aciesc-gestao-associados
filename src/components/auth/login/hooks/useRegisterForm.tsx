@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '../../AuthProvider';
 import { useToast } from "@/hooks/use-toast";
@@ -100,7 +101,7 @@ export const useRegisterForm = () => {
           toast({
             variant: "destructive",
             title: "Erro ao criar conta",
-            description: typeof error === 'string' ? error : error?.message || "Ocorreu um erro durante o cadastro",
+            description: typeof error === 'string' ? error : (error && 'message' in error ? error.message : "Ocorreu um erro durante o cadastro"),
           });
         }
       } else {
@@ -125,7 +126,7 @@ export const useRegisterForm = () => {
       toast({
         variant: "destructive",
         title: "Erro ao criar conta",
-        description: error?.message || "Ocorreu um erro durante o cadastro",
+        description: typeof error === 'string' ? error : (error && 'message' in error ? error.message : "Ocorreu um erro durante o cadastro"),
       });
     } finally {
       setIsLoading(false);
