@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from '../AuthRoutes';
@@ -12,6 +11,7 @@ const AprovacoesPendentes = React.lazy(() => import('@/components/aprovacoes/Apr
 const CadastroEmpresa = React.lazy(() => import('@/components/CadastroEmpresa'));
 const EmpresasPesquisa = React.lazy(() => import('@/components/empresa/EmpresasPesquisa'));
 const EmpresaSugestoes = React.lazy(() => import('@/components/empresa/EmpresaSugestoes'));
+// Use dynamic import to avoid name collision
 const EmpresaDetailPage = React.lazy(() => import('@/components/empresa/EmpresaDetailPage'));
 const GeradorCarteirinha = React.lazy(() => import('@/components/carteirinha/GeradorCarteirinha'));
 const IntegracaoFinanceira = React.lazy(() => import('@/components/IntegracaoFinanceira'));
@@ -21,6 +21,7 @@ const FinanceiroResumoPage = React.lazy(() => import('@/components/financeiro/Fi
 const AssociadosPage = React.lazy(() => import('@/components/financeiro/AssociadosPage'));
 const ConfiguracoesPage = React.lazy(() => import('@/components/configuracoes/ConfiguracoesPage'));
 const AprovacaoInteressePage = React.lazy(() => import('@/components/associado/AprovacaoInteressePage'));
+// Add imports for messaging components
 const MessagesDashboard = React.lazy(() => import('@/components/mensagens/MessagesDashboard'));
 const MensagensPage = React.lazy(() => import('@/components/mensagens/MensagensPage'));
 

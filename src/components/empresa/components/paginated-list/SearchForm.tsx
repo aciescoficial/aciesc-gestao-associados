@@ -1,64 +1,34 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search } from 'lucide-react';
 
 export interface SearchFormProps {
-  searchTerm: string;
-  onSearchTermChange: (value: string) => void;
-  pageSize: number;
-  onPageSizeChange: (value: number) => void;
-  onSubmit: (e: React.FormEvent) => void;
-  onSearch?: (term: string) => void;
+  onSearch: (term: string) => void;
 }
 
-export const SearchForm: React.FC<SearchFormProps> = ({
-  searchTerm,
-  onSearchTermChange,
-  pageSize,
-  onPageSizeChange,
-  onSubmit,
-  onSearch
-}) => {
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onSearchTermChange(e.target.value);
-    if (onSearch) {
-      onSearch(e.target.value);
-    }
+export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(searchTerm);
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 justify-between items-end">
-      <form onSubmit={onSubmit} className="flex-1 flex gap-2">
-        <Input
-          placeholder="Buscar por nome, razão social ou CNPJ"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="max-w-sm"
-        />
-        <Button type="submit">Buscar</Button>
-      </form>
-      
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground whitespace-nowrap">
-          Itens por página:
-        </span>
-        <Select
-          value={pageSize.toString()}
-          onValueChange={(val) => onPageSizeChange(Number(val))}
-        >
-          <SelectTrigger className="w-[80px]">
-            <SelectValue placeholder={pageSize.toString()} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="10">10</SelectItem>
-            <SelectItem value="20">20</SelectItem>
-            <SelectItem value="50">50</SelectItem>
-            <SelectItem value="100">100</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+    <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
+      <Input
+        type="text"
+        placeholder="Buscar por nome, razão social ou CNPJ"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="flex-grow"
+      />
+      <Button type="submit" variant="default">
+        <Search className="h-4 w-4 mr-2" />
+        Buscar
+      </Button>
+    </form>
   );
 };
