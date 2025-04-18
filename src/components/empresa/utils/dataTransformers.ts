@@ -1,10 +1,11 @@
+
 import { Database } from '@/integrations/supabase/types';
 import { EmpresaFormData } from '../types/formTypes';
 
 /**
  * Transforms database empresa record to the EmpresaData interface
  */
-export const mapToEmpresaData = (record: any): Database['empresa'] => {
+export const mapToEmpresaData = (record: any): any => {
   return {
     id: record.id,
     razao_social: record.razao_social,

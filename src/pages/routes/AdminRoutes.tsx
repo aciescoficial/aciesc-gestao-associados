@@ -1,24 +1,28 @@
+
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from '../AuthRoutes';
 import PluginLayout from '@/components/PluginLayout';
-
-// Admin components
-import CadastroAssociado from '@/components/CadastroAssociado';
-import PesquisaAssociado from '@/components/PesquisaAssociado';
-import AprovacoesPendentes from '@/components/AprovacoesPendentes';
-import CadastroEmpresa from '@/components/CadastroEmpresa';
-import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
-import EmpresaSugestoes from '@/components/empresa/EmpresaSugestoes';
-import EmpresaDetailPage from '@/components/empresa/EmpresaDetailPage';
-import GeradorCarteirinha from '@/components/carteirinha/GeradorCarteirinha';
-import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
-import UserManagement from '@/components/usuarios/UserManagement';
-import PermissionPanel from '@/components/usuarios/permission/PermissionPanel';
-import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
-import AssociadosPage from '@/components/financeiro/AssociadosPage';
-import ConfiguracoesPage from '@/components/configuracoes/ConfiguracoesPage';
 import Dashboard from '@/components/Dashboard';
+
+// Lazily load components
+const CadastroAssociado = React.lazy(() => import('@/components/CadastroAssociado'));
+const PesquisaAssociado = React.lazy(() => import('@/components/PesquisaAssociado'));
+const AprovacoesPendentes = React.lazy(() => import('@/components/aprovacoes/AprovacoesPendentes'));
+const CadastroEmpresa = React.lazy(() => import('@/components/CadastroEmpresa'));
+const EmpresasPesquisa = React.lazy(() => import('@/components/empresa/EmpresasPesquisa'));
+const EmpresaSugestoes = React.lazy(() => import('@/components/empresa/EmpresaSugestoes'));
+const EmpresaDetailPage = React.lazy(() => import('@/components/empresa/EmpresaDetailPage'));
+const GeradorCarteirinha = React.lazy(() => import('@/components/carteirinha/GeradorCarteirinha'));
+const IntegracaoFinanceira = React.lazy(() => import('@/components/IntegracaoFinanceira'));
+const UserManagement = React.lazy(() => import('@/components/usuarios/UserManagement'));
+const PermissionPanel = React.lazy(() => import('@/components/usuarios/permission/PermissionPanel'));
+const FinanceiroResumoPage = React.lazy(() => import('@/components/financeiro/FinanceiroResumoPage'));
+const AssociadosPage = React.lazy(() => import('@/components/financeiro/AssociadosPage'));
+const ConfiguracoesPage = React.lazy(() => import('@/components/configuracoes/ConfiguracoesPage'));
+const AprovacaoInteressePage = React.lazy(() => import('@/components/associado/AprovacaoInteressePage'));
+const MessagesDashboard = React.lazy(() => import('@/components/mensagens/MessagesDashboard'));
+const MensagensPage = React.lazy(() => import('@/components/mensagens/MensagensPage'));
 
 // Layout wrapper component to avoid circular dependencies
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -39,17 +43,8 @@ const CobrancasPage: React.FC = () => (
   </div>
 );
 
-// Placeholder for EmpresaDetailPage
-const EmpresaDetailPage: React.FC = () => (
-  <div className="space-y-6">
-    <h1 className="wp-header">Detalhes da Empresa</h1>
-    <div className="wp-card">
-      <p className="text-muted-foreground">
-        Detalhes da empresa serão exibidos aqui.
-      </p>
-    </div>
-  </div>
-);
+// Fallback component with custom loading time
+const PageLoading = () => <div>Carregando página...</div>;
 
 export const AdminRoutes = [
   // Dashboard Route
@@ -65,7 +60,9 @@ export const AdminRoutes = [
   <Route key="usuarios-gerenciar" path="/usuarios/gerenciar" element={
     <AdminRoute>
       <LayoutWrapper>
-        <UserManagement />
+        <React.Suspense fallback={<PageLoading />}>
+          <UserManagement />
+        </React.Suspense>
       </LayoutWrapper>
     </AdminRoute>
   } />,
@@ -73,7 +70,9 @@ export const AdminRoutes = [
   <Route key="usuarios-permissoes" path="/usuarios/permissoes" element={
     <AdminRoute>
       <LayoutWrapper>
-        <PermissionPanel />
+        <React.Suspense fallback={<PageLoading />}>
+          <PermissionPanel />
+        </React.Suspense>
       </LayoutWrapper>
     </AdminRoute>
   } />,
@@ -82,7 +81,9 @@ export const AdminRoutes = [
   <Route key="associados-cadastro" path="/associados/cadastro" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <CadastroAssociado />
+        <React.Suspense fallback={<PageLoading />}>
+          <CadastroAssociado />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -90,7 +91,19 @@ export const AdminRoutes = [
   <Route key="associados-pendentes" path="/associados/pendentes" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <AprovacoesPendentes />
+        <React.Suspense fallback={<PageLoading />}>
+          <AprovacoesPendentes />
+        </React.Suspense>
+      </LayoutWrapper>
+    </ProtectedRoute>
+  } />,
+
+  <Route key="associados-aprovacao" path="/associados/aprovacao" element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <LayoutWrapper>
+        <React.Suspense fallback={<PageLoading />}>
+          <AprovacaoInteressePage />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -98,7 +111,9 @@ export const AdminRoutes = [
   <Route key="associados-carteirinha" path="/associados/carteirinha" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <GeradorCarteirinha />
+        <React.Suspense fallback={<PageLoading />}>
+          <GeradorCarteirinha />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -107,7 +122,9 @@ export const AdminRoutes = [
   <Route key="empresas-cadastrar" path="/empresas/cadastrar" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <CadastroEmpresa />
+        <React.Suspense fallback={<PageLoading />}>
+          <CadastroEmpresa />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -115,7 +132,9 @@ export const AdminRoutes = [
   <Route key="empresas-pendentes" path="/empresas/pendentes" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <AprovacoesPendentes />
+        <React.Suspense fallback={<PageLoading />}>
+          <AprovacoesPendentes />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -123,7 +142,9 @@ export const AdminRoutes = [
   <Route key="empresas-pesquisar" path="/empresas/pesquisar" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <EmpresasPesquisa />
+        <React.Suspense fallback={<PageLoading />}>
+          <EmpresasPesquisa />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -131,7 +152,9 @@ export const AdminRoutes = [
   <Route key="empresas-detalhes" path="/empresas/detalhes/:id" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <EmpresaDetailPage />
+        <React.Suspense fallback={<PageLoading />}>
+          <EmpresaDetailPage />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -139,7 +162,9 @@ export const AdminRoutes = [
   <Route key="empresas-editar" path="/empresas/editar/:id" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <CadastroEmpresa />
+        <React.Suspense fallback={<PageLoading />}>
+          <CadastroEmpresa />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -147,16 +172,20 @@ export const AdminRoutes = [
   <Route key="empresas-sugestoes" path="/empresas/sugestoes" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <EmpresaSugestoes />
+        <React.Suspense fallback={<PageLoading />}>
+          <EmpresaSugestoes />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
   
-  // Mensagens Routes (Admin)
+  // Mensagens Routes
   <Route key="mensagens" path="/mensagens" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <MessagesDashboard />
+        <React.Suspense fallback={<PageLoading />}>
+          <MessagesDashboard />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -164,7 +193,9 @@ export const AdminRoutes = [
   <Route key="mensagens-enviar" path="/mensagens/enviar" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <MensagensPage />
+        <React.Suspense fallback={<PageLoading />}>
+          <MensagensPage />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -173,7 +204,9 @@ export const AdminRoutes = [
   <Route key="financeiro-resumo" path="/financeiro/resumo" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <FinanceiroResumoPage />
+        <React.Suspense fallback={<PageLoading />}>
+          <FinanceiroResumoPage />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -181,7 +214,9 @@ export const AdminRoutes = [
   <Route key="financeiro-cobrancas" path="/financeiro/cobrancas" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <CobrancasPage />
+        <React.Suspense fallback={<PageLoading />}>
+          <CobrancasPage />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -189,7 +224,9 @@ export const AdminRoutes = [
   <Route key="financeiro-associados" path="/financeiro/associados" element={
     <AdminRoute>
       <LayoutWrapper>
-        <AssociadosPage />
+        <React.Suspense fallback={<PageLoading />}>
+          <AssociadosPage />
+        </React.Suspense>
       </LayoutWrapper>
     </AdminRoute>
   } />,
@@ -197,7 +234,9 @@ export const AdminRoutes = [
   <Route key="financeiro-integracoes" path="/financeiro/integracoes" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <IntegracaoFinanceira />
+        <React.Suspense fallback={<PageLoading />}>
+          <IntegracaoFinanceira />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -205,7 +244,9 @@ export const AdminRoutes = [
   <Route key="financeiro-relatorios" path="/financeiro/relatorios" element={
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
-        <Dashboard />
+        <React.Suspense fallback={<PageLoading />}>
+          <Dashboard />
+        </React.Suspense>
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
@@ -213,7 +254,9 @@ export const AdminRoutes = [
   <Route key="configuracoes" path="/configuracoes" element={
     <AdminRoute>
       <LayoutWrapper>
-        <ConfiguracoesPage />
+        <React.Suspense fallback={<PageLoading />}>
+          <ConfiguracoesPage />
+        </React.Suspense>
       </LayoutWrapper>
     </AdminRoute>
   } />,

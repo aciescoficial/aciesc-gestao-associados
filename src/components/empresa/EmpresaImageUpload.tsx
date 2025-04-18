@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { UseFormRegister, FieldErrors, UseFormSetValue } from 'react-hook-form';
 import { EmpresaFormData } from './types/formTypes';
 import { supabase } from "@/integrations/supabase/client";

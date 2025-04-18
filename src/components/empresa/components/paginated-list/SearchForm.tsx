@@ -4,12 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-interface SearchFormProps {
+export interface SearchFormProps {
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
   pageSize: number;
   onPageSizeChange: (value: number) => void;
   onSubmit: (e: React.FormEvent) => void;
+  onSearch?: (term: string) => void;
 }
 
 export const SearchForm: React.FC<SearchFormProps> = ({
@@ -17,15 +18,23 @@ export const SearchForm: React.FC<SearchFormProps> = ({
   onSearchTermChange,
   pageSize,
   onPageSizeChange,
-  onSubmit
+  onSubmit,
+  onSearch
 }) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onSearchTermChange(e.target.value);
+    if (onSearch) {
+      onSearch(e.target.value);
+    }
+  };
+
   return (
     <div className="flex flex-col sm:flex-row gap-4 justify-between items-end">
       <form onSubmit={onSubmit} className="flex-1 flex gap-2">
         <Input
           placeholder="Buscar por nome, razão social ou CNPJ"
           value={searchTerm}
-          onChange={(e) => onSearchTermChange(e.target.value)}
+          onChange={handleSearchChange}
           className="max-w-sm"
         />
         <Button type="submit">Buscar</Button>

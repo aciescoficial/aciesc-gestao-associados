@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Map, List } from 'lucide-react';
 import { EmpresaData } from './types';
@@ -7,7 +8,7 @@ import ResultsTable from './ResultsTable';
 import { useEmpresaSearch } from './empresaSearchService';
 import { useToast } from '@/hooks/use-toast';
 import LatestCompanies from '../empresa/components/LatestCompanies';
-import PaginatedCompanyList from '../empresa/components/PaginatedCompanyList';
+import { PaginatedCompanyList } from '../empresa/components/PaginatedCompanyList';
 import { OpenStreetMapView } from '../empresa/map';
 
 const PesquisaEmpresaRefactored: React.FC = () => {
