@@ -1,8 +1,36 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { EmpresaData, NichoType } from '../types';
 import { logOperation } from "@/components/audit/auditLogService";
+
+export interface EmpresaResponse {
+  id: string;
+  razao_social: string;
+  nome_fantasia: string;
+  cnpj: string;
+  responsavel: string;
+  telefone: string;
+  email: string;
+  cidade: string;
+  nicho: NichoType;
+  status: string;
+  endereco: string;
+  cep: string;
+  logo_url?: string;
+  capa_url?: string;
+  site?: string;
+  instagram?: string;
+  whatsapp?: string;
+  desconto?: string;
+  produtos?: string;
+  video_url?: string;
+  created_at?: string;
+  updated_at?: string;
+  latitude?: number;
+  longitude?: number;
+}
 
 export const useEmpresaSearchOperations = () => {
   const [isSearching, setIsSearching] = useState(false);
@@ -20,14 +48,11 @@ export const useEmpresaSearchOperations = () => {
       if (error) throw error;
       
       // Add latitude and longitude to companies that don't have them
-      const nearbyCompanies = data.map(company => {
-        // Cast to EmpresaData since we're adding the missing fields
-        const companyData = company as unknown as EmpresaData;
-        
+      const nearbyCompanies = data.map((company: EmpresaResponse) => {
         // If the company already has coordinates, use them
-        if (company.latitude !== undefined && company.longitude !== undefined) {
+        if (typeof company.latitude === 'number' && typeof company.longitude === 'number') {
           return {
-            ...companyData,
+            ...company,
             latitude: company.latitude,
             longitude: company.longitude
           } as EmpresaData;
@@ -35,7 +60,7 @@ export const useEmpresaSearchOperations = () => {
         
         // Otherwise, generate coordinates near the user's location
         return {
-          ...companyData,
+          ...company,
           latitude: latitude + (Math.random() - 0.5) * 0.05,
           longitude: longitude + (Math.random() - 0.5) * 0.05
         } as EmpresaData;
@@ -98,19 +123,17 @@ export const useEmpresaSearchOperations = () => {
       
       if (data && data.length > 0) {
         // Cast data to EmpresaData and preserve existing coordinates if available
-        const companiesWithCoords = data.map(company => {
-          const companyData = company as unknown as EmpresaData;
-          
-          if (company.latitude !== undefined && company.longitude !== undefined) {
+        const companiesWithCoords = data.map((company: EmpresaResponse) => {
+          if (typeof company.latitude === 'number' && typeof company.longitude === 'number') {
             return {
-              ...companyData,
+              ...company,
               latitude: company.latitude,
               longitude: company.longitude
             } as EmpresaData;
           }
           
           return {
-            ...companyData,
+            ...company,
             latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
             longitude: -47.9292 + (Math.random() - 0.5) * 0.1
           } as EmpresaData;
@@ -168,19 +191,17 @@ export const useEmpresaSearchOperations = () => {
       
       if (data && data.length > 0) {
         // Cast data to EmpresaData and preserve existing coordinates if available
-        const companiesWithCoords = data.map(company => {
-          const companyData = company as unknown as EmpresaData;
-          
-          if (company.latitude !== undefined && company.longitude !== undefined) {
+        const companiesWithCoords = data.map((company: EmpresaResponse) => {
+          if (typeof company.latitude === 'number' && typeof company.longitude === 'number') {
             return {
-              ...companyData, 
+              ...company, 
               latitude: company.latitude,
               longitude: company.longitude
             } as EmpresaData;
           }
           
           return {
-            ...companyData,
+            ...company,
             latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
             longitude: -47.9292 + (Math.random() - 0.5) * 0.1
           } as EmpresaData;
