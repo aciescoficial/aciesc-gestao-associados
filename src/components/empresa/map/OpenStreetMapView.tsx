@@ -21,8 +21,9 @@ export const OpenStreetMapView: React.FC<MapViewProps> = ({
   selectedCompany,
   setSelectedCompany 
 }) => {
-  const [currentLocation, setCurrentLocation] = useState<[number, number]>([-15.7801, -47.9292]); // Brazil center
-  const [zoom, setZoom] = useState<number>(6);
+  // Set initial coordinates to Itapema, SC
+  const [currentLocation, setCurrentLocation] = useState<[number, number]>([-27.0861, -48.6161]);
+  const [zoom, setZoom] = useState<number>(13); // Increased initial zoom for better city view
   const [loading, setLoading] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
   const { toast } = useToast();

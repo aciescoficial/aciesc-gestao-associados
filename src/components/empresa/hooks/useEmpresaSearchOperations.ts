@@ -46,9 +46,7 @@ export const useEmpresaSearchOperations = () => {
       
       if (error) throw error;
       
-      // Add latitude and longitude to companies that don't have them
       const nearbyCompanies = data.map((company: EmpresaResponse) => {
-        // If the company already has coordinates, use them
         if (typeof company.latitude === 'number' && typeof company.longitude === 'number') {
           return {
             ...company,
@@ -57,7 +55,6 @@ export const useEmpresaSearchOperations = () => {
           } as EmpresaData;
         }
         
-        // Otherwise, generate coordinates near the user's location
         return {
           ...company,
           latitude: latitude + (Math.random() - 0.5) * 0.05,
@@ -121,7 +118,6 @@ export const useEmpresaSearchOperations = () => {
       });
       
       if (data && data.length > 0) {
-        // Cast data to EmpresaData and preserve existing coordinates if available
         const companiesWithCoords = data.map((company: EmpresaResponse) => {
           if (typeof company.latitude === 'number' && typeof company.longitude === 'number') {
             return {
@@ -133,8 +129,8 @@ export const useEmpresaSearchOperations = () => {
           
           return {
             ...company,
-            latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
-            longitude: -47.9292 + (Math.random() - 0.5) * 0.1
+            latitude: -27.0861 + (Math.random() - 0.5) * 0.05,
+            longitude: -48.6161 + (Math.random() - 0.5) * 0.05
           } as EmpresaData;
         });
         
@@ -189,11 +185,10 @@ export const useEmpresaSearchOperations = () => {
       });
       
       if (data && data.length > 0) {
-        // Cast data to EmpresaData and preserve existing coordinates if available
         const companiesWithCoords = data.map((company: EmpresaResponse) => {
           if (typeof company.latitude === 'number' && typeof company.longitude === 'number') {
             return {
-              ...company, 
+              ...company,
               latitude: company.latitude,
               longitude: company.longitude
             } as EmpresaData;
@@ -201,8 +196,8 @@ export const useEmpresaSearchOperations = () => {
           
           return {
             ...company,
-            latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
-            longitude: -47.9292 + (Math.random() - 0.5) * 0.1
+            latitude: -27.0861 + (Math.random() - 0.5) * 0.05,
+            longitude: -48.6161 + (Math.random() - 0.5) * 0.05
           } as EmpresaData;
         });
         
