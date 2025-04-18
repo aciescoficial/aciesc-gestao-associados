@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../AuthProvider';
 import { useToast } from "@/hooks/use-toast";
@@ -92,72 +91,43 @@ export const useRegisterForm = () => {
         retryCount
       });
       
-      if (!success && error !== null && error !== undefined) {
+      if (!success && error != null) {
         console.error("Signup error:", error);
         
-        let errorMessage = "Erro ao criar conta";
-        
-        // Type guard to ensure error is an object with message property
-        if (error && typeof error === 'object' && 'message' in error) {
-          const errorObj = error as { message: string };
-          errorMessage = errorObj.message || "Erro ao criar conta";
-        } else if (typeof error === 'string') {
-          errorMessage = error;
-        }
-        
-        // Create a type for the expected error object structure
         type RateLimitError = {
           code?: string;
           retryAfter?: number | null;
           message?: string;
         };
         
-        // Check if error is related to rate limiting with proper null checks and type casting
-        if (error !== null && 
-            typeof error === 'object') {
+        const typedError = error as RateLimitError;
+        
+        let errorMessage = "Erro ao criar conta";
+        
+        const isRateLimit = 
+          (typedError.code === 'rate_limit') || 
+          (typeof error === 'object' && 
+           'message' in error && 
+           (error as { message: string }).message.includes('rate limit'));
+        
+        if (isRateLimit) {
+          setIsRateLimited(true);
+          setRetryCount(prev => prev + 1);
           
-          // Cast error to our expected type to safely access properties
-          const typedError = error as RateLimitError;
+          const retryTime = typedError.retryAfter ?? 60; // Default to 60 seconds
           
-          // Check if it's a rate limit error
-          const isRateLimit = 
-            (typedError.code === 'rate_limit') || 
-            (errorMessage && 
-              (errorMessage.includes('rate limit') || 
-               errorMessage.includes('limite')));
+          setRetryCountdown(retryTime);
           
-          if (isRateLimit) {
-            setIsRateLimited(true);
-            setRetryCount(prev => prev + 1);
-            
-            // Add proper type checking before accessing retryAfter
-            let retryTime = 60; // Default
-            
-            // Use the typed error to safely access properties
-            if (typedError.retryAfter !== undefined && typedError.retryAfter !== null) {
-              retryTime = Number(typedError.retryAfter);
-            }
-            
-            setRetryCountdown(retryTime);
-            
-            toast({
-              variant: "destructive",
-              title: "Limite de tentativas excedido",
-              description: `${errorMessage} Tentativa: ${retryCount + 1}. Tente novamente em ${retryTime} segundos.`,
-            });
-          } else {
-            toast({
-              variant: "destructive",
-              title: "Erro ao criar conta",
-              description: errorMessage,
-            });
-          }
+          toast({
+            variant: "destructive",
+            title: "Limite de tentativas excedido",
+            description: `${typedError.message || errorMessage}. Tentativa: ${retryCount + 1}. Tente novamente em ${retryTime} segundos.`,
+          });
         } else {
-          // Handle non-object errors
           toast({
             variant: "destructive",
             title: "Erro ao criar conta",
-            description: errorMessage,
+            description: typedError.message || errorMessage,
           });
         }
       } else {
