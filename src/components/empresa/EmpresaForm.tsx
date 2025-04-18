@@ -7,7 +7,7 @@ import EmpresaDadosGerais from './EmpresaDadosGerais';
 import EmpresaContato from './EmpresaContato';
 import EmpresaEndereco from './EmpresaEndereco';
 import EmpresaNichoInfo from './EmpresaNichoInfo';
-import EmpresaImageUpload from './EmpresaImageUpload';
+import { EmpresaImageUpload } from './EmpresaImageUpload';
 import LocationPicker from './map/LocationPicker';
 import { FormActions } from './components/form/FormActions';
 
