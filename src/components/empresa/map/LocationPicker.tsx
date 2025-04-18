@@ -88,9 +88,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
           />
           <MapEvents onLocationSelected={handleMapClick} />
           {position && (
-            <Marker position={position}>
-              {/* The icon is now properly passed as a prop to the Marker component */}
-            </Marker>
+            <Marker position={position} />
           )}
         </MapContainer>
       </div>
