@@ -12,6 +12,39 @@ import { createUserForAssociado, sendRegistrationEmail } from './associadoUserSe
 
 export const saveAssociado = async (data: AssociadoFormData) => {
   try {
+    // Validate required fields
+    if (!data.nome || !data.sobrenome || !data.cpf || !data.email || !data.celular) {
+      throw new Error("Campos obrigatórios não preenchidos: nome, sobrenome, CPF, email e celular");
+    }
+    
+    // Validate CPF format
+    const cpfRegex = /^\d{11}$|^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+    if (!cpfRegex.test(data.cpf)) {
+      throw new Error("Formato de CPF inválido");
+    }
+    
+    // Check for existing associate with same CPF
+    const { data: existingCpf } = await supabase
+      .from('associados')
+      .select('id, nome')
+      .eq('cpf', data.cpf)
+      .maybeSingle();
+      
+    if (existingCpf) {
+      throw new Error(`CPF já cadastrado para o associado: ${existingCpf.nome}`);
+    }
+    
+    // Check for existing associate with same email
+    const { data: existingEmail } = await supabase
+      .from('associados')
+      .select('id, nome')
+      .eq('email', data.email)
+      .maybeSingle();
+      
+    if (existingEmail) {
+      throw new Error(`Email já cadastrado para o associado: ${existingEmail.nome}`);
+    }
+    
     const associadoData = {
       nome: data.nome,
       sobrenome: data.sobrenome,
@@ -69,21 +102,31 @@ export const saveAssociado = async (data: AssociadoFormData) => {
     
     // Create user if requested
     if (data.criarUsuario) {
-      await createUserForAssociado({
+      const userResult = await createUserForAssociado({
         id: associadoResult.id,
         email: data.email,
         nome: data.nome,
         sobrenome: data.sobrenome,
         cpf: data.cpf
       });
+      
+      if (!userResult.success) {
+        console.warn("Couldn't create user account, but associate was saved:", userResult.error);
+        // We don't throw here as the associate was created successfully
+      }
     } else {
       // Send email with registration link
-      await sendRegistrationEmail({
+      const emailResult = await sendRegistrationEmail({
         email: data.email,
         nome: data.nome,
         sobrenome: data.sobrenome,
         associadoId: associadoResult.id
       });
+      
+      if (!emailResult.success) {
+        console.warn("Couldn't send registration email, but associate was saved:", emailResult.error);
+        // We don't throw here as the associate was created successfully
+      }
     }
     
     return associadoResult;

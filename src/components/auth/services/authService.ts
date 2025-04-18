@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/components/usuarios/types';
 
@@ -73,6 +74,22 @@ export const signUp = async (email: string, password: string, name: string, opti
     const { role = 'user', skipEmailVerification = false, retryCount = 0 } = options;
     
     console.log("Signup attempt with:", email, name, role, "retry:", retryCount);
+    
+    // Validate inputs
+    if (!email || !password || !name) {
+      return { 
+        data: null, 
+        error: { message: 'Email, senha e nome são obrigatórios.' } 
+      };
+    }
+    
+    // Validate password strength
+    if (password.length < 6) {
+      return { 
+        data: null, 
+        error: { message: 'A senha deve ter pelo menos 6 caracteres.' } 
+      };
+    }
     
     // Standard signup options
     const signUpOptions: any = {

@@ -20,6 +20,32 @@ export const useUserCreation = (onSuccess: (user: User) => void) => {
         return false;
       }
       
+      // Check if user already exists with this email
+      const { data: existingUser, error: checkError } = await supabase
+        .from('user')
+        .select('id, email')
+        .eq('email', newUser.email)
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error("Error checking existing user:", checkError);
+        toast({
+          title: "Erro ao verificar usuário existente",
+          description: checkError.message,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      if (existingUser) {
+        toast({
+          title: "Usuário já existe",
+          description: `Já existe um usuário cadastrado com o email ${newUser.email}`,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
       // Generate a random password
       const tempPassword = `temp${Math.random().toString(36).slice(2, 10)}`;
       

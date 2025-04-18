@@ -23,6 +23,23 @@ interface SendEmailParams {
  */
 export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }: CreateUserParams) => {
   try {
+    // Check if user already exists with this email
+    const { data: existingUser, error: checkError } = await supabase
+      .from('user')
+      .select('id, email')
+      .eq('email', email)
+      .maybeSingle();
+    
+    if (checkError) throw checkError;
+    
+    if (existingUser) {
+      console.log("User already exists with this email:", email);
+      return {
+        success: false,
+        error: { message: "Já existe um usuário com este email. Use outro email ou solicite redefinição de senha." }
+      };
+    }
+    
     // Generate temporary password
     const tempPassword = Math.random().toString(36).slice(2, 10);
     
@@ -63,12 +80,17 @@ export const createUserForAssociado = async ({ id, email, nome, sobrenome, cpf }
         sobrenome,
         associadoId: id
       });
+      
+      return { success: true };
     }
     
-    return true;
+    throw new Error("Não foi possível criar o usuário");
   } catch (error) {
     console.error("Erro ao criar usuário para associado:", error);
-    throw error;
+    return {
+      success: false,
+      error
+    };
   }
 };
 
@@ -91,10 +113,13 @@ const enviarEmailUsuarioCriado = async ({ email, nome, sobrenome, associadoId }:
     
     if (error) throw error;
     
-    return true;
+    return { success: true };
   } catch (error) {
     console.error("Erro ao enviar e-mail para usuário criado:", error);
-    throw error;
+    return {
+      success: false,
+      error
+    };
   }
 };
 
@@ -103,6 +128,23 @@ const enviarEmailUsuarioCriado = async ({ email, nome, sobrenome, associadoId }:
  */
 export const sendRegistrationEmail = async ({ email, nome, sobrenome, associadoId }: SendEmailParams) => {
   try {
+    // Check if user already exists with this email
+    const { data: existingUser, error: checkError } = await supabase
+      .from('user')
+      .select('id, email')
+      .eq('email', email)
+      .maybeSingle();
+    
+    if (checkError) throw checkError;
+    
+    if (existingUser) {
+      console.log("User already exists with this email:", email);
+      return {
+        success: false,
+        error: { message: "Já existe um usuário com este email. Use outro email ou solicite redefinição de senha." }
+      };
+    }
+    
     const { error } = await supabase.functions.invoke('send-email', {
       body: {
         to: email,
@@ -116,9 +158,12 @@ export const sendRegistrationEmail = async ({ email, nome, sobrenome, associadoI
     
     if (error) throw error;
     
-    return true;
+    return { success: true };
   } catch (error) {
     console.error("Erro ao enviar e-mail de cadastro:", error);
-    throw error;
+    return {
+      success: false,
+      error
+    };
   }
 };
