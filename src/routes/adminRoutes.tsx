@@ -1,19 +1,15 @@
-
 import React, { Suspense, lazy } from "react";
 import { Route } from "react-router-dom";
 import { AdminRoute, ProtectedRoute } from "../pages/AuthRoutes";
 import PluginLayout from "../components/PluginLayout";
 import AppLoading from "../components/shared/AppLoading";
 
-// Eagerly loaded components
-import Dashboard from "../components/Dashboard";
-
-// Lazily loaded components
+// Import components
 const CadastroAssociado = lazy(() => import("../components/CadastroAssociado"));
 const PesquisaAssociado = lazy(() => import("../components/PesquisaAssociado"));
 const CadastroEmpresa = lazy(() => import("../components/CadastroEmpresa"));
 const PesquisaEmpresa = lazy(() => import("../components/pesquisa-empresa/PesquisaEmpresaRefactored"));
-const AprovacoesPendentes = lazy(() => import("../components/AprovacoesPendentes"));
+const AprovacoesPendentes = lazy(() => import("../components/aprovacoes/AprovacoesPendentes"));
 const UserManagement = lazy(() => import("../components/usuarios/UserManagement"));
 const PermissionPanel = lazy(() => import("../components/usuarios/permission/PermissionPanel"));
 const ConfiguracoesPage = lazy(() => import("../components/configuracoes/ConfiguracoesPage"));
@@ -21,8 +17,9 @@ const AprovacaoInteressePage = lazy(() => import("../components/associado/Aprova
 const GeradorCarteirinha = lazy(() => import("../components/carteirinha/GeradorCarteirinha"));
 const EmpresaSugestoes = lazy(() => import("../components/empresa/EmpresaSugestoes"));
 const EmpresaDetailPage = lazy(() => import("../components/empresa/EmpresaDetailPage"));
+const MessagesDashboard = lazy(() => import("../components/mensagens/MessagesDashboard"));
+const MensagensPage = lazy(() => import("../components/mensagens/MensagensPage"));
 
-// Fallback component with custom loading time
 const PageLoading = () => <AppLoading message="Carregando página..." />;
 
 export const AdminRoutes = [
@@ -152,5 +149,26 @@ export const AdminRoutes = [
         </Suspense>
       </PluginLayout>
     </AdminRoute>
-  } />
-];
+  } />,
+  
+  // Add missing routes for messages
+  <Route key="mensagens" path="/mensagens" element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <MessagesDashboard />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="mensagens-enviar" path="/mensagens/enviar" element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <MensagensPage />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+]
