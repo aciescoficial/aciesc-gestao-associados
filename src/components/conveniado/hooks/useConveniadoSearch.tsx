@@ -129,9 +129,9 @@ export const useConveniadoSearch = () => {
     } catch (error) {
       console.error('Error fetching conveniados:', error);
       toast({
-        title: "Erro na busca",
-        description: "Ocorreu um erro ao realizar a busca. Tente novamente.",
-        variant: "destructive",
+        title: 'Erro ao carregar associados',
+        description: 'Não foi possível carregar a lista de associados.',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);

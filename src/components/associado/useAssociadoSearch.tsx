@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { Associado, AssociadoStatus } from './types';
 
 export const useAssociadoSearch = () => {
@@ -23,7 +22,7 @@ export const useAssociadoSearch = () => {
 
   const fetchCidades = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await extendedSupabase
         .from('associados')
         .select('cidade')
         .order('cidade');
@@ -46,11 +45,10 @@ export const useAssociadoSearch = () => {
     setIsSearching(true);
     
     try {
-      let query = supabase.from('associados').select('*', { count: 'exact' });
+      let query = extendedSupabase.from('associados').select('*', { count: 'exact' });
       
       if (searchTerm.trim()) {
         if (searchType === 'nome') {
-          // Modificação para melhorar a busca por nome - busca separada por nome e sobrenome
           const termLower = searchTerm.toLowerCase();
           query = query.or(`nome.ilike.%${termLower}%,sobrenome.ilike.%${termLower}%`);
         } else if (searchType === 'cpf') {
@@ -110,7 +108,7 @@ export const useAssociadoSearch = () => {
       setTotalCount(count || 0);
       
       const associadoIds = data.map(item => item.id);
-      const { data: profilesData, error: profilesError } = await supabase
+      const { data: profilesData, error: profilesError } = await extendedSupabase
         .from('user')
         .select('id, avatar_url')
         .in('id', associadoIds);
