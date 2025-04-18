@@ -3,19 +3,14 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { EmpresaData } from '../types';
-
-interface SearchParams {
-  searchTerm: string;
-  searchType: 'nome' | 'cnpj' | 'nicho';
-  status: 'ativo' | 'inativo' | 'todos';
-}
+import type { CompanySearchFormValues } from '../components/search/schema';
 
 export const useCompanySearch = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<EmpresaData[]>([]);
   const { toast } = useToast();
 
-  const searchCompanies = async (params: SearchParams) => {
+  const searchCompanies = async (params: CompanySearchFormValues) => {
     setIsLoading(true);
     try {
       let query = supabase
