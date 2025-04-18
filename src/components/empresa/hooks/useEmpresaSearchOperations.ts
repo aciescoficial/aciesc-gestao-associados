@@ -21,14 +21,21 @@ export const useEmpresaSearchOperations = () => {
       
       // Add latitude and longitude to companies that don't have them
       const nearbyCompanies = data.map(company => {
+        // Cast to EmpresaData since we're adding the missing fields
+        const companyData = company as unknown as EmpresaData;
+        
         // If the company already has coordinates, use them
-        if (company.latitude && company.longitude) {
-          return company as EmpresaData;
+        if (company.latitude !== undefined && company.longitude !== undefined) {
+          return {
+            ...companyData,
+            latitude: company.latitude,
+            longitude: company.longitude
+          } as EmpresaData;
         }
         
         // Otherwise, generate coordinates near the user's location
         return {
-          ...company,
+          ...companyData,
           latitude: latitude + (Math.random() - 0.5) * 0.05,
           longitude: longitude + (Math.random() - 0.5) * 0.05
         } as EmpresaData;
@@ -49,7 +56,7 @@ export const useEmpresaSearchOperations = () => {
       toast({
         title: "Erro na busca",
         description: error.message || "Ocorreu um erro ao realizar a busca. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return [];
     } finally {
@@ -90,14 +97,20 @@ export const useEmpresaSearchOperations = () => {
       });
       
       if (data && data.length > 0) {
-        // Preserve existing coordinates if available
+        // Cast data to EmpresaData and preserve existing coordinates if available
         const companiesWithCoords = data.map(company => {
-          if (company.latitude && company.longitude) {
-            return company as EmpresaData;
+          const companyData = company as unknown as EmpresaData;
+          
+          if (company.latitude !== undefined && company.longitude !== undefined) {
+            return {
+              ...companyData,
+              latitude: company.latitude,
+              longitude: company.longitude
+            } as EmpresaData;
           }
           
           return {
-            ...company,
+            ...companyData,
             latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
             longitude: -47.9292 + (Math.random() - 0.5) * 0.1
           } as EmpresaData;
@@ -118,7 +131,7 @@ export const useEmpresaSearchOperations = () => {
       toast({
         title: "Erro na busca",
         description: error.message || "Ocorreu um erro ao realizar a busca. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return [];
     } finally {
@@ -154,14 +167,20 @@ export const useEmpresaSearchOperations = () => {
       });
       
       if (data && data.length > 0) {
-        // Preserve existing coordinates if available
+        // Cast data to EmpresaData and preserve existing coordinates if available
         const companiesWithCoords = data.map(company => {
-          if (company.latitude && company.longitude) {
-            return company as EmpresaData;
+          const companyData = company as unknown as EmpresaData;
+          
+          if (company.latitude !== undefined && company.longitude !== undefined) {
+            return {
+              ...companyData, 
+              latitude: company.latitude,
+              longitude: company.longitude
+            } as EmpresaData;
           }
           
           return {
-            ...company,
+            ...companyData,
             latitude: -15.7801 + (Math.random() - 0.5) * 0.1,
             longitude: -47.9292 + (Math.random() - 0.5) * 0.1
           } as EmpresaData;
@@ -182,7 +201,7 @@ export const useEmpresaSearchOperations = () => {
       toast({
         title: "Erro na busca",
         description: error.message || "Ocorreu um erro ao realizar a busca. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return [];
     } finally {
