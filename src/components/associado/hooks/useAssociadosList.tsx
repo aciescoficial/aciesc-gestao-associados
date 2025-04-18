@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { useToast } from '@/hooks/use-toast';
 import { AssociadoStatus } from '../types';
 
@@ -37,7 +38,7 @@ export const useAssociadosList = () => {
 
   const fetchCidades = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await extendedSupabase
         .from('associados')
         .select('cidade')
         .order('cidade');
@@ -65,7 +66,7 @@ export const useAssociadosList = () => {
   const fetchAssociados = async () => {
     setLoading(true);
     try {
-      let query = supabase
+      let query = extendedSupabase
         .from('associados')
         .select('*', { count: 'exact' });
 
@@ -77,24 +78,27 @@ export const useAssociadosList = () => {
         query = query.eq('cidade', cidadeFilter);
       }
 
-      if (searchTerm) {
-        if (searchType === 'nome') {
-          // Modificação na busca por nome para melhorar os resultados
-          const termLower = searchTerm.toLowerCase();
-          query = query.or(`nome.ilike.%${termLower}%,sobrenome.ilike.%${termLower}%`);
-        } else if (searchType === 'cpf') {
-          query = query.ilike('cpf', `%${searchTerm}%`);
-        } else if (searchType === 'creci') {
-          query = query.ilike('creci', `%${searchTerm}%`);
-        } else if (searchType === 'placa') {
-          query = query.or(`placa_principal.ilike.%${searchTerm}%,placa_secundaria.ilike.%${searchTerm}%`);
+      if (searchTerm.trim()) {
+        switch (searchType) {
+          case 'nome':
+            const termLower = searchTerm.toLowerCase();
+            query = query.or(`nome.ilike.%${termLower}%,sobrenome.ilike.%${termLower}%`);
+            break;
+          case 'cpf':
+            query = query.ilike('cpf', `%${searchTerm}%`);
+            break;
+          case 'creci':
+            query = query.ilike('creci', `%${searchTerm}%`);
+            break;
+          case 'placa':
+            query = query.or(`placa_principal.ilike.%${searchTerm}%,placa_secundaria.ilike.%${searchTerm}%`);
+            break;
         }
       }
 
       if (itemsPerPage !== -1) {
         const from = (currentPage - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
-        
         query = query
           .order('created_at', { ascending: false })
           .range(from, to);

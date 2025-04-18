@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { ConveniadoData } from '../types';
-import { supabase } from '@/integrations/supabase/client';
 
 export const useConveniadoSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,8 +25,7 @@ export const useConveniadoSearch = () => {
     
     try {
       const term = searchTerm.toLowerCase();
-      // Modificação na busca para melhorar os resultados
-      const { data, error } = await supabase
+      const { data, error } = await extendedSupabase
         .from('associados')
         .select('*')
         .or(`nome.ilike.%${term}%,sobrenome.ilike.%${term}%,cpf.ilike.%${term}%`);
@@ -103,7 +101,7 @@ export const useConveniadoSearch = () => {
   // Function to fetch the associate's photo from their profile
   const fetchAssociadoFoto = async (associadoId: string) => {
     try {
-      const { data: profileData, error } = await supabase
+      const { data: profileData, error } = await extendedSupabase
         .from('user')
         .select('avatar_url')
         .eq('id', associadoId)

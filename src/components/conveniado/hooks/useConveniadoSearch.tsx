@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
+import { extendedSupabase } from '@/integrations/supabase/extendedClient';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 export type ConveniadoStatus = 'ativo' | 'pendente' | 'inativo';
 
@@ -39,14 +38,13 @@ export const useConveniadoSearch = () => {
 
   const fetchCidades = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await extendedSupabase
         .from('associados')
         .select('cidade')
         .order('cidade');
       
       if (error) throw error;
       
-      // Cast data to the expected type with type assertion
       const associadosData = data as { cidade: string }[];
       const uniqueCidades = Array.from(new Set(associadosData.map(item => item.cidade) || []));
       setCidades(uniqueCidades.filter(Boolean).sort());
@@ -59,13 +57,11 @@ export const useConveniadoSearch = () => {
     setLoading(true);
     
     try {
-      let query = supabase.from('associados').select('*', { count: 'exact' });
+      let query = extendedSupabase.from('associados').select('*', { count: 'exact' });
       
-      // Apply search term filter if provided
       if (searchTerm.trim()) {
         switch (searchType) {
           case 'nome':
-            // Modificação para melhorar a busca por nome
             const termLower = searchTerm.toLowerCase();
             query = query.or(`nome.ilike.%${termLower}%,sobrenome.ilike.%${termLower}%`);
             break;
@@ -81,17 +77,14 @@ export const useConveniadoSearch = () => {
         }
       }
       
-      // Apply status filter if not 'todos'
       if (statusFilter !== 'todos') {
         query = query.eq('status', statusFilter);
       }
       
-      // Apply city filter if not 'todas'
       if (cidadeFilter !== 'todas') {
         query = query.eq('cidade', cidadeFilter);
       }
       
-      // Add pagination if itemsPerPage is not -1 (which means "show all")
       if (itemsPerPage !== -1) {
         const from = (currentPage - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
@@ -107,7 +100,9 @@ export const useConveniadoSearch = () => {
         searchTerm,
         searchType, 
         statusFilter, 
-        cidadeFilter 
+        cidadeFilter,
+        currentPage,
+        itemsPerPage
       });
       
       const { data, error, count } = await query;
@@ -116,8 +111,7 @@ export const useConveniadoSearch = () => {
       
       console.log('Conveniado search results:', data?.length || 0, 'items found');
       
-      // Map the retrieved data to the Conveniado interface
-      const conveniados = (data || []).map(item => ({
+      setConveniados((data || []).map(item => ({
         id: item.id,
         nome: item.nome,
         sobrenome: item.sobrenome,
@@ -130,9 +124,7 @@ export const useConveniadoSearch = () => {
         placa_principal: item.placa_principal,
         placa_secundaria: item.placa_secundaria,
         created_at: item.created_at
-      }));
-      
-      setConveniados(conveniados);
+      })));
       setTotalCount(count || 0);
     } catch (error) {
       console.error('Error fetching conveniados:', error);
@@ -148,7 +140,7 @@ export const useConveniadoSearch = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
     fetchConveniados();
   };
 
