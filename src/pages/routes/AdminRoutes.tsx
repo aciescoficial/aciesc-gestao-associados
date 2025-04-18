@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { ProtectedRoute, AdminRoute } from '../AuthRoutes';
@@ -38,6 +37,18 @@ const CobrancasPage: React.FC = () => (
     <div className="wp-card">
       <p className="text-muted-foreground">
         Esta página está em construção.
+      </p>
+    </div>
+  </div>
+);
+
+// Placeholder for EmpresaDetailPage
+const EmpresaDetailPage: React.FC = () => (
+  <div className="space-y-6">
+    <h1 className="wp-header">Detalhes da Empresa</h1>
+    <div className="wp-card">
+      <p className="text-muted-foreground">
+        Detalhes da empresa serão exibidos aqui.
       </p>
     </div>
   </div>
@@ -116,6 +127,22 @@ export const AdminRoutes = [
     <ProtectedRoute allowedRoles={['admin']}>
       <LayoutWrapper>
         <EmpresasPesquisa />
+      </LayoutWrapper>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="empresas-detalhes" path="/empresas/detalhes/:id" element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <LayoutWrapper>
+        <EmpresaDetailPage />
+      </LayoutWrapper>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="empresas-editar" path="/empresas/editar/:id" element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <LayoutWrapper>
+        <CadastroEmpresa />
       </LayoutWrapper>
     </ProtectedRoute>
   } />,

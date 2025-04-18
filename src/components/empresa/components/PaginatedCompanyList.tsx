@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Table,
@@ -24,6 +23,7 @@ import {
 } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Link } from 'react-router-dom';
 
 interface PaginatedCompanyListProps {
   onLocateEmpresa?: (empresa: EmpresaData) => void;
@@ -65,7 +65,7 @@ const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({ onLocateEmp
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
     fetchCompanies();
   };
 
@@ -168,22 +168,22 @@ const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({ onLocateEmp
                         <Button
                           size="icon"
                           variant="outline"
-                          asChild
                           title="Ver detalhes"
+                          asChild
                         >
-                          <a href={`/empresas/${company.id}`}>
+                          <Link to={`/empresas/detalhes/${company.id}`}>
                             <Eye className="h-4 w-4" />
-                          </a>
+                          </Link>
                         </Button>
                         <Button
                           size="icon"
                           variant="outline"
-                          asChild
                           title="Editar empresa"
+                          asChild
                         >
-                          <a href={`/empresas/editar/${company.id}`}>
+                          <Link to={`/empresas/editar/${company.id}`}>
                             <Edit className="h-4 w-4" />
-                          </a>
+                          </Link>
                         </Button>
                       </div>
                     </TableCell>
@@ -211,7 +211,6 @@ const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({ onLocateEmp
               </PaginationItem>
               
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                // Logic to show pagination numbers around current page
                 let pageNum;
                 if (totalPages <= 5) {
                   pageNum = i + 1;

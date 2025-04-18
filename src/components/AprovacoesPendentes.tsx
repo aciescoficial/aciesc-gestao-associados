@@ -49,7 +49,9 @@ const AprovacoesPendentes: React.FC = () => {
       setIsLoading(true);
       const empresas = await fetchPendingEmpresas();
       
-      // Transform to our display format
+      // Transform to our display format and log to check data
+      console.log("Pending empresas fetched:", empresas);
+      
       const mappedData: PendenteData[] = empresas.map((empresa: EmpresaData) => ({
         id: empresa.id,
         tipo: 'empresa',
@@ -59,6 +61,8 @@ const AprovacoesPendentes: React.FC = () => {
         email: empresa.email,
         telefone: empresa.telefone
       }));
+      
+      console.log("Mapped pending empresas:", mappedData);
       
       setPendentes(mappedData);
     } catch (error) {

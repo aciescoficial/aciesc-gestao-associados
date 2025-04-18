@@ -48,7 +48,8 @@ export const fetchDashboardStats = async (retries = 1): Promise<DashboardStats> 
         const [
           associadosResult, 
           empresasResult, 
-          pendentesResult,
+          pendentesAssociadosResult,
+          pendentesEmpresasResult,
           carteirasResult
         ] = await Promise.all([
           // Use extendedSupabase client to bypass RLS for more reliable count
@@ -57,8 +58,13 @@ export const fetchDashboardStats = async (retries = 1): Promise<DashboardStats> 
           // Fetch empresas count
           extendedSupabase.from('empresas').select('*', { count: 'exact', head: true }),
           
-          // Fetch pending approvals count
+          // Fetch pending associados count
           extendedSupabase.from('associados')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'pendente'),
+            
+          // Fetch pending empresas count
+          extendedSupabase.from('empresas')
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pendente'),
             
@@ -67,18 +73,23 @@ export const fetchDashboardStats = async (retries = 1): Promise<DashboardStats> 
             .select('*', { count: 'exact', head: true })
             .eq('status', 'pendente_pagamento')
         ]);
+        
+        // Calculate total pending items (associados + empresas)
+        const totalPendentes = (pendentesAssociadosResult.count || 0) + (pendentesEmpresasResult.count || 0);
 
         console.log('Stats query results:', {
           associados: associadosResult.count,
           empresas: empresasResult.count,
-          pendentes: pendentesResult.count,
+          pendentesAssociados: pendentesAssociadosResult.count,
+          pendentesEmpresas: pendentesEmpresasResult.count,
+          totalPendentes,
           carteiras: carteirasResult.count
         });
 
         return {
           associados: associadosResult.count || 0,
           empresas: empresasResult.count || 0,
-          pendentes: pendentesResult.count || 0,
+          pendentes: totalPendentes,
           carteirasPendentes: carteirasResult.count || 0
         };
       } catch (error) {
