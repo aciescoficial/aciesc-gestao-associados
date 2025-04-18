@@ -29,9 +29,9 @@ describe('empresaCrudService', () => {
   describe('getLatestCompanies', () => {
     it('should fetch latest companies with default limit', async () => {
       const mockData = [
-        { id: '1', nome_fantasia: 'Company 1' },
-        { id: '2', nome_fantasia: 'Company 2' },
-        { id: '3', nome_fantasia: 'Company 3' },
+        { id: '1', nome_fantasia: 'Company 1', nicho: 'Serviços' },
+        { id: '2', nome_fantasia: 'Company 2', nicho: 'Comércio' },
+        { id: '3', nome_fantasia: 'Company 3', nicho: 'Tecnologia' },
       ];
 
       const mockSelect = vi.fn().mockResolvedValue({ data: mockData, error: null });
@@ -50,7 +50,7 @@ describe('empresaCrudService', () => {
 
   describe('getCompaniesPaginated', () => {
     it('should fetch paginated companies with search term', async () => {
-      const mockData = [{ id: '1', nome_fantasia: 'Test Company' }];
+      const mockData = [{ id: '1', nome_fantasia: 'Test Company', nicho: 'Serviços' }];
       const mockCount = 1;
 
       const mockRange = vi.fn().mockResolvedValue({ 
