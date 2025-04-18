@@ -1,7 +1,6 @@
-
-import React, { useState } from 'react';
-import { UseFormRegister, FieldErrors } from 'react-hook-form';
-import { EmpresaFormData } from './EmpresaForm';
+import React from 'react';
+import { UseFormRegister, FieldErrors, UseFormSetValue } from 'react-hook-form';
+import { EmpresaFormData } from './types/formTypes';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload, X } from 'lucide-react';
@@ -9,7 +8,7 @@ import { Loader2, Upload, X } from 'lucide-react';
 interface EmpresaImageUploadProps {
   register: UseFormRegister<EmpresaFormData>;
   errors: FieldErrors<EmpresaFormData>;
-  setValue: (name: any, value: any) => void;
+  setValue: UseFormSetValue<EmpresaFormData>;
   defaultLogoUrl?: string;
   defaultCapaUrl?: string;
 }

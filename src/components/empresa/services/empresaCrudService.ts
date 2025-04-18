@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { BaseService } from '@/services/baseService';
-import { EmpresaFormData } from '../EmpresaForm';
+import { EmpresaFormData } from '../types/formTypes';
 import { EmpresaData } from '../types';
 import { mapToEmpresaData } from '../utils/dataTransformers';
 

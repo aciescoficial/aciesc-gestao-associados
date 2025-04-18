@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
-import { EmpresaFormData } from './EmpresaForm';
+import { EmpresaFormData } from './types/formTypes';
 
 interface EmpresaDadosGeraisProps {
   register: UseFormRegister<EmpresaFormData>;
@@ -10,52 +9,55 @@ interface EmpresaDadosGeraisProps {
 
 const EmpresaDadosGerais: React.FC<EmpresaDadosGeraisProps> = ({ register, errors }) => {
   return (
-    <>
-      {/* Razão Social */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Razão Social*</label>
-        <input
-          type="text"
-          className={`wp-input w-full ${errors.razaoSocial ? 'border-wp-error' : ''}`}
-          {...register('razaoSocial', { required: "Razão Social é obrigatória" })}
-        />
-        {errors.razaoSocial && <p className="text-wp-error text-sm">{errors.razaoSocial.message}</p>}
-      </div>
+    <div className="wp-card">
+      <h3 className="wp-subheader mb-4">Dados Gerais</h3>
       
-      {/* Nome Fantasia */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Nome Fantasia*</label>
-        <input
-          type="text"
-          className={`wp-input w-full ${errors.nomeFantasia ? 'border-wp-error' : ''}`}
-          {...register('nomeFantasia', { required: "Nome Fantasia é obrigatório" })}
-        />
-        {errors.nomeFantasia && <p className="text-wp-error text-sm">{errors.nomeFantasia.message}</p>}
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label htmlFor="razaoSocial" className="wp-label">Razão Social</label>
+          <input 
+            type="text" 
+            id="razaoSocial" 
+            className="wp-input"
+            {...register("razaoSocial", { required: "Razão Social é obrigatória" })} 
+          />
+          {errors.razaoSocial && <p className="wp-error">{errors.razaoSocial.message}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="nomeFantasia" className="wp-label">Nome Fantasia</label>
+          <input 
+            type="text" 
+            id="nomeFantasia" 
+            className="wp-input"
+            {...register("nomeFantasia", { required: "Nome Fantasia é obrigatório" })} 
+          />
+          {errors.nomeFantasia && <p className="wp-error">{errors.nomeFantasia.message}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="cnpj" className="wp-label">CNPJ</label>
+          <input 
+            type="text" 
+            id="cnpj" 
+            className="wp-input"
+            {...register("cnpj", { required: "CNPJ é obrigatório" })}
+          />
+          {errors.cnpj && <p className="wp-error">{errors.cnpj.message}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="responsavel" className="wp-label">Responsável</label>
+          <input 
+            type="text" 
+            id="responsavel" 
+            className="wp-input"
+            {...register("responsavel", { required: "Responsável é obrigatório" })} 
+          />
+          {errors.responsavel && <p className="wp-error">{errors.responsavel.message}</p>}
+        </div>
       </div>
-      
-      {/* CNPJ */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">CNPJ*</label>
-        <input
-          type="text"
-          className={`wp-input w-full ${errors.cnpj ? 'border-wp-error' : ''}`}
-          placeholder="00.000.000/0001-00"
-          {...register('cnpj', { required: "CNPJ é obrigatório" })}
-        />
-        {errors.cnpj && <p className="text-wp-error text-sm">{errors.cnpj.message}</p>}
-      </div>
-      
-      {/* Responsável */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Responsável*</label>
-        <input
-          type="text"
-          className={`wp-input w-full ${errors.responsavel ? 'border-wp-error' : ''}`}
-          {...register('responsavel', { required: "Responsável é obrigatório" })}
-        />
-        {errors.responsavel && <p className="text-wp-error text-sm">{errors.responsavel.message}</p>}
-      </div>
-    </>
+    </div>
   );
 };
 

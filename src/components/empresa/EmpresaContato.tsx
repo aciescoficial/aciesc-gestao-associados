@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
-import { EmpresaFormData } from './EmpresaForm';
+import { EmpresaFormData } from './types/formTypes';
 
 interface EmpresaContatoProps {
   register: UseFormRegister<EmpresaFormData>;

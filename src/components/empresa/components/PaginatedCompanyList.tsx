@@ -1,100 +1,87 @@
-import React from 'react';
-import { EmpresaData } from '../types';
-import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import React, { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import { SearchForm } from './paginated-list/SearchForm';
 import { CompanyTable } from './paginated-list/CompanyTable';
 import { PaginationControls } from './paginated-list/PaginationControls';
+import { empresaService } from '../services/empresaService';
+import type { EmpresaData } from '../types';
 
 interface PaginatedCompanyListProps {
-  onLocateEmpresa?: (empresa: EmpresaData) => void;
+  initialData: EmpresaData[];
+  itemsPerPage?: number;
 }
 
-const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({ onLocateEmpresa }) => {
-  const [companies, setCompanies] = React.useState<EmpresaData[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [totalCount, setTotalCount] = React.useState(0);
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(10);
-  const [searchTerm, setSearchTerm] = React.useState('');
+export const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({ initialData, itemsPerPage = 10 }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [data, setData] = useState<EmpresaData[]>(initialData);
+  const { toast } = useToast();
 
-  const fetchCompanies = React.useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
     try {
-      const { data, count } = await empresaCrudService.getCompaniesPaginated(currentPage, pageSize, {
-        searchTerm: searchTerm
-      });
-      
-      setCompanies(data);
-      setTotalCount(count);
+      const fetchedData = await empresaService.getAllEmpresas();
+      setData(fetchedData);
     } catch (error) {
-      console.error("Error fetching companies:", error);
+      console.error("Failed to fetch empresas:", error);
       toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao buscar as empresas",
+        title: "Erro ao carregar empresas",
+        description: "Falha ao carregar a lista de empresas. Por favor, tente novamente.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
-  }, [currentPage, pageSize]);
-
-  React.useEffect(() => {
-    fetchCompanies();
-  }, [currentPage, pageSize]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    fetchCompanies();
   };
 
-  if (loading) {
-    return (
-      <div className="h-96 flex items-center justify-center">
-        <LoadingSpinner text="Carregando empresas..." />
-      </div>
-    );
-  }
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1); // Reset to the first page when searching
+  };
 
-  if (companies.length === 0) {
-    return (
-      <div className="h-32 flex items-center justify-center border rounded-md">
-        <p className="text-muted-foreground">Nenhuma empresa encontrada</p>
-      </div>
-    );
-  }
+  const filteredData = searchTerm
+    ? data.filter(item =>
+        item.nome_fantasia.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.razao_social.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : data;
 
-  const totalPages = Math.ceil(totalCount / pageSize);
+  const totalItems = filteredData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Get current items based on pagination
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = filteredData.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await empresaService.deleteEmpresa(id);
+      toast({
+        title: "Empresa removida com sucesso",
+        description: "A empresa foi removida do sistema."
+      });
+      // Reload data after delete
+      fetchData();
+    } catch (error: any) {
+      console.error("Error deleting empresa:", error);
+      toast({
+        title: "Erro ao remover empresa",
+        description: error.message || "Ocorreu um erro ao remover a empresa.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-4">
-      <SearchForm
-        searchTerm={searchTerm}
-        onSearchTermChange={setSearchTerm}
-        pageSize={pageSize}
-        onPageSizeChange={(value) => {
-          setPageSize(value);
-          setCurrentPage(1);
-        }}
-        onSubmit={handleSearch}
+      <SearchForm onSearch={handleSearch} />
+      <CompanyTable empresas={currentItems} onDelete={handleDelete} />
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
       />
-
-      <CompanyTable
-        companies={companies}
-        onLocateEmpresa={onLocateEmpresa}
-      />
-
-      {totalPages > 0 && (
-        <PaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalCount={totalCount}
-          itemsCount={companies.length}
-          onPageChange={setCurrentPage}
-        />
-      )}
     </div>
   );
 };
-
-export default PaginatedCompanyList;

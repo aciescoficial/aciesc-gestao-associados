@@ -10,18 +10,15 @@ import AprovacoesPendentes from '@/components/AprovacoesPendentes';
 import CadastroEmpresa from '@/components/CadastroEmpresa';
 import EmpresasPesquisa from '@/components/empresa/EmpresasPesquisa';
 import EmpresaSugestoes from '@/components/empresa/EmpresaSugestoes';
+import EmpresaDetailPage from '@/components/empresa/EmpresaDetailPage';
 import GeradorCarteirinha from '@/components/carteirinha/GeradorCarteirinha';
 import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
 import UserManagement from '@/components/usuarios/UserManagement';
-import PermissionPanel from '@/components/usuarios/PermissionPanel';
+import PermissionPanel from '@/components/usuarios/permission/PermissionPanel';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import ConfiguracoesPage from '@/components/configuracoes/ConfiguracoesPage';
 import Dashboard from '@/components/Dashboard';
-
-// Mensagens components
-import MessagesDashboard from '@/components/mensagens/MessagesDashboard';
-import MensagensPage from '@/components/mensagens/MensagensPage';
 
 // Layout wrapper component to avoid circular dependencies
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (

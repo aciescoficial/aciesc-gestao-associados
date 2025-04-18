@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
-import { EmpresaFormData } from './EmpresaForm';
-import { Database } from '@/integrations/supabase/types';
+import { EmpresaFormData } from './types/formTypes';
+import { NichoType } from './types/formTypes';
 
 interface EmpresaNichoInfoProps {
   register: UseFormRegister<EmpresaFormData>;
@@ -10,57 +9,50 @@ interface EmpresaNichoInfoProps {
 }
 
 const EmpresaNichoInfo: React.FC<EmpresaNichoInfoProps> = ({ register, errors }) => {
-  const nichos: Database['public']['Enums']['nicho_type'][] = [
-    "Alimentação", 
-    "Saúde", 
-    "Educação", 
-    "Serviços", 
-    "Comércio", 
-    "Lazer", 
-    "Tecnologia", 
-    "Outro"
-  ];
-
   return (
-    <>
-      {/* Nicho */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Nicho*</label>
-        <select 
-          className={`wp-input w-full ${errors.nicho ? 'border-wp-error' : ''}`}
-          {...register('nicho', { required: "Nicho é obrigatório" })}
-        >
-          <option value="">Selecione um nicho</option>
-          {nichos.map((nicho, index) => (
-            <option key={index} value={nicho}>{nicho}</option>
-          ))}
-        </select>
-        {errors.nicho && <p className="text-wp-error text-sm">{errors.nicho.message}</p>}
-      </div>
+    <div className="wp-card">
+      <h3 className="wp-subheader mb-4">Nicho e Informações Adicionais</h3>
       
-      {/* Desconto */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Desconto Oferecido*</label>
-        <input
-          type="text"
-          className={`wp-input w-full ${errors.desconto ? 'border-wp-error' : ''}`}
-          placeholder="10% em todos os produtos"
-          {...register('desconto', { required: "Desconto é obrigatório" })}
-        />
-        {errors.desconto && <p className="text-wp-error text-sm">{errors.desconto.message}</p>}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="nicho" className="wp-label">Nicho de Atuação</label>
+          <select 
+            id="nicho" 
+            className={`wp-input ${errors.nicho ? 'wp-input-error' : ''}`}
+            {...register("nicho", { required: "O nicho de atuação é obrigatório" })}
+          >
+            <option value="">Selecione...</option>
+            <option value="varejo">Varejo</option>
+            <option value="servicos">Serviços</option>
+            <option value="industria">Indústria</option>
+          </select>
+          {errors.nicho && <p className="wp-error-message">{errors.nicho.message}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="desconto" className="wp-label">Desconto Oferecido</label>
+          <input 
+            type="text" 
+            id="desconto" 
+            className={`wp-input ${errors.desconto ? 'wp-input-error' : ''}`}
+            placeholder="Ex: 10% nos serviços"
+            {...register("desconto", { required: "O desconto é obrigatório" })}
+          />
+          {errors.desconto && <p className="wp-error-message">{errors.desconto.message}</p>}
+        </div>
+
+        <div className="col-span-2">
+          <label htmlFor="produtos" className="wp-label">Produtos/Serviços Oferecidos</label>
+          <textarea 
+            id="produtos" 
+            className={`wp-input ${errors.produtos ? 'wp-input-error' : ''}`}
+            placeholder="Descreva os principais produtos e serviços oferecidos"
+            {...register("produtos", { required: "A descrição dos produtos/serviços é obrigatória" })}
+          />
+          {errors.produtos && <p className="wp-error-message">{errors.produtos.message}</p>}
+        </div>
       </div>
-      
-      {/* Produtos/Serviços */}
-      <div className="space-y-2 md:col-span-2">
-        <label className="block text-sm font-medium">Produtos/Serviços*</label>
-        <textarea
-          className={`wp-input w-full h-32 ${errors.produtos ? 'border-wp-error' : ''}`}
-          placeholder="Descreva os produtos/serviços oferecidos pela empresa"
-          {...register('produtos', { required: "Produtos/Serviços é obrigatório" })}
-        ></textarea>
-        {errors.produtos && <p className="text-wp-error text-sm">{errors.produtos.message}</p>}
-      </div>
-    </>
+    </div>
   );
 };
 
