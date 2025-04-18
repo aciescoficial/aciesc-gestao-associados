@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from '@/integrations/supabase/types';
 import { EmpresaFormData } from './EmpresaForm';
@@ -24,6 +25,8 @@ export interface ImportEmpresaData {
   logoUrl?: string;
   capaUrl?: string;
   videoUrl?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export const saveEmpresa = async (data: EmpresaFormData) => {
@@ -46,6 +49,8 @@ export const saveEmpresa = async (data: EmpresaFormData) => {
     logo_url: data.logoUrl || null,
     capa_url: data.capaUrl || null,
     video_url: data.videoUrl || null,
+    latitude: data.latitude || null,
+    longitude: data.longitude || null,
     status: 'pendente' as StatusType
   };
   

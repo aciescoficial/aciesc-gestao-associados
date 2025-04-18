@@ -33,6 +33,8 @@ export interface EmpresaFormData {
   logoUrl: string;
   capaUrl: string;
   videoUrl: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 const EmpresaForm: React.FC = () => {

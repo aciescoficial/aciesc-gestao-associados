@@ -34,6 +34,13 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   );
   const { toast } = useToast();
 
+  useEffect(() => {
+    // Set up the leaflet icon when the component mounts
+    if (defaultIcon) {
+      console.log("Leaflet icon initialized");
+    }
+  }, []);
+
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast({
