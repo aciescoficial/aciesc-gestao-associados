@@ -1,5 +1,5 @@
 
-import { empresaStatusService } from '@/components/empresa/services/empresaService';
+import { empresaService } from '@/components/empresa/services/empresaService';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { useState } from 'react';
 import { PendenteData } from '../types';
@@ -9,7 +9,7 @@ export const useAprovacoes = () => {
   const { isLoading, withLoading } = useLoadingState();
 
   const fetchPendentes = async () => {
-    const empresasPendentes = await empresaStatusService.fetchPendingEmpresas();
+    const empresasPendentes = await empresaService.fetchPendingEmpresas();
     
     const formattedPendentes: PendenteData[] = empresasPendentes.map(empresa => ({
       id: empresa.id,
@@ -26,14 +26,14 @@ export const useAprovacoes = () => {
 
   const handleApprove = async (id: string) => {
     await withLoading(async () => {
-      await empresaStatusService.updateEmpresaStatus(id, 'ativo');
+      await empresaService.updateEmpresaStatus(id, 'ativo');
       await fetchPendentes();
     }, "Erro ao aprovar cadastro");
   };
 
   const handleReject = async (id: string) => {
     await withLoading(async () => {
-      await empresaStatusService.updateEmpresaStatus(id, 'inativo');
+      await empresaService.updateEmpresaStatus(id, 'inativo');
       await fetchPendentes();
     }, "Erro ao rejeitar cadastro");
   };

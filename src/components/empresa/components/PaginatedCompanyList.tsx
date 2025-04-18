@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SearchForm } from './paginated-list/SearchForm';
 import { CompanyTable } from './paginated-list/CompanyTable';
 import { PaginationControls } from './paginated-list/PaginationControls';
-import { empresaCrudService as empresaService } from '../services/empresaCrudService';
+import { empresaService } from '../services/empresaService';
 import type { EmpresaData } from '../types';
 
 interface PaginatedCompanyListProps {

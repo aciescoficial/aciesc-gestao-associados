@@ -1,5 +1,4 @@
 
-import { Database } from '@/integrations/supabase/types';
 import { EmpresaFormData } from '../types/formTypes';
 
 /**

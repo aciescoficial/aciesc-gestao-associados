@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { empresaCrudService } from './services/empresaService';
+import { empresaService } from './services/empresaService';
 import { EmpresaData } from './types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +24,7 @@ const EmpresaDetailPage: React.FC = () => {
         if (!id) return;
         
         setLoading(true);
-        const data = await empresaCrudService.getEmpresaById(id);
+        const data = await empresaService.getEmpresaById(id);
         setEmpresa(mapToEmpresaData(data));
       } catch (error) {
         console.error("Error fetching company details:", error);

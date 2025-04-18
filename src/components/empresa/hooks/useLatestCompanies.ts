@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { empresaCrudService } from '../services/empresaService';
+import { empresaService } from '../services/empresaService';
 import { EmpresaData } from '../types';
 
 export const useLatestCompanies = (limit: number = 3) => {
@@ -13,7 +13,7 @@ export const useLatestCompanies = (limit: number = 3) => {
     const fetchLatestCompanies = async () => {
       try {
         setLoading(true);
-        const data = await empresaCrudService.getLatestCompanies(limit);
+        const data = await empresaService.getLatestCompanies(limit);
         
         const companiesWithCoords = data.map(company => ({
           ...company,
