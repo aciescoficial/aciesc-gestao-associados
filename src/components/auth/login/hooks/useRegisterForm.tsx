@@ -8,6 +8,33 @@ import { usePasswordManagement } from './usePasswordManagement';
 import { useRetryLogic } from './useRetryLogic';
 import { handleSignUpError } from '../services/errorHandlingService';
 
+// Define a generic error type to help with type checking
+interface ErrorWithMessage {
+  message: string;
+  [key: string]: any;
+}
+
+// Type guard to check if an error has a message property
+function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as Record<string, unknown>).message === 'string'
+  );
+}
+
+// Extract error message from various error types
+function getErrorMessage(error: unknown): string {
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (isErrorWithMessage(error)) {
+    return error.message;
+  }
+  return "Ocorreu um erro durante o cadastro";
+}
+
 export const useRegisterForm = () => {
   const { signUp } = useAuth();
   const [email, setEmail] = useState('');
@@ -98,17 +125,8 @@ export const useRegisterForm = () => {
             description: `${errorResult.message}. Tentativa: ${retryCount + 1}. Tente novamente em ${errorResult.retryTime} segundos.`,
           });
         } else {
-          // Handle the error object safely regardless of its type
-          let errorMessage = "Ocorreu um erro durante o cadastro";
-          
-          if (typeof error === 'string') {
-            errorMessage = error;
-          } else if (error && typeof error === 'object') {
-            // Check if error is an object with a message property
-            errorMessage = 'message' in error && typeof error.message === 'string' 
-              ? error.message 
-              : errorMessage;
-          }
+          // Handle the error object safely with our helper function
+          const errorMessage = getErrorMessage(error);
           
           toast({
             variant: "destructive",
@@ -133,19 +151,11 @@ export const useRegisterForm = () => {
         
         navigate('/login?registered=true');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Exception during signup:", error);
       
-      // Handle the caught exception safely
-      let errorMessage = "Ocorreu um erro durante o cadastro";
-      
-      if (typeof error === 'string') {
-        errorMessage = error;
-      } else if (error && typeof error === 'object') {
-        errorMessage = 'message' in error && typeof error.message === 'string'
-          ? error.message
-          : errorMessage;
-      }
+      // Handle the caught exception safely with our helper function
+      const errorMessage = getErrorMessage(error);
       
       toast({
         variant: "destructive",
