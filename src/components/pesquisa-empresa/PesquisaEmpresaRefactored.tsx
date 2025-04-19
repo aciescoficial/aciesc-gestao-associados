@@ -1,20 +1,19 @@
 
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
 import { PaginatedCompanyList } from '../empresa/components/PaginatedCompanyList';
 import { CompanySearchForm } from '../empresa/components/search/CompanySearchForm';
-import { useCompanySearchUnified } from '@/hooks/useCompanySearchUnified';
+import { useCompanyQuery } from '@/hooks/queries/useCompanyQuery';
+import type { CompanySearchFormValues } from '../empresa/components/search/schema';
 
 const PesquisaEmpresaRefactored: React.FC = () => {
-  const { isLoading, results, searchCompanies, resetResults } = useCompanySearchUnified();
+  const [searchParams, setSearchParams] = useState<CompanySearchFormValues | null>(null);
+  const { data: results = [], isLoading } = useCompanyQuery(searchParams);
 
-  // Reset results when component unmounts
-  useEffect(() => {
-    return () => {
-      resetResults();
-    };
-  }, []);
+  const handleSearch = (params: CompanySearchFormValues) => {
+    setSearchParams(params);
+  };
 
   return (
     <div className="space-y-6">
@@ -25,7 +24,7 @@ const PesquisaEmpresaRefactored: React.FC = () => {
       
       <Card className="p-6">
         <CompanySearchForm 
-          onSearch={searchCompanies}
+          onSearch={handleSearch}
           isLoading={isLoading}
         />
         
