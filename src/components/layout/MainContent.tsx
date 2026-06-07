@@ -7,14 +7,14 @@ interface MainContentProps {
 }
 
 // Error boundary component
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
   constructor(props: {children: React.ReactNode}) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
@@ -29,7 +29,10 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
           <p className="text-gray-700 mb-4">
             Ocorreu um erro ao carregar esta página. Por favor, tente recarregar ou contate o suporte.
           </p>
-          <button 
+          <pre className="mb-4 bg-gray-100 p-3 rounded text-xs text-red-700 overflow-auto whitespace-pre-wrap">
+            {this.state.error?.message}{"\n"}{this.state.error?.stack}
+          </pre>
+          <button
             className="bg-aciesc-primary text-white px-4 py-2 rounded hover:bg-aciesc-primary/90"
             onClick={() => window.location.reload()}
           >

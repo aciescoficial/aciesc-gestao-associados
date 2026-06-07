@@ -1,8 +1,13 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = "https://wpcstzjczfgbfwgzwktf.supabase.co";
-const SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwY3N0empjemZnYmZ3Z3p3a3RmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Mzk4NzU5NywiZXhwIjoyMDU5NTYzNTk3fQ.DYPmPYmExt3tIbNJuMu9qXxfCHBDpdUyZQvKpnmW4fo";
+const SUPABASE_URL = "https://bcjibnbhjjgthlbeewnf.supabase.co";
+// ⚠️  ATENÇÃO: Atualize esta chave com a service_role key do novo projeto.
+// Dashboard Supabase → Settings → API → "service_role (secret)"
+// Projeto: aciesc-gestao-v2 (bcjibnbhjjgthlbeewnf)
+// ⚠️  SEGURANÇA: idealmente esta chave deve ficar apenas em Edge Functions,
+//     não exposta no bundle do frontend.
+const SUPABASE_SERVICE_KEY = "SUBSTITUA_PELA_SERVICE_ROLE_KEY_DO_NOVO_PROJETO";
 
 // Create an extended client with admin privileges for special operations
 export const extendedSupabase = createClient(

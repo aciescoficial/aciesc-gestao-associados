@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../AuthProvider';
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export const useLoginForm = (onForgotPassword: () => void) => {
   const { signIn } = useAuth();
@@ -12,6 +12,9 @@ export const useLoginForm = (onForgotPassword: () => void) => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Redirect back to the page that triggered the login (e.g. /consulta-iptu)
+  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/dashboard';
   
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +49,7 @@ export const useLoginForm = (onForgotPassword: () => void) => {
           description: "Você foi autenticado com sucesso.",
         });
         
-        navigate('/dashboard');
+        navigate(from, { replace: true });
       }
     } catch (error: any) {
       console.error('Exception during login:', error);

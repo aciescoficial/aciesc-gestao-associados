@@ -3,6 +3,7 @@ import React, { Suspense, lazy } from "react";
 import { Route } from "react-router-dom";
 import { ProtectedRoute } from "../pages/AuthRoutes";
 import PluginLayout from "../components/PluginLayout";
+import IPTUStandaloneLayout from "../components/iptu/IPTUStandaloneLayout";
 import AppLoading from "../components/shared/AppLoading";
 
 // Lazily loaded components
@@ -10,6 +11,7 @@ const PesquisaAssociado = lazy(() => import("../components/PesquisaAssociado"));
 const PagamentosAssociadoPage = lazy(() => import("../components/associado/PagamentosAssociadoPage"));
 const SolicitarCarteirinhaPage = lazy(() => import("../components/associado/SolicitarCarteirinhaPage"));
 const EmpresasConveniadas = lazy(() => import("../components/associado/EmpresasConveniadas"));
+const ConsultaIPTU = lazy(() => import("../components/iptu/ConsultaIPTU"));
 
 // Fallback component with custom loading time
 const PageLoading = () => <AppLoading message="Carregando página..." />;
@@ -54,5 +56,13 @@ export const UserRoutes = [
         </Suspense>
       </PluginLayout>
     </ProtectedRoute>
-  } />
+  } />,
+
+  <Route key="consulta-iptu" path="/consulta-iptu" element={
+    <ProtectedRoute allowedRoles={["user", "admin", "diretoria", "associado"]}>
+      <IPTUStandaloneLayout>
+        <ConsultaIPTU />
+      </IPTUStandaloneLayout>
+    </ProtectedRoute>
+  } />,
 ];

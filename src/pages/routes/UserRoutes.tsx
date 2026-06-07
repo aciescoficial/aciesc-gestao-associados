@@ -6,6 +6,7 @@ import PluginLayout from '@/components/PluginLayout';
 import PesquisaAssociado from '@/components/PesquisaAssociado';
 import EmpresasConveniadas from '@/components/associado/EmpresasConveniadas';
 import SolicitarCarteirinhaPage from '@/components/associado/SolicitarCarteirinhaPage';
+import ConsultaIPTU from '@/components/iptu/ConsultaIPTU';
 
 // Layout wrapper component to avoid circular dependencies
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -62,6 +63,14 @@ export const UserRoutes = [
     <ProtectedRoute allowedRoles={['user']}>
       <LayoutWrapper>
         <EmpresasConveniadasPage />
+      </LayoutWrapper>
+    </ProtectedRoute>
+  } />,
+
+  <Route key="consulta-iptu" path="/consulta-iptu" element={
+    <ProtectedRoute allowedRoles={['user', 'admin', 'diretoria', 'associado']}>
+      <LayoutWrapper>
+        <ConsultaIPTU />
       </LayoutWrapper>
     </ProtectedRoute>
   } />,
