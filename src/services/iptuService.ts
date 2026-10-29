@@ -97,3 +97,69 @@ export async function getMyIPTUQueries(): Promise<IPTUQueryLog[]> {
   if (error) throw new Error(error.message);
   return (data ?? []) as IPTUQueryLog[];
 }
+
+// ── Higestor Validator ─────────────────────────────────────────────────────
+
+export interface HigestorContribuinte {
+  id: string;
+  nome: string;
+  cpf_cnpj: string;
+  email: string;
+  cidade: string;
+  uf: string;
+  ativo: boolean;
+  associado: boolean;
+  filiado: boolean;
+  associado_desde: string | null;
+  associado_baixa: string | null;
+  /** true se ativo=true E (associado=true OU filiado=true) */
+  valido: boolean;
+  motivo_invalido: string | null;
+}
+
+export interface HigestorValidationResult {
+  valid: boolean;
+  contribuinte?: HigestorContribuinte;
+  error?: string;
+}
+
+export interface HigestorSearchResult {
+  count: number;
+  contribuintes: HigestorContribuinte[];
+  error?: string;
+}
+
+type HigestorFiltro = "id" | "cpf_cnpj" | "email" | "razao_social";
+
+/**
+ * Valida um contribuinte no Higestor por ID, CPF/CNPJ, e-mail ou razão social.
+ * Apenas admin/diretoria têm acesso a este endpoint.
+ */
+export async function validarContribuinteHigestor(
+  tipo: HigestorFiltro,
+  valor: string
+): Promise<HigestorValidationResult | HigestorSearchResult> {
+  const params = new URLSearchParams({ [tipo]: valor });
+
+  const { data, error } = await supabase.functions.invoke(
+    `higestor-validator?${params.toString()}`,
+    { method: "GET" }
+  );
+
+  if (error) throw new Error(error.message ?? "Erro ao consultar Higestor");
+  if (data?.error) throw new Error(data.error);
+  return data as HigestorValidationResult | HigestorSearchResult;
+}
+
+/**
+ * Verifica rapidamente se um associado_id do Supabase está ativo no Higestor.
+ * Uso direto por ID — retorna true/false.
+ */
+export async function isAssociadoAtivoNoHigestor(associadoId: string): Promise<boolean> {
+  try {
+    const result = await validarContribuinteHigestor("id", associadoId) as HigestorValidationResult;
+    return result.valid === true;
+  } catch {
+    return true; // Fail-open: não bloqueia por erro de comunicação
+  }
+}

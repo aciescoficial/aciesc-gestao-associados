@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Drive → YouTube credentials (never commit)
+scripts/gdrive-to-youtube/credentials/client_secrets.json
+scripts/gdrive-to-youtube/credentials/token.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

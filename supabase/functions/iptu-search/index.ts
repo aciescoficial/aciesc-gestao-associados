@@ -154,21 +154,73 @@ function decodeHtmlEntities(text: string): string {
     .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
 
-async function validateHigestorAssociate(associadoId: string): Promise<boolean> {
-  const higestorUrl = Deno.env.get("HIGESTOR_API_URL");
-  const higestorToken = Deno.env.get("HIGESTOR_API_TOKEN");
+/** Formata CPF (11 dígitos) ou CNPJ (14 dígitos) no padrão aceito pelo filtro do Higestor */
+function formatCpfCnpj(raw: string): string | null {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 11) {
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  }
+  if (digits.length === 14) {
+    return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  }
+  return null;
+}
 
-  if (!higestorUrl || !higestorToken) return true;
+/**
+ * Valida se o usuário está ativo no Higestor, buscando pelo CPF/CNPJ.
+ *
+ * Endpoint: GET /contribuintes?filter[cpf_cnpj]=XXX.XXX.XXX-XX (JSON:API)
+ * Auth:     Auth-Token header (gerado em Parâmetros > Entidade no Higestor)
+ * O filtro do Higestor só casa com o documento FORMATADO (testado em 2026-06).
+ *
+ * Critério de validade: ativo=true E (associado=true OU filiado=true)
+ * Não encontrado → inválido. Erro de comunicação → fail-open.
+ */
+async function validateHigestorByCpf(cpf: string): Promise<boolean> {
+  const higestorToken = Deno.env.get("HIGESTOR_API_TOKEN") ?? "zd_CS-9zRVGz8U_sGgzx";
+  const higestorBase = Deno.env.get("HIGESTOR_API_URL") ?? "https://app.higestor.com.br/api";
+
+  const formatted = formatCpfCnpj(cpf);
+  if (!formatted) return true; // CPF malformado no cadastro → não bloqueia
 
   try {
-    const res = await fetch(`${higestorUrl}/associados/${associadoId}`, {
-      headers: { Authorization: `Bearer ${higestorToken}` },
+    const url = new URL(`${higestorBase}/contribuintes`);
+    url.searchParams.set("filter[cpf_cnpj]", formatted);
+
+    const res = await fetch(url.toString(), {
+      headers: {
+        "Auth-Token": higestorToken,
+        // A API do Higestor (JSON:API estrito) rejeita com 406 qualquer outro Accept
+        "Accept": "application/vnd.api+json",
+      },
     });
-    if (!res.ok) return false;
-    const data = await res.json();
-    return data.ativo === true || data.situacao === "ATIVO" || data.status === "ativo";
-  } catch {
-    return true;
+
+    if (!res.ok) {
+      console.warn(`Higestor retornou ${res.status} para CPF ${formatted} — fail-open`);
+      return true;
+    }
+
+    const json = await res.json();
+    const list = Array.isArray(json?.data) ? json.data : [];
+
+    if (list.length === 0) {
+      console.log(`Higestor: CPF ${formatted} não encontrado — inválido`);
+      return false;
+    }
+
+    const valido = list.some((r: { attributes?: Record<string, unknown> }) => {
+      const a = r.attributes ?? {};
+      return a.ativo === true && (a.associado === true || a.filiado === true);
+    });
+
+    if (!valido) {
+      console.log(`Higestor: CPF ${formatted} encontrado mas sem vínculo ativo`);
+    }
+
+    return valido;
+  } catch (err) {
+    console.error("Erro ao consultar Higestor:", err);
+    return true; // Fail-open: não bloqueia por falha de rede
   }
 }
 
@@ -201,7 +253,7 @@ serve(async (req: Request) => {
 
     const { data: userData, error: userError } = await serviceClient
       .from("user")
-      .select("active, associado_id, role")
+      .select("active, associado_id, role, cpf")
       .eq("id", user.id)
       .single();
 
@@ -227,10 +279,21 @@ serve(async (req: Request) => {
       });
     }
 
-    if (userData.associado_id) {
-      const isActive = await validateHigestorAssociate(userData.associado_id);
+    // Admin e diretoria não passam pela validação do Higestor.
+    // Associados/usuários comuns SÃO obrigatoriamente validados pelo CPF:
+    // sem CPF cadastrado → acesso negado (fecha brecha de contas não-provisionadas
+    // pelo fluxo oficial de OTP, que sempre preenche o CPF a partir do Higestor).
+    const isAdminRole = ["admin", "diretoria"].includes(userData.role);
+    if (!isAdminRole) {
+      if (!userData.cpf) {
+        return new Response(JSON.stringify({ error: "Cadastro incompleto. Acesse pelo login oficial da ACIESC." }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const isActive = await validateHigestorByCpf(userData.cpf);
       if (!isActive) {
-        return new Response(JSON.stringify({ error: "Associado não está ativo no Higestor. Verifique sua situação." }), {
+        return new Response(JSON.stringify({ error: "Associado não está ativo no Higestor. Verifique sua situação com a ACIESC." }), {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
