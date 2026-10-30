@@ -341,6 +341,54 @@ export type Database = {
         }
         Relationships: []
       }
+      empresa_sugestoes: {
+        Row: {
+          cidade: string
+          contato: string
+          created_at: string | null
+          estado: string
+          id: string
+          instagram: string | null
+          motivo: string
+          nome_empresa: string
+          produtos: string
+          site: string | null
+          status: string
+          telefone: string
+          updated_at: string | null
+        }
+        Insert: {
+          cidade: string
+          contato: string
+          created_at?: string | null
+          estado: string
+          id?: string
+          instagram?: string | null
+          motivo: string
+          nome_empresa: string
+          produtos: string
+          site?: string | null
+          status?: string
+          telefone: string
+          updated_at?: string | null
+        }
+        Update: {
+          cidade?: string
+          contato?: string
+          created_at?: string | null
+          estado?: string
+          id?: string
+          instagram?: string | null
+          motivo?: string
+          nome_empresa?: string
+          produtos?: string
+          site?: string | null
+          status?: string
+          telefone?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       empresas: {
         Row: {
           capa_url: string | null
@@ -475,6 +523,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          priority: string | null
+          read_by: string[] | null
+          recipient_ids: string[]
+          sender_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          priority?: string | null
+          read_by?: string[] | null
+          recipient_ids: string[]
+          sender_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          priority?: string | null
+          read_by?: string[] | null
+          recipient_ids?: string[]
+          sender_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       operation_logs: {
         Row: {
@@ -663,6 +747,7 @@ export type Database = {
           id: string
           name: string | null
           phone: string | null
+          require_password_reset: boolean | null
           role: Database["public"]["Enums"]["user_role"]
           state: string | null
           tags: string[] | null
@@ -682,6 +767,7 @@ export type Database = {
           id: string
           name?: string | null
           phone?: string | null
+          require_password_reset?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
           state?: string | null
           tags?: string[] | null
@@ -701,6 +787,7 @@ export type Database = {
           id?: string
           name?: string | null
           phone?: string | null
+          require_password_reset?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
           state?: string | null
           tags?: string[] | null

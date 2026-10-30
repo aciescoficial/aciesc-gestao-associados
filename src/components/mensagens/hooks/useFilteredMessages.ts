@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react';
-import { Message, MessagePriority } from './useMessages';
+import { Message, MessagePriority } from '../types';
 
 interface UseFilteredMessagesProps {
   messages: Message[];

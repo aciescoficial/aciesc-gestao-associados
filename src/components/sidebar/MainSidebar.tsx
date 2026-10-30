@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/sidebar';
 import SidebarMenuItems from './SidebarMenuItems';
 import SidebarHeaderContent from './SidebarHeaderContent';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MainSidebarProps {
   location: {
@@ -15,8 +16,14 @@ interface MainSidebarProps {
 }
 
 const MainSidebar: React.FC<MainSidebarProps> = ({ location }) => {
+  const isMobile = useIsMobile();
+
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="bg-aciesc-primary text-white z-30 border-r border-aciesc-dark min-h-screen">
+    <Sidebar 
+      variant="sidebar" 
+      collapsible="icon" 
+      className="bg-aciesc-primary text-white z-30 border-r border-aciesc-dark min-h-screen"
+    >
       <SidebarHeaderContent />
       <SidebarContent>
         <SidebarMenu>

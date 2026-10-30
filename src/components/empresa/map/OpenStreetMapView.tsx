@@ -1,139 +1,160 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+
+import React, { useRef, useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { defaultIcon, selectedIcon } from './icons/mapIcons';
 import { Button } from '@/components/ui/button';
-import L from 'leaflet';
+import { Card, CardContent } from '@/components/ui/card';
+import { MapPin, Phone, Globe, Building } from 'lucide-react';
 import { EmpresaData } from '../types';
-import { setupLeafletIcons } from './icons/mapIcons';
-import MapContainerComponent from './components/MapContainer';
-import { useToast } from '@/hooks/use-toast';
+import L from 'leaflet';
 
-// Initialize Leaflet icons
-setupLeafletIcons();
-
-interface MapViewProps {
+interface OpenStreetMapViewProps {
   companies: EmpresaData[];
-  selectedCompany: EmpresaData | null;
-  setSelectedCompany: (company: EmpresaData | null) => void;
+  currentLocation?: [number, number];
+  selectedCompany?: EmpresaData | null;
+  onSelectCompany?: (company: EmpresaData) => void;
+  onViewDetails?: (id: string) => void;
+  setSelectedCompany?: (company: EmpresaData | null) => void; // Added for compatibility with existing code
 }
 
-export const OpenStreetMapView: React.FC<MapViewProps> = ({ 
-  companies, 
-  selectedCompany,
-  setSelectedCompany 
+const OpenStreetMapView: React.FC<OpenStreetMapViewProps> = ({
+  companies,
+  currentLocation = [-15.7801, -47.9292], // Default to Brazil
+  selectedCompany = null,
+  onSelectCompany,
+  onViewDetails = () => {},
+  setSelectedCompany, // Added for compatibility
 }) => {
-  // Set initial coordinates to Itapema, SC
-  const [currentLocation, setCurrentLocation] = useState<[number, number]>([-27.0861, -48.6161]);
-  const [zoom, setZoom] = useState<number>(13); // Increased initial zoom for better city view
-  const [loading, setLoading] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
-  const { toast } = useToast();
-  
-  // Find company's geo position (latitude, longitude)
-  const geocodeCompany = async (company: EmpresaData) => {
-    try {
-      // Use actual coordinates if available
-      if (company.latitude && company.longitude) {
-        return [company.latitude, company.longitude] as [number, number];
-      }
-      
-      // Otherwise, geocode the address or use a fallback
-      // For now, we return a random position in Brazil for testing
-      toast({
-        title: "Geocodificação necessária",
-        description: "Esta empresa não possui coordenadas exatas salvas",
-      });
-      
-      const lat = -15.7801 + (Math.random() - 0.5) * 10;
-      const lng = -47.9292 + (Math.random() - 0.5) * 10;
-      
-      return [lat, lng] as [number, number];
-    } catch (error) {
-      console.error('Error geocoding company:', error);
-      return null;
+  const [mapInitialized, setMapInitialized] = useState(false);
+
+  // Handle component selection based on available props
+  const handleSelectCompany = (company: EmpresaData) => {
+    // Use onSelectCompany if provided, otherwise fall back to setSelectedCompany
+    if (onSelectCompany) {
+      onSelectCompany(company);
+    } else if (setSelectedCompany) {
+      setSelectedCompany(company);
     }
   };
-  
-  // Get user's current location
-  const getCurrentLocation = useCallback(() => {
-    if (navigator.geolocation) {
-      setLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setCurrentLocation([latitude, longitude]);
-          setZoom(13);
-          setLoading(false);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          toast({
-            title: "Erro ao obter localização",
-            description: "Não foi possível acessar sua localização atual",
-            variant: "destructive"
-          });
-          setLoading(false);
-        }
-      );
-    } else {
-      console.error('Geolocation is not supported by this browser.');
-      toast({
-        title: "Geolocalização não suportada",
-        description: "Seu navegador não suporta geolocalização",
-        variant: "destructive"
-      });
-    }
-  }, [toast]);
-  
-  // When selected company changes, center map on it
-  useEffect(() => {
-    if (selectedCompany) {
-      geocodeCompany(selectedCompany).then(coords => {
-        if (coords) {
-          setCurrentLocation(coords);
-          setZoom(15);
-        }
-      });
-    }
-  }, [selectedCompany]);
 
-  // Process companies to ensure they all have coordinates
-  const processedCompanies = companies.map(company => ({
-    ...company,
-    latitude: company.latitude || -15.7801 + (Math.random() - 0.5) * 0.1,
-    longitude: company.longitude || -47.9292 + (Math.random() - 0.5) * 0.1
-  }));
+  // Set map view to currentLocation or to fit all markers
+  useEffect(() => {
+    if (mapRef.current && mapInitialized) {
+      // If we have a current location, center on it
+      if (currentLocation) {
+        mapRef.current.setView(currentLocation, 13);
+      } 
+      // If we have companies but no current location, fit the map to show all companies
+      else if (companies.length > 0) {
+        const validLocations = companies
+          .filter(c => c.latitude && c.longitude)
+          .map(c => [c.latitude, c.longitude] as [number, number]);
+          
+        if (validLocations.length > 0) {
+          const bounds = L.latLngBounds(validLocations);
+          mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+        }
+      }
+    }
+  }, [currentLocation, companies, mapInitialized]);
+
+  // Update view when selected company changes
+  useEffect(() => {
+    if (mapRef.current && mapInitialized && selectedCompany?.latitude && selectedCompany?.longitude) {
+      mapRef.current.setView([selectedCompany.latitude, selectedCompany.longitude], 15);
+    }
+  }, [selectedCompany, mapInitialized]);
+
+  const handleMapReady = () => {
+    setMapInitialized(true);
+  };
 
   return (
-    <Card className="mt-4">
-      <CardContent className="p-0">
-        <div className="p-4 flex justify-between items-center">
-          <div>
-            <h3 className="font-medium">Mapa de Empresas Conveniadas</h3>
-            <p className="text-sm text-gray-500">{companies.length} empresas encontradas</p>
-          </div>
-          
-          <div className="flex space-x-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={getCurrentLocation}
-              disabled={loading}
-            >
-              {loading ? "Localizando..." : "Minha Localização"}
-            </Button>
-          </div>
-        </div>
-        
-        <MapContainerComponent
-          companies={processedCompanies}
-          selectedCompany={selectedCompany}
-          setSelectedCompany={setSelectedCompany}
-          currentLocation={currentLocation}
-          zoom={zoom}
-          mapRef={mapRef}
+    <div className="h-[600px] w-full relative rounded-lg overflow-hidden">
+      <MapContainer
+        center={currentLocation}
+        zoom={13}
+        style={{ height: '100%', width: '100%' }}
+        whenReady={() => handleMapReady()}
+        ref={mapRef}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-      </CardContent>
-    </Card>
+        
+        {/* Current location marker */}
+        <Marker position={currentLocation} icon={defaultIcon}>
+          <Popup>
+            <div className="text-sm font-medium">Sua localização atual</div>
+          </Popup>
+        </Marker>
+        
+        {/* Company markers */}
+        {mapInitialized && companies.map((company) => {
+          if (!company.latitude || !company.longitude) return null;
+          
+          const isSelected = selectedCompany?.id === company.id;
+          const markerIcon = isSelected ? selectedIcon : defaultIcon;
+          
+          return (
+            <Marker
+              key={company.id}
+              position={[company.latitude, company.longitude]}
+              icon={markerIcon}
+              eventHandlers={{
+                click: () => handleSelectCompany(company)
+              }}
+            >
+              <Popup>
+                <Card className="border-0 shadow-none">
+                  <CardContent className="p-3 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Building className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{company.nome_fantasia}</span>
+                    </div>
+                    
+                    {company.nicho && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        <span>{company.nicho}</span>
+                      </div>
+                    )}
+                    
+                    {company.endereco && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span>
+                          {company.endereco}
+                          {company.cidade && `, ${company.cidade}`}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {company.telefone && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span>{company.telefone}</span>
+                      </div>
+                    )}
+                    
+                    <Button
+                      className="w-full"
+                      size="sm"
+                      onClick={() => onViewDetails(company.id)}
+                    >
+                      Ver detalhes
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Popup>
+            </Marker>
+          );
+        })}
+      </MapContainer>
+    </div>
   );
 };
 

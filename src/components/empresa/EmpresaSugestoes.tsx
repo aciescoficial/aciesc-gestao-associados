@@ -14,9 +14,11 @@ const EmpresaSugestoes: React.FC = () => {
     currentItems,
     filteredSugestoes,
     totalPages,
+    isLoading,
     handleSearch,
     setSelectedDate,
-    setCurrentPage
+    setCurrentPage,
+    handleStatusUpdate
   } = useSugestoes();
 
   return (
@@ -27,15 +29,18 @@ const EmpresaSugestoes: React.FC = () => {
 
       <SugestoesSearchControls 
         searchTerm={searchTerm}
-        selectedDate={selectedDate}
         handleSearch={handleSearch}
+        selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
       />
 
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <SugestoesTable currentItems={currentItems} />
+            <SugestoesTable 
+              currentItems={currentItems} 
+              onStatusUpdate={handleStatusUpdate}
+            />
           </div>
         </CardContent>
       </Card>

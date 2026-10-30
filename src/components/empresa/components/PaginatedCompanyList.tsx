@@ -15,6 +15,10 @@ export interface PaginatedCompanyListProps {
   onCompanySelected?: (company: EmpresaData) => void;
   title?: string;
   initialData?: EmpresaData[];
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  totalCount?: number;
 }
 
 export const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({
@@ -22,13 +26,16 @@ export const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({
   initialSearchTerm = '',
   onCompanySelected,
   title = 'Empresas',
-  initialData = []
+  initialData = [],
+  currentPage,
+  totalPages,
+  onPageChange,
+  totalCount = 0
 }) => {
   const [companies, setCompanies] = useState<EmpresaData[]>(initialData);
   const [loading, setLoading] = useState(initialData.length === 0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  const [localCurrentPage, setLocalCurrentPage] = useState(currentPage);
+  const [localTotalPages, setLocalTotalPages] = useState(totalPages);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const { toast } = useToast();
   const pageSize = 10;
@@ -36,35 +43,30 @@ export const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({
   useEffect(() => {
     if (initialData.length > 0) {
       setCompanies(initialData);
-      setTotalCount(initialData.length);
-      setTotalPages(Math.ceil(initialData.length / pageSize));
       setLoading(false);
     } else {
       fetchCompanies();
     }
-  }, [currentPage, searchTerm]);
+  }, [localCurrentPage, searchTerm]);
 
-  // Update companies when initialData changes
   useEffect(() => {
     if (initialData.length > 0) {
       setCompanies(initialData);
-      setTotalCount(initialData.length);
-      setTotalPages(Math.ceil(initialData.length / pageSize));
+      setLocalTotalPages(totalPages);
     }
-  }, [initialData]);
+  }, [initialData, totalPages]);
 
   const fetchCompanies = async () => {
     try {
       setLoading(true);
       const { data, count } = await empresaService.getCompaniesPaginated(
-        currentPage,
+        localCurrentPage,
         pageSize,
         { searchTerm }
       );
       
       setCompanies(data);
-      setTotalCount(count);
-      setTotalPages(Math.ceil(count / pageSize));
+      setLocalTotalPages(Math.ceil(count / pageSize));
     } catch (error) {
       console.error('Error fetching companies:', error);
       toast({
@@ -96,7 +98,15 @@ export const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    setCurrentPage(1);
+    setLocalCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    if (onPageChange) {
+      onPageChange(page);
+    } else {
+      setLocalCurrentPage(page);
+    }
   };
 
   if (loading && companies.length === 0) {
@@ -112,9 +122,9 @@ export const PaginatedCompanyList: React.FC<PaginatedCompanyListProps> = ({
         onSelect={onCompanySelected} 
       />
       <PaginationControls 
-        currentPage={currentPage} 
-        totalPages={totalPages} 
-        onPageChange={setCurrentPage}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
         totalCount={totalCount}
         itemsCount={companies.length}
         itemName="empresas"

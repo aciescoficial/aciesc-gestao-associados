@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Control } from 'react-hook-form';
-import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Checkbox } from '@/components/ui/checkbox';
 import { MensagemFormValues } from '../schema';
+import { FormField, FormItem, FormControl } from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface EnviarCopiaFieldProps {
   control: Control<MensagemFormValues>;
@@ -15,15 +15,21 @@ const EnviarCopiaField: React.FC<EnviarCopiaFieldProps> = ({ control }) => {
       control={control}
       name="enviarCopia"
       render={({ field }) => (
-        <FormItem className="flex flex-row items-start space-x-3 space-y-0 py-2">
+        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
           <FormControl>
             <Checkbox
               checked={field.value}
               onCheckedChange={field.onChange}
+              id="enviar-copia"
             />
           </FormControl>
           <div className="space-y-1 leading-none">
-            <FormLabel>Enviar cópia para mim</FormLabel>
+            <label
+              htmlFor="enviar-copia"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              Enviar uma cópia para mim
+            </label>
           </div>
         </FormItem>
       )}

@@ -78,7 +78,7 @@ export const signUp = async (email: string, password: string, name: string, opti
     // Validate inputs
     if (!email || !password || !name) {
       return { 
-        data: null, 
+        success: false, 
         error: { message: 'Email, senha e nome são obrigatórios.' } 
       };
     }
@@ -86,7 +86,7 @@ export const signUp = async (email: string, password: string, name: string, opti
     // Validate password strength
     if (password.length < 6) {
       return { 
-        data: null, 
+        success: false, 
         error: { message: 'A senha deve ter pelo menos 6 caracteres.' } 
       };
     }
@@ -110,6 +110,41 @@ export const signUp = async (email: string, password: string, name: string, opti
       signUpOptions.options.emailConfirm = true; // This will auto-confirm the email
     }
     
+    // Use direct API in admin mode if we've hit rate limits and have admin permissions
+    if (retryCount > 2) {
+      console.log("Trying admin signup flow after retry count:", retryCount);
+      
+      try {
+        const { data: adminData, error: adminError } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { 
+            name,
+            role
+          }
+        });
+        
+        if (adminError) {
+          console.warn("Admin signup flow failed:", adminError);
+          // Fall back to regular signup
+        } else if (adminData) {
+          console.log("Admin signup successful:", adminData.user.id);
+          
+          // Create user profile
+          try {
+            await createUserProfile(adminData.user.id, email, name, role);
+            return { success: true, error: null };
+          } catch (profileError: any) {
+            return { success: true, error: { message: "Conta criada, mas houve um problema ao criar o perfil: " + profileError.message } };
+          }
+        }
+      } catch (adminError) {
+        console.error("Error in admin signup flow:", adminError);
+        // Fall back to regular signup
+      }
+    }
+    
     // Standard signup - using regular client
     const { data, error } = await supabase.auth.signUp(signUpOptions);
     
@@ -119,7 +154,7 @@ export const signUp = async (email: string, password: string, name: string, opti
       // Handle specific errors
       if (error.message.includes('User already registered')) {
         return { 
-          data: null, 
+          success: false, 
           error: { 
             message: 'Este email já está registrado. Tente fazer login.' 
           } 
@@ -131,9 +166,9 @@ export const signUp = async (email: string, password: string, name: string, opti
           error.status === 429 || error.code === 'over_email_send_rate_limit') {
         
         return {
-          data: null,
+          success: false,
           error: {
-            message: 'Limite de envio de emails excedido. Por favor, tente novamente mais tarde ou escolha a opção para pular verificação de email (disponível em ambiente de desenvolvimento).',
+            message: 'Limite de envio de emails excedido. Por favor, tente novamente mais tarde.',
             code: 'rate_limit',
             status: 429,
             retryAfter: 60, // Suggest waiting 60 seconds before retry
@@ -142,44 +177,48 @@ export const signUp = async (email: string, password: string, name: string, opti
         };
       }
       
-      return { data: null, error };
+      return { success: false, error };
     }
     
     // If signup was successful, create the user in the user table
     if (data?.user) {
       try {
-        console.log("Creating user profile in user table:", data.user.id, email, name, role);
-        
-        // Insert directly into the user table
-        const { error: profileError } = await supabase
-          .from('user')
-          .insert({
-            id: data.user.id,
-            email,
-            name,
-            role,
-            active: true,
-            tags: role === 'diretoria' ? ['diretoria_aciesc'] : []
-          });
-        
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-          return { data, error: profileError };
-        } else {
-          console.log("User profile created successfully");
-        }
+        await createUserProfile(data.user.id, email, name, role);
       } catch (profileError: any) {
-        console.error('Exception creating user profile:', profileError);
-        return { data, error: profileError };
+        console.error('Error creating user profile:', profileError);
+        return { success: true, error: { message: "Conta criada, mas houve um problema ao criar o perfil: " + profileError.message } };
       }
     }
     
-    return { data, error: null };
+    return { success: true, error: null };
   } catch (error: any) {
     console.error('Error during sign up:', error);
-    return { data: null, error };
+    return { success: false, error };
   }
 };
+
+async function createUserProfile(userId: string, email: string, name: string, role: UserRole) {
+  console.log("Creating user profile in user table:", userId, email, name, role);
+  
+  // Insert directly into the user table
+  const { error: profileError } = await supabase
+    .from('user')
+    .insert({
+      id: userId,
+      email,
+      name,
+      role,
+      active: true,
+      tags: role === 'diretoria' ? ['diretoria_aciesc'] : []
+    });
+  
+  if (profileError) {
+    console.error('Error creating user profile:', profileError);
+    throw profileError;
+  } else {
+    console.log("User profile created successfully");
+  }
+}
 
 export const signOut = async () => {
   try {

@@ -1,15 +1,16 @@
+
 import React from 'react';
 import PluginLayout from '@/components/PluginLayout';
 import Dashboard from '@/components/Dashboard';
-import CadastroAssociado from '@/components/CadastroAssociado';
-import CadastroEmpresa from '@/components/CadastroEmpresa';
-import PesquisaAssociado from '@/components/PesquisaAssociado';
-import PesquisaEmpresa from '@/components/PesquisaEmpresa';
-import AprovacoesPendentes from '@/components/AprovacoesPendentes';
+import CadastrarAssociado from '@/components/associado/CadastrarAssociado';
+import CadastrarEmpresa from '@/components/CadastrarEmpresa';
+import PesquisarAssociado from '@/components/associado/PesquisarAssociado';
+import PesquisarEmpresa from '@/components/PesquisarEmpresa';
+import InteressadosPage from '@/components/associado/InteressadosPage';
 import GeradorCarteirinha from '@/components/carteirinha/GeradorCarteirinha';
 import IntegracaoFinanceira from '@/components/IntegracaoFinanceira';
 import UserManagement from '@/components/usuarios/UserManagement';
-import PermissionPanel from '@/components/usuarios/PermissionPanel';
+import PermissionPanel from '@/components/usuarios/permission/PermissionPanel';
 import ProfilePage from '@/components/auth/profile/ProfilePage';
 import AssociadosPage from '@/components/financeiro/AssociadosPage';
 import FinanceiroResumoPage from '@/components/financeiro/FinanceiroResumoPage';
@@ -67,7 +68,7 @@ export const EmpresasConveniadasPage = () => (
 
 // Component for empresa area's search feature
 export const EmpresasPesquisaPage = () => (
-  <EmpresasPesquisa />
+  <PesquisarEmpresa />
 );
 
 // Layout wrapper component
@@ -85,11 +86,11 @@ export const LayoutWrapper = ({ children }: LayoutProps) => (
 const RouteComponents = {
   Index,
   Dashboard,
-  CadastroAssociado,
-  CadastroEmpresa,
-  PesquisaAssociado,
-  PesquisaEmpresa,
-  AprovacoesPendentes,
+  CadastrarAssociado,
+  CadastrarEmpresa,
+  PesquisarAssociado,
+  PesquisarEmpresa,
+  InteressadosPage,
   GeradorCarteirinha,
   IntegracaoFinanceira,
   UserManagement,

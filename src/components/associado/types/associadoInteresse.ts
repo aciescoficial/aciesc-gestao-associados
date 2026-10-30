@@ -3,16 +3,32 @@ export interface AssociadoInteresse {
   id: string;
   nome: string;
   sobrenome: string;
+  cpf: string;
+  creci: string;
   email: string;
   celular: string;
   cidade: string;
   estado: string;
-  cpf: string;
-  creci: string; // Changed from string | null to string
-  motivo_interesse: string | null;
-  status: string;
+  motivo_interesse: string;
+  pagamento_confirmado: boolean;
+  pagamento_url?: string | null;
+  status?: 'pendente' | 'aprovado' | 'rejeitado';
+  rejeitado_em?: string | null;
+  aprovado_em?: string | null;
+  motivo_rejeicao?: string | null;
+  payment_proof_url?: string | null;
+  associationTypeId?: string | null;
   created_at: string;
-  pagamento_confirmado: boolean | null;
-  pagamento_data: string | null;
-  payment_proof_url: string | null;
+  updated_at: string;
+}
+
+export interface AprovacaoResult {
+  success: boolean;
+  message: string;
+  paymentUrl?: string;
+}
+
+export interface RejeicaoResult {
+  success: boolean;
+  message: string;
 }

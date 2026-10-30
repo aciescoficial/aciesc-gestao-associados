@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import {
   Tabs,
@@ -7,13 +7,9 @@ import {
   TabsList,
   TabsTrigger
 } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { AssociadoTabContent } from './tabs/AssociadoTabContent';
+import { EmpresaTabContent } from './tabs/EmpresaTabContent';
+import { DiretoriaTabContent } from './tabs/DiretoriaTabContent';
 
 interface UserLinkTabsProps {
   isDiretoria: boolean;
@@ -41,85 +37,75 @@ export const UserLinkTabs: React.FC<UserLinkTabsProps> = ({
   onEmpresaSelect
 }) => {
   // Determine the default tab based on user data
-  const defaultTab = isDiretoria ? "diretoria" : (associadoId ? "associado" : "empresa");
+  const getDefaultTab = () => {
+    if (isDiretoria) return "diretoria";
+    if (associadoId) return "associado";
+    if (empresaId) return "empresa";
+    return "associado"; // Default
+  };
+
+  const [activeTab, setActiveTab] = React.useState(getDefaultTab());
+  
+  // Atualiza a aba quando os dados do usuário mudam
+  useEffect(() => {
+    setActiveTab(getDefaultTab());
+  }, [isDiretoria, associadoId, empresaId]);
+
+  // Quando mudar a aba, atualiza o status de diretoria
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    onDiretoriaSelect(value === "diretoria");
+  };
   
   return (
     <div className="space-y-2 border-t pt-4">
       <Label>Vínculo do Usuário</Label>
-      <Tabs defaultValue={defaultTab}>
-        <TabsList className="grid grid-cols-3">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger 
             value="associado"
-            onClick={() => onDiretoriaSelect(false)}
+            disabled={isDiretoria}
           >
             Associado
           </TabsTrigger>
           <TabsTrigger 
             value="empresa"
-            onClick={() => onDiretoriaSelect(false)}
+            disabled={isDiretoria}
           >
             Empresa
           </TabsTrigger>
           <TabsTrigger 
             value="diretoria"
-            onClick={() => onDiretoriaSelect(true)}
           >
             Diretoria
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="associado" className="space-y-4 mt-4">
-          {loadingAssociados ? (
-            <div className="text-center py-4">Carregando associados...</div>
-          ) : (
-            <Select
-              value={associadoId}
-              onValueChange={onAssociadoSelect}
-              disabled={isDiretoria}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um associado" />
-              </SelectTrigger>
-              <SelectContent>
-                {associados.map((associado) => (
-                  <SelectItem key={associado.id} value={associado.id}>
-                    {associado.nome} {associado.sobrenome} - CPF: {associado.cpf}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <AssociadoTabContent
+            associadoId={associadoId}
+            associados={associados}
+            loadingAssociados={loadingAssociados}
+            onAssociadoSelect={onAssociadoSelect}
+            disabled={isDiretoria}
+          />
         </TabsContent>
         
         <TabsContent value="empresa" className="space-y-4 mt-4">
-          {loadingEmpresas ? (
-            <div className="text-center py-4">Carregando empresas...</div>
-          ) : (
-            <Select
-              value={empresaId}
-              onValueChange={onEmpresaSelect}
-              disabled={isDiretoria}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma empresa" />
-              </SelectTrigger>
-              <SelectContent>
-                {empresas.map((empresa) => (
-                  <SelectItem key={empresa.id} value={empresa.id}>
-                    {empresa.nome_fantasia} - CNPJ: {empresa.cnpj}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <EmpresaTabContent
+            empresaId={empresaId}
+            empresas={empresas}
+            loadingEmpresas={loadingEmpresas}
+            onEmpresaSelect={onEmpresaSelect}
+            disabled={isDiretoria}
+          />
         </TabsContent>
         
         <TabsContent value="diretoria" className="space-y-4 mt-4">
-          <div className="text-sm text-muted-foreground">
-            Este usuário será marcado como membro da Diretoria ACIESC.
-          </div>
+          <DiretoriaTabContent />
         </TabsContent>
       </Tabs>
     </div>
   );
 };
+

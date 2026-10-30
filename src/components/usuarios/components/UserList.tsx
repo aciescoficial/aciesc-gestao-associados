@@ -15,12 +15,15 @@ import { Badge } from '@/components/ui/badge';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { User, UserRole, UserTag } from '../types';
 import { getTagBadgeColor } from '../utils/roleUtils';
-import { Edit } from 'lucide-react';
+import { Edit, Key, Trash2 } from 'lucide-react';
+import { useAdminPermission } from '@/hooks/use-admin-permission';
 
 interface UserListProps {
   loading: boolean;
   filteredUsers: User[];
   onEdit: (user: User) => void;
+  onChangePassword: (user: User) => void;
+  onDelete: (user: User) => void;
   onToggleActive: (userId: string, active: boolean) => void;
   getRoleBadgeColor: (role: UserRole) => string;
   getRoleLabel: (role: UserRole) => string;
@@ -31,11 +34,25 @@ const UserList: React.FC<UserListProps> = ({
   loading,
   filteredUsers,
   onEdit,
+  onChangePassword,
+  onDelete,
   onToggleActive,
   getRoleBadgeColor,
   getRoleLabel,
   isMobile = false
 }) => {
+  const { isAdmin } = useAdminPermission();
+  
+  // Helper function to determine effective role based on tags and role
+  const getEffectiveRole = (user: User): UserRole => {
+    // Se o usuário tem a tag diretoria_aciesc, ele deve ser mostrado como diretoria
+    if (user.tags?.includes('diretoria_aciesc')) {
+      return 'diretoria';
+    }
+    
+    return user.role;
+  };
+
   return (
     <div className="border rounded-md overflow-hidden">
       <Table>
@@ -64,57 +81,88 @@ const UserList: React.FC<UserListProps> = ({
               </TableCell>
             </TableRow>
           ) : (
-            filteredUsers.map((user) => (
-              <TableRow 
-                key={user.id} 
-                className="transition-colors hover:bg-muted/40 group"
-              >
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell className={isMobile ? "hidden md:table-cell" : ""}>{user.email}</TableCell>
-                <TableCell className={isMobile ? "hidden sm:table-cell" : ""}>
-                  <Badge className={`font-normal ${getRoleBadgeColor(user.role)}`}>
-                    {getRoleLabel(user.role)}
-                  </Badge>
-                </TableCell>
-                <TableCell className={isMobile ? "hidden lg:table-cell" : ""}>
-                  <div className="flex flex-wrap gap-1">
-                    {user.tags && user.tags.length > 0 ? (
-                      user.tags.map((tag) => (
-                        <Badge 
-                          key={tag} 
-                          variant="outline"
-                          className={`text-xs ${getTagBadgeColor(tag)}`}
+            filteredUsers.map((user) => {
+              // Usar o papel efetivo para exibição
+              const effectiveRole = getEffectiveRole(user);
+              
+              return (
+                <TableRow 
+                  key={user.id} 
+                  className="transition-colors hover:bg-muted/40 group"
+                >
+                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell className={isMobile ? "hidden md:table-cell" : ""}>{user.email}</TableCell>
+                  <TableCell className={isMobile ? "hidden sm:table-cell" : ""}>
+                    <Badge className={`font-normal ${getRoleBadgeColor(effectiveRole)}`}>
+                      {getRoleLabel(effectiveRole)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className={isMobile ? "hidden lg:table-cell" : ""}>
+                    <div className="flex flex-wrap gap-1">
+                      {user.tags && user.tags.length > 0 ? (
+                        user.tags.map((tag) => (
+                          <Badge 
+                            key={tag} 
+                            variant="outline"
+                            className={`text-xs ${getTagBadgeColor(tag)}`}
+                          >
+                            {tag.replace(/_/g, ' ')}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Sem tags</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Switch
+                        checked={user.active}
+                        onCheckedChange={(checked) => onToggleActive(user.id, checked)}
+                        className="transition-opacity opacity-70 group-hover:opacity-100"
+                      />
+                      <span className="ml-2">{user.active ? 'Ativo' : 'Inativo'}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(user)}
+                        title="Editar cadastro"
+                        className="opacity-70 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onChangePassword(user)}
+                        title="Alterar senha"
+                        className="opacity-70 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Key className="h-4 w-4" />
+                        <span className="sr-only">Senha</span>
+                      </Button>
+                      {isAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDelete(user)}
+                          title="Excluir usuário"
+                          className="opacity-70 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
                         >
-                          {tag.replace(/_/g, ' ')}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Sem tags</span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Switch
-                      checked={user.active}
-                      onCheckedChange={(checked) => onToggleActive(user.id, checked)}
-                      className="transition-opacity opacity-70 group-hover:opacity-100"
-                    />
-                    <span className="ml-2">{user.active ? 'Ativo' : 'Inativo'}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(user)}
-                    className="opacity-70 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Edit className="h-4 w-4 mr-1" /> {isMobile ? "" : "Editar"}
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Excluir</span>
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>
@@ -123,3 +171,4 @@ const UserList: React.FC<UserListProps> = ({
 };
 
 export default UserList;
+

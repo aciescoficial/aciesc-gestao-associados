@@ -14,7 +14,8 @@ import { User, UserTag } from '../types';
 import { useUserForm } from './hooks/useUserForm';
 import { NameField, EmailField, RoleSelect, UserTagsField } from './form-fields/UserFormFields';
 import { UserLinkTabs } from './form-fields/UserLinkTabs';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AddUserDialogProps {
   isOpen: boolean;
@@ -44,6 +45,8 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
   fetchEmpresas
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [rateLimit, setRateLimit] = useState(false);
   
   const {
     isDiretoria,
@@ -61,19 +64,38 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setRateLimit(false);
     setIsSubmitting(true);
     try {
       const success = await onAddUser();
       if (success) {
         onOpenChange(false);
       }
+    } catch (err: any) {
+      // Check for rate limit errors specifically
+      if (err?.message?.includes('rate limit') || 
+          err?.message?.includes('exceeded') || 
+          err?.code === 'over_email_send_rate_limit' ||
+          err?.status === 429) {
+        setRateLimit(true);
+        setError("O serviço de email está com o limite excedido. Tente novamente mais tarde ou prossiga com a criação sem envio de email.");
+      } else {
+        setError(err.message || "Ocorreu um erro ao adicionar o usuário");
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleClose = () => {
+    if (!isSubmitting) {
+      onOpenChange(false);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && onOpenChange(open)}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Adicionar Usuário</DialogTitle>
@@ -82,6 +104,13 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
+          {error && (
+            <Alert variant={rateLimit ? "default" : "destructive"} className="mb-4">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           <div className="space-y-4 py-4">
             <NameField 
               id="add-name"
@@ -124,7 +153,7 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
               disabled={isSubmitting}
             >
               Cancelar

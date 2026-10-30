@@ -9,10 +9,24 @@ import type { CompanySearchFormValues } from '../empresa/components/search/schem
 
 const PesquisaEmpresaRefactored: React.FC = () => {
   const [searchParams, setSearchParams] = useState<CompanySearchFormValues | null>(null);
-  const { data: results = [], isLoading } = useCompanyQuery(searchParams);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const { data: { data: results = [], count: totalCount } = {}, isLoading } = useCompanyQuery(
+    searchParams, 
+    currentPage, 
+    pageSize
+  );
+
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   const handleSearch = (params: CompanySearchFormValues) => {
     setSearchParams(params);
+    setCurrentPage(1); // Reset to first page on new search
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -32,6 +46,10 @@ const PesquisaEmpresaRefactored: React.FC = () => {
           <PaginatedCompanyList 
             initialData={results}
             searchable={false}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            totalCount={totalCount}
           />
         </div>
       </Card>

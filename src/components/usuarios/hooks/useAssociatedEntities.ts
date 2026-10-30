@@ -11,13 +11,24 @@ export const useAssociatedEntities = () => {
   const fetchAssociados = useCallback(async () => {
     setLoadingAssociados(true);
     try {
+      // Fetch only associates without linked users
       const { data, error } = await supabase
         .from('associados')
-        .select('id, cpf, nome, sobrenome')
-        .eq('status', 'ativo');
+        .select(`
+          id, 
+          cpf, 
+          nome, 
+          sobrenome,
+          user!left (id)
+        `)
+        .eq('status', 'ativo')
+        .is('user.id', null);
         
       if (error) throw error;
-      setAssociados(data || []);
+
+      // Filter out associates that already have users
+      const availableAssociados = data?.filter(associado => !associado.user) || [];
+      setAssociados(availableAssociados.map(({ user, ...rest }) => rest));
     } catch (error) {
       console.error("Error fetching associados:", error);
     } finally {
@@ -28,13 +39,23 @@ export const useAssociatedEntities = () => {
   const fetchEmpresas = useCallback(async () => {
     setLoadingEmpresas(true);
     try {
+      // Fetch only companies without linked users
       const { data, error } = await supabase
         .from('empresas')
-        .select('id, cnpj, nome_fantasia')
-        .eq('status', 'ativo');
+        .select(`
+          id, 
+          cnpj, 
+          nome_fantasia,
+          user!left (id)
+        `)
+        .eq('status', 'ativo')
+        .is('user.id', null);
         
       if (error) throw error;
-      setEmpresas(data || []);
+
+      // Filter out companies that already have users
+      const availableEmpresas = data?.filter(empresa => !empresa.user) || [];
+      setEmpresas(availableEmpresas.map(({ user, ...rest }) => rest));
     } catch (error) {
       console.error("Error fetching empresas:", error);
     } finally {

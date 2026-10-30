@@ -59,14 +59,14 @@ const PluginLayout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <TooltipProvider>
       <SidebarProvider defaultOpen={!isMobile}>
-        <div className="flex h-screen w-full overflow-hidden">
+        <div className="flex min-h-screen w-full overflow-hidden">
           <ErrorBoundary>
             <Suspense fallback={<Skeleton className="h-full w-64" />}>
               <MainSidebar location={location} />
             </Suspense>
           </ErrorBoundary>
           
-          <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="flex flex-col flex-1 w-full overflow-hidden">
             <ErrorBoundary>
               <Header />
             </ErrorBoundary>

@@ -12,10 +12,14 @@ export {
 } from './services/associadoStorageService';
 
 export {
-  importAssociados,
-  exportAssociados
-} from './services/associadoImportExportService';
-
-export {
   getAssociadoById
 } from './services/baseAssociadoService';
+
+export {
+  importAssociados
+} from './services/importService';
+
+export {
+  exportAssociados
+} from './services/exportService';
+

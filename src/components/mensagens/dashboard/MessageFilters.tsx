@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MessagePriority } from '../hooks/useMessages';
+import { MessagePriority } from '../types';
 
 interface MessageFiltersProps {
   searchQuery: string;

@@ -47,7 +47,77 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
   }, []);
 
   const handleSelectedUserChange = useCallback((field: string, value: any) => {
-    setSelectedUser(prev => prev ? ({ ...prev, [field]: value }) : null);
+    setSelectedUser(prev => {
+      if (!prev) return prev;
+      
+      // Special logic for when we're changing the role
+      if (field === 'role') {
+        const currentTags = prev.tags || [];
+        let newTags = [...currentTags];
+        
+        // If changing to admin role, remove diretoria_aciesc tag if present
+        if (value === 'admin' && currentTags.includes('diretoria_aciesc')) {
+          newTags = currentTags.filter(tag => tag !== 'diretoria_aciesc');
+          return {
+            ...prev,
+            [field]: value,
+            tags: newTags
+          };
+        }
+        
+        // If changing to diretoria role, add diretoria_aciesc tag if not present
+        if (value === 'diretoria' && !currentTags.includes('diretoria_aciesc')) {
+          newTags = [...currentTags, 'diretoria_aciesc'];
+          return {
+            ...prev,
+            [field]: value,
+            tags: newTags
+          };
+        }
+      }
+      
+      // Special logic for tags
+      if (field === 'tags' && Array.isArray(value)) {
+        const hasDiretoriaTag = value.includes('diretoria_aciesc');
+        const currentRole = prev.role;
+        
+        // If adding diretoria tag, set role to 'diretoria'
+        if (hasDiretoriaTag && currentRole !== 'diretoria') {
+          return {
+            ...prev,
+            [field]: value,
+            role: 'diretoria' as UserRole
+          };
+        }
+        
+        // If removing diretoria tag and role is diretoria, adjust role based on admin tag
+        if (!hasDiretoriaTag && currentRole === 'diretoria') {
+          // If has administrador tag, set to admin
+          if (value.includes('administrador')) {
+            return {
+              ...prev,
+              [field]: value,
+              role: 'admin' as UserRole
+            };
+          } else if (prev.empresa_id) {
+            return {
+              ...prev,
+              [field]: value,
+              role: 'empresa' as UserRole
+            };
+          } else {
+            return {
+              ...prev,
+              [field]: value,
+              role: 'user' as UserRole
+            };
+          }
+        }
+      }
+      
+      // For any other field, just update normally
+      return { ...prev, [field]: value };
+    });
   }, []);
 
   const updateUser = useCallback(async () => {
@@ -56,14 +126,42 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
     try {
       console.log("Updating user:", selectedUser);
       
-      // Update user table (NOT profiles) - Corrected table reference
+      // Ensure role and tags are consistent
+      let roleToUpdate = selectedUser.role;
+      let tagsToUpdate = selectedUser.tags || [];
+      
+      const hasDiretoriaTag = tagsToUpdate.includes('diretoria_aciesc');
+      const hasAdminTag = tagsToUpdate.includes('administrador');
+      
+      // Make sure role and tags are in sync
+      if (roleToUpdate === 'admin' && hasDiretoriaTag) {
+        // Admin role cannot have diretoria_aciesc tag
+        tagsToUpdate = tagsToUpdate.filter(tag => tag !== 'diretoria_aciesc');
+      } else if (roleToUpdate === 'diretoria' && !hasDiretoriaTag) {
+        // Diretoria role must have diretoria_aciesc tag
+        tagsToUpdate = [...tagsToUpdate, 'diretoria_aciesc'];
+      } else if (roleToUpdate !== 'diretoria' && hasDiretoriaTag) {
+        // If has diretoria tag but not diretoria role, change role
+        roleToUpdate = 'diretoria';
+      } else if (roleToUpdate === 'diretoria' && !hasDiretoriaTag) {
+        // If role is diretoria but no tag, adjust role based on associations
+        if (hasAdminTag) {
+          roleToUpdate = 'admin';
+        } else if (selectedUser.empresa_id) {
+          roleToUpdate = 'empresa';
+        } else {
+          roleToUpdate = 'user';
+        }
+      }
+      
+      // Update user table directly
       const { error: userError } = await supabase
         .from('user')
         .update({
           name: selectedUser.name,
           email: selectedUser.email,
-          role: selectedUser.role,
-          tags: selectedUser.tags || [],
+          role: roleToUpdate,
+          tags: tagsToUpdate,
           associado_id: selectedUser.associado_id,
           empresa_id: selectedUser.empresa_id,
           active: selectedUser.active
@@ -80,8 +178,14 @@ export const useUserEdit = (onSuccess: (user: User) => void) => {
         return false;
       }
       
-      // Return the updated user to the caller
-      onSuccess(selectedUser);
+      // Return the updated user to the caller with adjusted role and tags
+      const updatedUser = {
+        ...selectedUser,
+        role: roleToUpdate,
+        tags: tagsToUpdate
+      };
+      
+      onSuccess(updatedUser);
       
       toast({
         title: "Usuário atualizado",

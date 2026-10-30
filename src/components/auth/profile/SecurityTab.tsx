@@ -11,8 +11,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { Separator } from "@/components/ui/separator";
-// Import is kept but the component won't be used temporarily
-// import { TwoFactorAuth } from '../two-factor';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 interface SecurityTabProps {
   userId: string;
@@ -20,6 +19,8 @@ interface SecurityTabProps {
 
 export const SecurityTab = ({ userId }: SecurityTabProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Password reset form schema
   const passwordSchema = z.object({
@@ -42,6 +43,9 @@ export const SecurityTab = ({ userId }: SecurityTabProps) => {
 
   const onPasswordSubmit = async (data: z.infer<typeof passwordSchema>) => {
     try {
+      setIsSubmitting(true);
+      
+      // For regular users updating their own password
       const { error } = await supabase.auth.updateUser({
         password: data.newPassword
       });
@@ -60,6 +64,8 @@ export const SecurityTab = ({ userId }: SecurityTabProps) => {
         title: "Erro ao atualizar senha",
         description: error.message,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -129,26 +135,13 @@ export const SecurityTab = ({ userId }: SecurityTabProps) => {
 
                 <Button 
                   type="submit" 
-                  disabled={passwordForm.formState.isSubmitting}
+                  disabled={isSubmitting}
                 >
-                  {passwordForm.formState.isSubmitting ? "Processando..." : "Atualizar Senha"}
+                  {isSubmitting ? "Processando..." : "Atualizar Senha"}
                 </Button>
               </form>
             </Form>
           </div>
-          
-          {/* Two-Factor Authentication Section - Temporarily disabled */}
-          {/* Uncomment this section to re-enable 2FA
-          <Separator />
-          
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-lg font-medium">Autenticação de Dois Fatores</h3>
-            </div>
-            
-            <TwoFactorAuth userId={userId} />
-          </div>
-          */}
         </div>
       </CardContent>
     </Card>

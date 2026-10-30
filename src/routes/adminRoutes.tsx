@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy } from "react";
 import { Route } from "react-router-dom";
 import { AdminRoute, ProtectedRoute } from "../pages/AuthRoutes";
@@ -5,30 +6,31 @@ import PluginLayout from "../components/PluginLayout";
 import AppLoading from "../components/shared/AppLoading";
 
 // Import components
-const CadastroAssociado = lazy(() => import("../components/CadastroAssociado"));
-const PesquisaAssociado = lazy(() => import("../components/PesquisaAssociado"));
-const CadastroEmpresa = lazy(() => import("../components/CadastroEmpresa"));
-const PesquisaEmpresa = lazy(() => import("../components/pesquisa-empresa/PesquisaEmpresaRefactored"));
-const AprovacoesPendentes = lazy(() => import("../components/aprovacoes/AprovacoesPendentes"));
+const CadastrarAssociado = lazy(() => import("../components/associado/CadastrarAssociado"));
+const PesquisarAssociado = lazy(() => import("../components/associado/PesquisarAssociado"));
+const CadastrarEmpresa = lazy(() => import("../components/empresa/CadastrarEmpresa"));
+const PesquisarEmpresa = lazy(() => import("../components/empresa/PesquisarEmpresa"));
+const Aprovacoes = lazy(() => import("../components/aprovacoes/Aprovacoes"));
 const UserManagement = lazy(() => import("../components/usuarios/UserManagement"));
 const PermissionPanel = lazy(() => import("../components/usuarios/permission/PermissionPanel"));
 const ConfiguracoesPage = lazy(() => import("../components/configuracoes/ConfiguracoesPage"));
-const AprovacaoInteressePage = lazy(() => import("../components/associado/AprovacaoInteressePage"));
+const InteressadosPage = lazy(() => import("../components/associado/InteressadosPage"));
 const GeradorCarteirinha = lazy(() => import("../components/carteirinha/GeradorCarteirinha"));
 const EmpresaSugestoes = lazy(() => import("../components/empresa/EmpresaSugestoes"));
 const EmpresaDetailPage = lazy(() => import("../components/empresa/EmpresaDetailPage"));
 const MessagesDashboard = lazy(() => import("../components/mensagens/MessagesDashboard"));
 const MensagensPage = lazy(() => import("../components/mensagens/MensagensPage"));
+const UserManagementPage = lazy(() => import("../components/associado/user/UserManagementPage"));
 
 const PageLoading = () => <AppLoading message="Carregando página..." />;
 
 export const AdminRoutes = [
   // Admin-only routes
-  <Route key="associados-cadastro" path="/associados/cadastro" element={
+  <Route key="associados-cadastrar" path="/associados/cadastrar" element={
     <ProtectedRoute allowedRoles={["admin"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
-          <CadastroAssociado />
+          <CadastrarAssociado />
         </Suspense>
       </PluginLayout>
     </ProtectedRoute>
@@ -38,7 +40,7 @@ export const AdminRoutes = [
     <ProtectedRoute allowedRoles={["admin"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
-          <CadastroEmpresa />
+          <CadastrarEmpresa />
         </Suspense>
       </PluginLayout>
     </ProtectedRoute>
@@ -48,7 +50,7 @@ export const AdminRoutes = [
     <ProtectedRoute allowedRoles={["admin"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
-          <PesquisaEmpresa />
+          <PesquisarEmpresa />
         </Suspense>
       </PluginLayout>
     </ProtectedRoute>
@@ -68,7 +70,7 @@ export const AdminRoutes = [
     <ProtectedRoute allowedRoles={["admin"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
-          <CadastroEmpresa />
+          <CadastrarEmpresa />
         </Suspense>
       </PluginLayout>
     </ProtectedRoute>
@@ -85,31 +87,32 @@ export const AdminRoutes = [
   } />,
   
   // Admin approval routes
-  <Route key="associados-pendentes" path="/associados/pendentes" element={
+  <Route key="associados-interessados" path="/associados/interessados" element={
     <ProtectedRoute allowedRoles={["admin"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
-          <AprovacoesPendentes />
+          <InteressadosPage />
         </Suspense>
       </PluginLayout>
     </ProtectedRoute>
   } />,
   
-  <Route key="associados-aprovacao" path="/associados/aprovacao" element={
-    <ProtectedRoute allowedRoles={["admin"]}>
-      <PluginLayout>
-        <Suspense fallback={<PageLoading />}>
-          <AprovacaoInteressePage />
-        </Suspense>
-      </PluginLayout>
-    </ProtectedRoute>
-  } />,
-
   <Route key="associados-carteirinha" path="/associados/carteirinha" element={
     <ProtectedRoute allowedRoles={["admin"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
           <GeradorCarteirinha />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+
+  // Rota de Aprovações (agora com ambas funcionalidades)
+  <Route key="aprovacoes" path="/aprovacoes" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <Aprovacoes />
         </Suspense>
       </PluginLayout>
     </ProtectedRoute>
@@ -171,4 +174,15 @@ export const AdminRoutes = [
       </PluginLayout>
     </ProtectedRoute>
   } />,
-]
+  
+  // Add the route for associate user management
+  <Route key="associados-usuario" path="/associados/usuario/:id" element={
+    <ProtectedRoute allowedRoles={["admin"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <UserManagementPage />
+        </Suspense>
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+];

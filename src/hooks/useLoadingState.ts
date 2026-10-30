@@ -1,33 +1,34 @@
 
-import { useState, useCallback } from 'react';
-import { toast } from './use-toast';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
-export function useLoadingState(initialState: boolean = false) {
-  const [isLoading, setIsLoading] = useState(initialState);
+export const useLoadingState = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const withLoading = useCallback(async <T>(
+  const withLoading = async <T,>(
     operation: () => Promise<T>,
-    errorMessage: string = "Ocorreu um erro na operação"
-  ): Promise<T | undefined> => {
-    setIsLoading(true);
+    errorMessage: string = "Ocorreu um erro"
+  ): Promise<T> => {
     try {
-      const result = await operation();
-      return result;
-    } catch (error) {
-      console.error(errorMessage, error);
+      setIsLoading(true);
+      return await operation();
+    } catch (error: any) {
+      console.error("Operation error:", error);
       toast({
         title: "Erro",
-        description: errorMessage,
+        description: errorMessage + (error.message ? `: ${error.message}` : ""),
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
   return {
     isLoading,
+    setIsLoading,
     withLoading,
-    setIsLoading
   };
-}
+};

@@ -1,185 +1,126 @@
 
-import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useCallback, useEffect } from 'react';
 import { NotificationMessage } from '@/components/layout/types/NotificationTypes';
-import { toast } from '@/components/ui/use-toast';
-import {
-  saveMessagesToCache,
-  loadMessagesFromCache,
-  formatApiMessagesToNotifications,
-  loadDemoMessages
-} from './notificationUtils';
+import { getCacheStatus, fetchCachedMessages } from './notificationUtils';
 
-interface FetcherOptions {
+interface UseNotificationFetcherProps {
   cacheDuration?: number;
   enableRetry?: boolean;
   maxRetries?: number;
   debug?: boolean;
 }
 
-interface FetcherState {
-  messages: NotificationMessage[];
-  isLoading: boolean;
-  hasError: boolean;
-  errorMessage?: string;
-  lastFetched?: number;
-}
+// Sample notification data (in a real app, this would come from an API)
+const sampleMessages: NotificationMessage[] = [
+  {
+    id: '1',
+    text: 'Sua mensalidade está próxima do vencimento.',
+    type: 'payment',
+    action: { url: '/financeiro/pagamentos', text: 'Ver detalhes' }
+  },
+  {
+    id: '2',
+    text: 'Há um novo evento de networking disponível.',
+    type: 'event',
+    action: { url: '/eventos', text: 'Ver evento' }
+  },
+  {
+    id: '3',
+    text: 'Atualize suas informações cadastrais.',
+    type: 'inactive',
+    action: { url: '/perfil', text: 'Atualizar' }
+  },
+  {
+    id: '4',
+    text: 'Nova mensagem recebida no sistema.',
+    type: 'info',
+    action: { url: '/mensagens', text: 'Ver mensagens' }
+  }
+];
 
-export function useNotificationFetcher(options: FetcherOptions = {}) {
-  const { cacheDuration = 5 * 60 * 1000, enableRetry = true, maxRetries = 3, debug = false } = options;
-  
-  const [state, setState] = useState<FetcherState>({
-    messages: [],
-    isLoading: false,
-    hasError: false
-  });
+export function useNotificationFetcher({
+  cacheDuration = 5 * 60 * 1000,
+  enableRetry = true,
+  maxRetries = 3,
+  debug = false
+}: UseNotificationFetcherProps) {
+  const [messages, setMessages] = useState<NotificationMessage[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  const [lastFetched, setLastFetched] = useState<number | undefined>();
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Debug logger function
-  const logDebug = useCallback((message: string, data?: any) => {
-    if (debug) {
-      console.log(`[useNotificationFetcher] ${message}`, data || '');
-    }
-  }, [debug]);
-
-  // Function to fetch important messages with improved performance
-  const fetchMessages = useCallback(async (retryCount = 0) => {
-    // Check if we're already loading data to prevent duplicate requests
-    if (state.isLoading) {
-      logDebug('Fetch already in progress, skipping');
+  // Function to fetch messages from API or cache
+  const fetchMessages = useCallback(async () => {
+    // Check if we have recent data in cache
+    const cacheStatus = getCacheStatus(lastFetched, cacheDuration);
+    
+    if (cacheStatus.status === 'valid' && messages.length > 0) {
+      if (debug) console.log("Using cached notification messages");
       return;
     }
     
-    // Try to load from cache first
-    const cachedData = loadMessagesFromCache(cacheDuration, logDebug);
-    if (cachedData) {
-      setState(prev => ({
-        ...prev,
-        messages: cachedData.messages,
-        lastFetched: cachedData.timestamp
-      }));
-      return;
-    }
-    
-    setState(prev => ({ ...prev, isLoading: true }));
-    logDebug('Fetching messages from API');
+    setIsLoading(true);
+    setHasError(false);
+    setErrorMessage(undefined);
     
     try {
-      // Using the email_templates table as a temporary solution
-      // Set a timeout to abort if the query takes too long
-      const timeoutPromise = new Promise<null>((_, reject) => {
-        setTimeout(() => reject(new Error("Query timeout")), 8000);
-      });
+      // In a real app, this would be an API call
+      // For now, we're simulating with a delay and sample data
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Use a simpler query to reduce database load
-      const queryPromise = supabase
-        .from('email_templates')
-        .select('id, assunto, corpo, codigo, created_at')
-        .eq('codigo', 'sistema_alerta')
-        .limit(5);
-        
-      // Race between the query and timeout
-      const { data, error } = await Promise.race([
-        queryPromise,
-        timeoutPromise.then(() => ({ data: null, error: new Error("Query timeout") }))
-      ]) as any;
-      
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        // Format messages from the email_templates table
-        const formattedMessages = formatApiMessagesToNotifications(data);
-        
-        setState(prev => ({ 
-          ...prev, 
-          messages: formattedMessages, 
-          hasError: false,
-          isLoading: false,
-          errorMessage: undefined,
-          lastFetched: Date.now()
-        }));
-        
-        // Cache the messages
-        saveMessagesToCache(formattedMessages, logDebug);
-      } else {
-        // When testing locally, if no messages in the database, use demo messages
-        const demoMessages = loadDemoMessages();
-        
-        if (demoMessages) {
-          setState(prev => ({ 
-            ...prev, 
-            messages: demoMessages,
-            isLoading: false,
-            lastFetched: Date.now()
-          }));
-          saveMessagesToCache(demoMessages, logDebug);
-        } else {
-          setState(prev => ({ ...prev, messages: [], isLoading: false }));
-        }
+      // Simulate occasional errors for testing retry logic
+      const shouldFailForTesting = Math.random() > 0.9;
+      if (shouldFailForTesting && enableRetry && retryCount < maxRetries) {
+        throw new Error("Simulated fetch error for testing retry logic");
       }
-    } catch (error) {
-      console.error("Error fetching important messages:", error);
+      
+      // Get messages from simulated API or fetch cached messages
+      const fetchedMessages = await fetchCachedMessages() || sampleMessages;
+      
+      setMessages(fetchedMessages);
+      setLastFetched(Date.now());
+      setRetryCount(0);
+      
+      if (debug) console.log("Notifications fetched successfully");
+    } catch (error: any) {
+      setHasError(true);
+      setErrorMessage(error.message || "Failed to fetch notifications");
+      
+      if (debug) console.error("Error fetching notifications:", error);
       
       // Implement retry logic
       if (enableRetry && retryCount < maxRetries) {
-        logDebug(`Retry attempt ${retryCount + 1} of ${maxRetries}`);
+        const nextRetryCount = retryCount + 1;
+        setRetryCount(nextRetryCount);
+        
+        // Exponential backoff
+        const delay = Math.pow(2, nextRetryCount) * 1000;
+        
+        if (debug) console.log(`Retrying in ${delay}ms (attempt ${nextRetryCount}/${maxRetries})`);
         
         setTimeout(() => {
-          fetchMessages(retryCount + 1);
-        }, 2000 * Math.pow(2, retryCount)); // Exponential backoff
-        
-        return;
+          fetchMessages();
+        }, delay);
       }
-      
-      setState(prev => ({ 
-        ...prev, 
-        hasError: true,
-        isLoading: false,
-        errorMessage: error instanceof Error ? error.message : 'Unknown error fetching messages'
-      }));
-      
-      // On error, try to use cached messages
-      const cachedData = loadMessagesFromCache(Infinity, logDebug); // Use infinite cache duration to get even stale data
-      
-      if (cachedData) {
-        setState(prev => ({ 
-          ...prev, 
-          messages: cachedData.messages,
-          hasError: true, // Still set hasError true to indicate we're using stale data
-          errorMessage: 'Using cached data due to fetch error',
-        }));
-        
-        // Show error toast but still display cached data
-        toast({
-          title: "Notification Error",
-          description: "Using cached notifications. Some information may be outdated.",
-          variant: "destructive"
-        });
-      } else {
-        // Try demo messages as last resort
-        const demoMessages = loadDemoMessages();
-        
-        if (demoMessages) {
-          setState(prev => ({ 
-            ...prev, 
-            messages: demoMessages,
-            hasError: true
-          }));
-        }
-      }
+    } finally {
+      setIsLoading(false);
     }
-  }, [state.isLoading, cacheDuration, enableRetry, maxRetries, logDebug]);
+  }, [lastFetched, messages.length, cacheDuration, debug, enableRetry, retryCount, maxRetries]);
   
-  // Force refresh function for manual refresh
+  // Function to manually refresh messages
   const refreshMessages = useCallback(() => {
-    // Clear cache and force fetch
-    localStorage.removeItem('cachedSystemMessages');
-    localStorage.removeItem('cachedSystemMessagesTimestamp');
+    setLastFetched(undefined);
     fetchMessages();
-    logDebug('Manually refreshing messages');
-  }, [fetchMessages, logDebug]);
+  }, [fetchMessages]);
 
   return {
-    ...state,
+    messages,
+    isLoading,
+    hasError,
+    errorMessage,
+    lastFetched,
     fetchMessages,
     refreshMessages
   };

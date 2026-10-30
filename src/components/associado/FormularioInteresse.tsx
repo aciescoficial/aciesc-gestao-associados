@@ -5,14 +5,17 @@ import FormularioInteresseSuccess from './components/FormularioInteresseSuccess'
 import { useFormularioInteresse } from './hooks/useFormularioInteresse';
 
 const FormularioInteresse: React.FC = () => {
-  const { isSubmitting, submitted, handleSubmit, resetForm } = useFormularioInteresse();
+  const { isSubmitting, submitted, paymentUrl, handleSubmit, resetForm } = useFormularioInteresse();
   
   return (
     <div className="p-6 bg-white rounded shadow-sm">
       <h2 className="text-2xl font-bold mb-6 text-center">Formulário de Interesse - ACIESC</h2>
       
       {submitted ? (
-        <FormularioInteresseSuccess onSubmitAnother={resetForm} />
+        <FormularioInteresseSuccess 
+          onSubmitAnother={resetForm}
+          paymentUrl={paymentUrl || undefined} 
+        />
       ) : (
         <FormularioInteresseForm 
           onSubmit={handleSubmit} 

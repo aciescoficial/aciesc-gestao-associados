@@ -1,76 +1,144 @@
 
 import React from 'react';
-import { Check, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { PendenteData } from '../types';
+import { Button } from '@/components/ui/button';
+import { formatDate } from '@/lib/utils';
+import { Check, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface PendingTableProps {
   pendentes: PendenteData[];
-  onApprove: (id: string) => Promise<void>;
-  onReject: (id: string) => Promise<void>;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
   getTipoBadge: (tipo: string) => React.ReactNode;
+  statusFilter: 'pendente' | 'ativo' | 'inativo' | 'todos';
 }
 
-export const PendingTable: React.FC<PendingTableProps> = ({ 
-  pendentes, 
-  onApprove, 
-  onReject, 
-  getTipoBadge 
-}) => (
-  <div className="overflow-x-auto">
-    <table className="wp-table">
-      <thead>
-        <tr>
-          <th>Tipo</th>
-          <th>Nome</th>
-          <th>CNPJ</th>
-          <th>Data do Cadastro</th>
-          <th>Email</th>
-          <th>Telefone</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {pendentes.length === 0 ? (
-          <tr>
-            <td colSpan={7} className="h-24 text-center text-muted-foreground">
-              Nenhuma aprovação pendente encontrada.
-            </td>
+export const PendingTable: React.FC<PendingTableProps> = ({
+  pendentes,
+  onApprove,
+  onReject,
+  getTipoBadge,
+  statusFilter
+}) => {
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'ativo':
+      case 'aprovado':
+        return <Badge variant="success">Aprovado</Badge>;
+      case 'inativo':
+        return <Badge variant="destructive">Rejeitado</Badge>;
+      case 'pendente':
+        return <Badge variant="warning">Pendente</Badge>;
+      default:
+        return <Badge variant="secondary">-</Badge>;
+    }
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="bg-gray-50">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Tipo
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Nome
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Documento
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Data
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Status
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Contato
+            </th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Ações
+            </th>
           </tr>
-        ) : (
-          pendentes.map((item) => (
-            <tr key={item.id}>
-              <td>{getTipoBadge(item.tipo)}</td>
-              <td>{item.nome}</td>
-              <td>{item.documento}</td>
-              <td>{item.dataCadastro}</td>
-              <td>{item.email}</td>
-              <td>{item.telefone}</td>
-              <td>
-                <div className="flex space-x-2">
-                  <Button 
-                    size="sm"
-                    className="flex items-center gap-1"
-                    onClick={() => onApprove(item.id)}
-                  >
-                    <Check size={14} />
-                    Aprovar
-                  </Button>
-                  <Button 
-                    size="sm"
-                    variant="outline"
-                    className="border-red-500 text-red-500 hover:bg-red-50"
-                    onClick={() => onReject(item.id)}
-                  >
-                    <X size={14} />
-                    Rejeitar
-                  </Button>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {pendentes.map((pendente) => (
+            <tr key={pendente.id}>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {getTipoBadge(pendente.tipo)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="font-medium">{pendente.nome}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-gray-700">{pendente.documento}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-gray-700">
+                  {formatDate(pendente.dataCadastro || '')}
                 </div>
               </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {getStatusBadge(pendente.status)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm">{pendente.email}</div>
+                <div className="text-sm text-gray-500">{pendente.telefone}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right">
+                {pendente.status === 'pendente' && (
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      onClick={() => onApprove(pendente.id)}
+                      variant="outline"
+                      size="sm"
+                      className="text-green-600 hover:text-green-800 hover:bg-green-50"
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      Aprovar
+                    </Button>
+                    <Button
+                      onClick={() => onReject(pendente.id)}
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Rejeitar
+                    </Button>
+                  </div>
+                )}
+                
+                {pendente.status === 'ativo' && (
+                  <Button
+                    onClick={() => onReject(pendente.id)}
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Rejeitar
+                  </Button>
+                )}
+                
+                {pendente.status === 'inativo' && (
+                  <Button
+                    onClick={() => onApprove(pendente.id)}
+                    variant="outline"
+                    size="sm"
+                    className="text-green-600 hover:text-green-800 hover:bg-green-50"
+                  >
+                    <Check className="h-4 w-4 mr-1" />
+                    Aprovar
+                  </Button>
+                )}
+              </td>
             </tr>
-          ))
-        )}
-      </tbody>
-    </table>
-  </div>
-);
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};

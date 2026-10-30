@@ -1,25 +1,27 @@
 
 import React from 'react';
-import { User } from '../types';
+import { User, UserRole } from '../types';
 import UserSearch from './UserSearch';
 import ConnectionAlert from './ConnectionAlert';
 import UserListSkeleton from './UserListSkeleton';
 import EmptyUserState from './EmptyUserState';
 import UserList from './UserList';
-import { UserRole } from '../types';
+import { getRoleBadgeColor, getRoleLabel } from '../utils/roleUtils';
 
 interface UserManagementContentProps {
   loading: boolean;
   error: Error | null;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
+  roleFilter: UserRole | 'all';
+  setRoleFilter: (role: UserRole | 'all') => void;
   filteredUsers: User[];
   connectionStatus: boolean | null;
   handleRefresh: () => void;
   handleEdit: (user: User) => void;
   handleToggleActive: (userId: string, active: boolean) => void;
-  getRoleBadgeColor: (role: UserRole) => string;
-  getRoleLabel: (role: UserRole) => string;
+  handleChangePassword: (user: User) => void;
+  handleDelete: (user: User) => void;
   isMobile: boolean;
 }
 
@@ -28,13 +30,15 @@ const UserManagementContent: React.FC<UserManagementContentProps> = ({
   error,
   searchTerm,
   setSearchTerm,
+  roleFilter,
+  setRoleFilter,
   filteredUsers,
   connectionStatus,
   handleRefresh,
   handleEdit,
   handleToggleActive,
-  getRoleBadgeColor,
-  getRoleLabel,
+  handleChangePassword,
+  handleDelete,
   isMobile,
 }) => {
   return (
@@ -47,7 +51,9 @@ const UserManagementContent: React.FC<UserManagementContentProps> = ({
 
       <UserSearch 
         searchTerm={searchTerm} 
-        setSearchTerm={setSearchTerm} 
+        setSearchTerm={setSearchTerm}
+        roleFilter={roleFilter}
+        setRoleFilter={setRoleFilter}
         loading={loading}
       />
 
@@ -63,6 +69,8 @@ const UserManagementContent: React.FC<UserManagementContentProps> = ({
               filteredUsers={filteredUsers}
               onEdit={handleEdit}
               onToggleActive={handleToggleActive}
+              onChangePassword={handleChangePassword}
+              onDelete={handleDelete}
               getRoleBadgeColor={getRoleBadgeColor}
               getRoleLabel={getRoleLabel}
               isMobile={isMobile}

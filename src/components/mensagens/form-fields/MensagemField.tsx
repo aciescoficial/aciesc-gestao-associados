@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Control } from 'react-hook-form';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
 import { MensagemFormValues } from '../schema';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
 
 interface MensagemFieldProps {
   control: Control<MensagemFormValues>;
@@ -19,8 +19,8 @@ const MensagemField: React.FC<MensagemFieldProps> = ({ control }) => {
           <FormLabel>Mensagem</FormLabel>
           <FormControl>
             <Textarea 
-              placeholder="Digite sua mensagem aqui..." 
-              className="min-h-[150px]" 
+              placeholder="Digite sua mensagem aqui"
+              className="min-h-[150px] resize-y"
               {...field} 
             />
           </FormControl>

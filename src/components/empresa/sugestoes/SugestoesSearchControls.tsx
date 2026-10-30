@@ -6,16 +6,16 @@ import { Input } from '@/components/ui/input';
 
 interface SugestoesSearchControlsProps {
   searchTerm: string;
-  selectedDate: string;
   handleSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  setSelectedDate: (date: string) => void;
+  selectedDate?: string;
+  setSelectedDate?: (date: string) => void;
 }
 
 const SugestoesSearchControls: React.FC<SugestoesSearchControlsProps> = ({
   searchTerm,
-  selectedDate,
   handleSearch,
-  setSelectedDate
+  selectedDate = '',
+  setSelectedDate = () => {}
 }) => {
   return (
     <div className="flex flex-col lg:flex-row gap-4 items-center justify-between mb-4">

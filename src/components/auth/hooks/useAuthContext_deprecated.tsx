@@ -18,7 +18,7 @@ interface AuthContextType {
     error: any;
   }>;
   signUp: (email: string, password: string, name: string, options?: SignUpOptions) => Promise<{
-    data: any;
+    success: boolean;
     error: any;
   }>;
   signOut: () => Promise<void>;

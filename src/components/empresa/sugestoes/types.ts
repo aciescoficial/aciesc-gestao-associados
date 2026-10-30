@@ -1,13 +1,16 @@
-
 export interface SugestaoEmpresa {
   id: string;
-  nome: string;
-  email: string;
+  nome_empresa: string;
+  cidade: string;
+  estado: string;
   telefone: string;
+  instagram?: string;
+  site?: string;
   contato: string;
-  empresa: string;
+  motivo: string;
+  produtos: string;
   status: string;
-  data_criacao: string;
+  created_at: string;
 }
 
 export type SugestaoStatus = 'novo' | 'em_progresso' | 'ganho' | 'cancelado' | 'frio';

@@ -39,6 +39,7 @@ export interface AssociadoFormData {
 }
 
 export interface ImportAssociadoData {
+  [key: string]: any;
   id: string;
   nome: string;
   sobrenome: string;
@@ -54,7 +55,7 @@ export interface ImportAssociadoData {
   cidade: string;
   estado?: string;
   cep?: string;
-  status: 'pendente';
+  status: string; // Changed from a literal 'pendente' to string to allow any status
   placaPrincipal?: string;
   placaSecundaria?: string;
   valorPago?: string;
@@ -63,12 +64,15 @@ export interface ImportAssociadoData {
   tipoPagamento?: string;
   tipoAssociado?: string;
   validade?: string;
+  nomeCompleto?: string;
+  foto?: string;
 }
 
 export interface ImportValidationData {
   fieldName: string;
   targetField: string;
   isValid: boolean;
+  ignored?: boolean;
 }
 
 export const estados = [

@@ -17,7 +17,7 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
     empresa_cnpj: undefined
   });
 
-  const { addUser: createUser } = useUserCreation(onSuccess);
+  const { loading, addUser } = useUserCreation(onSuccess);
   
   const {
     associados,
@@ -29,11 +29,22 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
   } = useAssociatedEntities();
 
   const handleNewUserChange = (field: string, value: any) => {
-    setNewUser(prev => ({ ...prev, [field]: value }));
+    if (field === 'role') {
+      // Reset entity links when changing role
+      setNewUser(prev => ({ 
+        ...prev, 
+        [field]: value,
+        associado_id: undefined,
+        empresa_id: undefined,
+        tags: value === 'empresa' ? ['empresa_conveniada'] : []
+      }));
+    } else {
+      setNewUser(prev => ({ ...prev, [field]: value }));
+    }
   };
 
-  const addUser = async () => {
-    const success = await createUser(newUser);
+  const addNewUser = async () => {
+    const success = await addUser(newUser);
     
     if (success) {
       // Reset the form
@@ -56,7 +67,8 @@ export const useUserCreate = (onSuccess: (user: User) => void) => {
   return {
     newUser,
     handleNewUserChange,
-    addUser,
+    addUser: addNewUser,
+    loading,
     associados,
     empresas,
     loadingAssociados,

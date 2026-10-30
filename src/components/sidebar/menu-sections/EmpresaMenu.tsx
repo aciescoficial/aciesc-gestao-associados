@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ClipboardList, Users, Building } from 'lucide-react';
+import { ClipboardList, Users, Building, Edit } from 'lucide-react';
 import { MenuItem } from '../types/MenuItem';
 
 export const getEmpresaMenuItems = (): MenuItem[] => {
@@ -10,7 +10,7 @@ export const getEmpresaMenuItems = (): MenuItem[] => {
       icon: Building,
       roles: ['empresa'],
       submenu: [
-        { icon: ClipboardList, label: "Atualizar Dados", path: "/perfil", roles: ['empresa'] },
+        { icon: Edit, label: "Meus Dados", path: "/empresa/perfil", roles: ['empresa'] },
         { icon: Users, label: "Pesquisar Associados", path: "/associados/pesquisa", roles: ['empresa'] },
       ]
     }

@@ -12,7 +12,7 @@ export const QuickActions: React.FC = () => {
         <CardTitle className="text-left">Ações Rápidas</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <Link to="/associados/cadastro" className="w-full block">
+        <Link to="/associados/cadastrar" className="w-full block">
           <Button className="w-full justify-start" variant="default">
             <UserPlus size={18} className="mr-2" />
             Cadastrar Novo Associado
@@ -24,7 +24,7 @@ export const QuickActions: React.FC = () => {
             Cadastrar Nova Empresa
           </Button>
         </Link>
-        <Link to="/associados/pendentes" className="w-full block">
+        <Link to="/associados/interessados" className="w-full block">
           <Button className="w-full justify-start" variant="outline">
             <ClipboardCheck size={18} className="mr-2" />
             Gerenciar Aprovações Pendentes

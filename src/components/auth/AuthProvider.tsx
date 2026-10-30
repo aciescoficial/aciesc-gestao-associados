@@ -1,9 +1,13 @@
-
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole, UserTag } from '../usuarios/types';
 import { useToast } from '@/hooks/use-toast';
+
+export interface SignUpOptions {
+  role?: UserRole;
+  retryCount?: number;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -14,10 +18,7 @@ interface AuthContextType {
   hasFinanceiroAccess: boolean;
   
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signUp: (email: string, password: string, name: string, options?: {
-    role?: UserRole;
-    retryCount?: number;
-  }) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string, name: string, options?: SignUpOptions) => Promise<{ success: boolean; error?: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   refreshSession: () => Promise<void>;
@@ -37,30 +38,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from('user')
-        .select('role, tags, active, associado_id, empresa_id')
+        .select('role, tags, active, associado_id, empresa_id, email')
         .eq('id', userId)
         .maybeSingle();
+    
+    if (error) {
+      console.error("Error fetching user data:", error);
+      setUserRole('user');
+      setUserTags([]);
+      return;
+    }
+    
+    if (data) {
+      console.log("User data fetched:", data);
       
-      if (error) {
-        console.error("Error fetching user data:", error);
-        setUserRole('user');
-        setUserTags([]);
-        return;
-      }
+      // Special handling for admin@aciesc.com.br
+      const isRootAdmin = data.email === 'admin@aciesc.com.br';
+      const role = isRootAdmin ? 'admin' : data.role;
       
-      if (data) {
-        console.log("User data fetched:", data);
-        setUserRole(data.role as UserRole);
+      setUserRole(role as UserRole);
+      
+      if (Array.isArray(data.tags)) {
+        const validUserTags = data.tags
+          .filter(tag => 
+            ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
+             'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc']
+            .includes(tag)
+          ) as UserTag[];
         
-        if (Array.isArray(data.tags)) {
-          const validUserTags = data.tags
-            .filter(tag => 
-              ['corretor', 'corretor_autonomo', 'empresa_conveniada', 'diretoria_aciesc', 
-               'administrador', 'financeiro', 'proprietario_imobiliaria', 'imobiliaria', 'aciesc']
-              .includes(tag)
-            ) as UserTag[];
-          
-          setUserTags(validUserTags);
+        setUserTags(validUserTags);
           
           setUser(prevUser => {
             if (!prevUser) return null;
@@ -145,28 +151,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email: string, 
     password: string, 
     name: string, 
-    options?: { role?: UserRole; retryCount?: number }
-  ) => {
+    options?: SignUpOptions
+  ): Promise<{ success: boolean; error?: any }> => {
     try {
       const role = options?.role || 'user';
       const retryCount = options?.retryCount || 0;
       
-      // Verificar se o papel de usuário é permitido com base no cliente
-      let userRole = role;
-      
-      // Verificar associação de papel - Diretoria -> admin
-      if (userRole === 'admin') {
-        userRole = 'diretoria';
-      }
+      const skipEmailVerification = role === 'user' && window.location.hostname === 'localhost';
       
       const signUpOptions: any = {
         email,
         password,
         options: {
-          data: { name, role: userRole },
+          data: { 
+            name, 
+            role: role,
+          },
           emailRedirectTo: `${window.location.origin}/login`
         }
       };
+      
+      if (skipEmailVerification) {
+        console.log("Skipping email verification for development");
+        signUpOptions.options.emailConfirm = true; // This will auto-confirm the email
+      }
       
       const { data, error } = await supabase.auth.signUp(signUpOptions);
       
@@ -197,11 +205,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (data?.user) {
         try {
-          // Definir tags com base no papel
           let userTags: UserTag[] = [];
-          if (userRole === 'diretoria') {
-            userTags = ['diretoria_aciesc'];
-          }
+          // Add 'associado' tag by default for new users
+          userTags = ['corretor'];
           
           const { error: profileError } = await supabase
             .from('user')
@@ -209,7 +215,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               id: data.user.id,
               email,
               name,
-              role: userRole,
+              role: role,
               active: true,
               tags: userTags
             });
@@ -239,6 +245,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await supabase.auth.signOut();
       setSession(null);
       setUser(null);
+      
+      // Clear any message-specific data from localStorage
+      localStorage.removeItem('read-messages');
+      localStorage.removeItem('aciesc-messages');
     } catch (error) {
       console.error('Error during sign out:', error);
     }

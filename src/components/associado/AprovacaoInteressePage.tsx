@@ -57,7 +57,13 @@ const AprovacaoInteressePage: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="incorporacao" className="mt-0">
-          <CodigoIncorporacao />
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Código de Incorporação do Formulário</h2>
+            <p className="text-sm text-muted-foreground">
+              Obtenha o código para incorporar o formulário de interesse em outros sites.
+            </p>
+            <CodigoIncorporacao />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

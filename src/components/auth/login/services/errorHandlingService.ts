@@ -7,6 +7,7 @@ type BaseError = {
 type RateLimitError = BaseError & {
   code?: string;
   retryAfter?: number | null;
+  status?: number;
 };
 
 type ErrorResponse = {
@@ -46,15 +47,33 @@ export const handleSignUpError = (error: unknown): ErrorResponse => {
     
     // Check for rate limit indication
     const isRateLimit = 
-      (typedError.code === 'rate_limit') || 
+      (typedError.code === 'rate_limit' || typedError.code === 'over_email_send_rate_limit') || 
+      (typedError.status === 429) ||
       ('message' in typedError && 
        typeof typedError.message === 'string' &&
-       typedError.message.includes('rate limit'));
+       (typedError.message.includes('rate limit') || typedError.message.includes('limite')));
+
+    // Extract retry time if available
+    let retryTime = defaultResponse.retryTime;
+    if (typedError.retryAfter && typeof typedError.retryAfter === 'number') {
+      retryTime = typedError.retryAfter;
+    }
+
+    // Get message
+    let message = defaultResponse.message;
+    if (typedError.message) {
+      message = typedError.message;
+      
+      // Enhanced Portuguese message for rate limits
+      if (isRateLimit) {
+        message = "Limite de cadastros excedido. Por favor aguarde alguns instantes ou contate o administrador.";
+      }
+    }
 
     return {
       isRateLimit,
-      retryTime: typedError.retryAfter ?? defaultResponse.retryTime,
-      message: typedError.message ?? defaultResponse.message
+      retryTime,
+      message
     };
   }
 

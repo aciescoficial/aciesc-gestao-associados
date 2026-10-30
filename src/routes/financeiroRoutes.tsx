@@ -4,11 +4,11 @@ import { Route } from "react-router-dom";
 import { FinanceRoute } from "../pages/routes/FinanceiroRoutes";
 import PluginLayout from "../components/PluginLayout";
 import FinanceiroResumoPage from "../components/financeiro/FinanceiroResumoPage";
-import AssociadosPage from "../components/financeiro/AssociadosPage";
+import FinanceiroAssociadosPage from "../components/financeiro/FinanceiroAssociadosPage";
 import FinanceiroRelatoriosPage from "../components/financeiro/FinanceiroRelatoriosPage";
 import IntegracaoFinanceira from "../components/IntegracaoFinanceira";
 
-// Fallback component with custom loading time
+// Fallback component com loading personalizado
 const PageLoading = () => <div className="flex justify-center items-center h-48">Carregando...</div>;
 
 export const FinanceiroRoutes = [
@@ -23,7 +23,7 @@ export const FinanceiroRoutes = [
   <Route key="financeiro-associados" path="/financeiro/associados" element={
     <FinanceRoute>
       <PluginLayout>
-        <AssociadosPage />
+        <FinanceiroAssociadosPage />
       </PluginLayout>
     </FinanceRoute>
   } />,

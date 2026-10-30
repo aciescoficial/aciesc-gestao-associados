@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRegisterForm } from './hooks/useRegisterForm';
 import RegisterFormFields from './components/RegisterFormFields';
@@ -34,12 +35,12 @@ const RegisterForm = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Criar Conta</CardTitle>
+        <CardTitle>Novo cadastro</CardTitle>
         <CardDescription>
-          Crie uma nova conta para acessar o sistema
+          Crie uma conta para acessar o sistema
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
         <RegisterFormFields
           email={email}
           setEmail={setEmail}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +22,6 @@ export const useProfileData = (user: any) => {
       
       setIsLoading(true);
       try {
-        // Query user table using maybeSingle to handle potential no-row scenario
         const { data, error } = await supabase
           .from('user')
           .select('name, phone, role, avatar_url, city, state, cpf, creci, associado_id, empresa_id')
@@ -47,7 +45,6 @@ export const useProfileData = (user: any) => {
           setAssociadoId(data.associado_id);
           setEmpresaId(data.empresa_id);
         } else {
-          // No user found, create a new user record
           const { error: insertError } = await supabase
             .from('user')
             .insert({
@@ -65,7 +62,6 @@ export const useProfileData = (user: any) => {
               description: "Não foi possível criar seu perfil. Por favor, tente novamente mais tarde."
             });
           } else {
-            // Set defaults after creating user
             setName(user.user_metadata?.name || '');
             setRole('user');
           }

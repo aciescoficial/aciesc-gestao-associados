@@ -1,88 +1,63 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2, UserPlus, Send, FileText, ArrowRight } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { ArrowRight } from 'lucide-react';
 
-const FluxoAprovacao = () => {
+const FluxoAprovacao: React.FC = () => {
   return (
-    <div className="space-y-6">
-      <div className="relative grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Arrow indicators between steps (hidden on mobile) */}
-        <div className="hidden md:block absolute top-1/2 left-1/4 -translate-y-1/2 translate-x-1/2 z-10">
-          <ArrowRight className="w-6 h-6 text-muted-foreground" />
+    <Card className="p-6">
+      <h2 className="text-xl font-semibold mb-6">Fluxo de Associação à ACIESC</h2>
+      
+      <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
+        <div className="bg-gray-50 p-4 rounded-lg text-center w-full md:w-1/4">
+          <div className="bg-primary/10 rounded-full p-3 inline-flex mb-2">
+            <span className="text-primary font-bold text-lg">1</span>
+          </div>
+          <h3 className="font-medium mb-2">Cadastro de Interesse</h3>
+          <p className="text-sm text-gray-600">Corretor preenche formulário com dados pessoais e aceita termos</p>
         </div>
-        <div className="hidden md:block absolute top-1/2 left-1/2 -translate-y-1/2 z-10">
-          <ArrowRight className="w-6 h-6 text-muted-foreground" />
+        
+        <ArrowRight className="hidden md:block text-gray-400" />
+        
+        <div className="bg-gray-50 p-4 rounded-lg text-center w-full md:w-1/4">
+          <div className="bg-primary/10 rounded-full p-3 inline-flex mb-2">
+            <span className="text-primary font-bold text-lg">2</span>
+          </div>
+          <h3 className="font-medium mb-2">Geração de Pagamento</h3>
+          <p className="text-sm text-gray-600">Sistema gera automaticamente link de pagamento</p>
         </div>
-        <div className="hidden md:block absolute top-1/2 left-3/4 -translate-y-1/2 -translate-x-1/2 z-10">
-          <ArrowRight className="w-6 h-6 text-muted-foreground" />
+        
+        <ArrowRight className="hidden md:block text-gray-400" />
+        
+        <div className="bg-gray-50 p-4 rounded-lg text-center w-full md:w-1/4">
+          <div className="bg-primary/10 rounded-full p-3 inline-flex mb-2">
+            <span className="text-primary font-bold text-lg">3</span>
+          </div>
+          <h3 className="font-medium mb-2">Pagamento</h3>
+          <p className="text-sm text-gray-600">Corretor efetua o pagamento da anuidade</p>
         </div>
-
-        <Card className="relative">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center space-y-2">
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                <FileText className="h-6 w-6 text-blue-500" />
-              </div>
-              <h3 className="font-medium">1. Cadastro</h3>
-              <p className="text-sm text-muted-foreground">
-                Interessado preenche o formulário de interesse na associação
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center space-y-2">
-              <div className="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center mb-2">
-                <Send className="h-6 w-6 text-yellow-500" />
-              </div>
-              <h3 className="font-medium">2. Análise</h3>
-              <p className="text-sm text-muted-foreground">
-                Administrador analisa a documentação e dados do interessado
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center space-y-2">
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-2">
-                <UserPlus className="h-6 w-6 text-green-500" />
-              </div>
-              <h3 className="font-medium">3. Aprovação</h3>
-              <p className="text-sm text-muted-foreground">
-                Administrador aprova ou rejeita a solicitação de associação
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center text-center space-y-2">
-              <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mb-2">
-                <CheckCircle2 className="h-6 w-6 text-purple-500" />
-              </div>
-              <h3 className="font-medium">4. Conclusão</h3>
-              <p className="text-sm text-muted-foreground">
-                Associado recebe confirmação e completa seu cadastro
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        
+        <ArrowRight className="hidden md:block text-gray-400" />
+        
+        <div className="bg-gray-50 p-4 rounded-lg text-center w-full md:w-1/4">
+          <div className="bg-primary/10 rounded-full p-3 inline-flex mb-2">
+            <span className="text-primary font-bold text-lg">4</span>
+          </div>
+          <h3 className="font-medium mb-2">Confirmação</h3>
+          <p className="text-sm text-gray-600">Pagamento confirmado e usuário ativo no sistema</p>
+        </div>
       </div>
-
-      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-        <p className="text-sm text-blue-700">
-          Este é o fluxo padrão do processo de aprovação de novos associados. 
-          Cada etapa é importante para garantir a qualidade e integridade da associação.
-          O processo foi desenhado para ser eficiente e transparente para todos os envolvidos.
-        </p>
+      
+      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+        <h3 className="font-medium mb-2 text-blue-700">Notas sobre o Processo:</h3>
+        <ul className="list-disc pl-5 space-y-1 text-blue-700">
+          <li>Todo o processo é automatizado, sem necessidade de aprovação manual</li>
+          <li>A criação do usuário ocorre imediatamente após o envio do formulário</li>
+          <li>O acesso completo ao sistema é liberado após a confirmação do pagamento</li>
+          <li>O administrador pode verificar os pagamentos pendentes na aba "Pagamentos Pendentes"</li>
+        </ul>
       </div>
-    </div>
+    </Card>
   );
 };
 

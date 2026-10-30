@@ -1,12 +1,13 @@
 
 import React from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
-import { FinanceiroRoutes } from "./financeiroRoutes";
-import { SharedRoutes } from "./sharedRoutes";
 import { AdminRoutes } from "./adminRoutes";
 import { UserRoutes } from "./userRoutes";
+import { SharedRoutes } from "./sharedRoutes";
 import { AuthRoutes } from "./authRoutes";
 import { PublicRoutes } from "./publicRoutes";
+import { FinanceiroRoutes } from "./financeiroRoutes";
+import { EmpresaRoutes } from "./empresaRoutes";
 import NotFound from "../pages/NotFound";
 
 export const MainRoutes = () => {
@@ -25,6 +26,7 @@ export const MainRoutes = () => {
       {SharedRoutes}
       {AdminRoutes}
       {UserRoutes}
+      {EmpresaRoutes}
       {FinanceiroRoutes}
       
       {/* Catch-all 404 route */}

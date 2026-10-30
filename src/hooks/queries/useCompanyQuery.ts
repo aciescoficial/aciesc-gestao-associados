@@ -5,16 +5,16 @@ import { EmpresaData } from '@/components/empresa/types';
 import { CompanySearchFormValues } from '@/components/empresa/components/search/schema';
 import { handleError } from '@/utils/errorHandling';
 
-export const useCompanyQuery = (searchParams: CompanySearchFormValues | null) => {
+export const useCompanyQuery = (searchParams: CompanySearchFormValues | null, page = 1, pageSize = 10) => {
   return useQuery({
-    queryKey: ['companies', searchParams],
+    queryKey: ['companies', searchParams, page, pageSize],
     queryFn: async () => {
-      if (!searchParams) return [];
+      if (!searchParams) return { data: [], count: 0 };
 
       try {
         let query = supabase
           .from('empresas')
-          .select('*');
+          .select('*', { count: 'exact' });
 
         if (searchParams.status !== 'todos') {
           query = query.eq('status', searchParams.status);
@@ -30,14 +30,21 @@ export const useCompanyQuery = (searchParams: CompanySearchFormValues | null) =>
           }
         }
 
-        const { data, error } = await query;
+        // Aplicar paginação
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
+        const { data, error, count } = await query.range(from, to);
 
         if (error) throw error;
 
-        return data as EmpresaData[];
+        return { 
+          data: data as EmpresaData[], 
+          count: count || 0 
+        };
       } catch (error) {
         handleError(error, "Ocorreu um erro ao realizar a busca.", "useCompanyQuery");
-        return [];
+        return { data: [], count: 0 };
       }
     },
     enabled: !!searchParams,

@@ -33,7 +33,6 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
   } = useImportExport({ 
     onImportSuccess,
     onExportSuccess: async (format, count) => {
-      // Log export operation
       await logOperation({
         eventType: 'export',
         entityType: 'empresa',
@@ -47,50 +46,45 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
   const { isAdmin } = useAuth();
   const { toast } = useToast();
   
-  // Se não for admin, não mostra opções de importação/exportação
   if (!isAdmin) {
     return (
-      <div className="space-y-6">
-        <div className="border rounded-lg p-6 bg-slate-50">
-          <p className="text-center text-gray-500">
-            Apenas administradores podem acessar as funcionalidades de importação e exportação.
-          </p>
-        </div>
+      <div className="flex items-center justify-center p-8 text-muted-foreground bg-muted/10 rounded-lg">
+        <p>Apenas administradores podem acessar as funcionalidades de importação e exportação.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="border rounded-lg p-6 bg-slate-50">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Download className="h-5 w-5" />
-              Importação e Exportação de Empresas
+              Importação e Exportação
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Importe ou exporte dados de empresas conveniadas em formato CSV.
+            <p className="text-sm text-muted-foreground mt-1">
+              Gerencie os dados das empresas conveniadas através de arquivos CSV
             </p>
           </div>
           
-          <div className="flex gap-2 mt-4 md:mt-0">
+          <div className="flex gap-2 w-full md:w-auto">
             <Button
               variant="outline"
               onClick={handleExportEmpresas}
               disabled={isExporting}
-              className="flex items-center gap-2"
+              className="flex-1 md:flex-none"
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-4 w-4 mr-2" />
               {isExporting ? 'Exportando...' : 'Exportar CSV'}
             </Button>
             
             <Button
               onClick={() => fileInputRef.current?.click()}
               disabled={isImporting}
-              className="flex items-center gap-2"
+              className="flex-1 md:flex-none"
             >
-              <Upload className="h-4 w-4" />
+              <Upload className="h-4 w-4 mr-2" />
               {isImporting ? 'Importando...' : 'Importar CSV'}
             </Button>
             
@@ -104,7 +98,9 @@ const ImportExportEmpresas: React.FC<ImportExportEmpresasProps> = ({ onImportSuc
           </div>
         </div>
         
-        <ImportInstructions />
+        <div className="bg-muted/10 rounded-lg p-6">
+          <ImportInstructions />
+        </div>
         
         <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
           <DialogContent className="max-w-4xl">

@@ -1,11 +1,24 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PendingHeader } from './aprovacoes/components/PendingHeader';
 import { PendingTable } from './aprovacoes/components/PendingTable';
 import { useAprovacoes } from './aprovacoes/hooks/useAprovacoes';
+import { useToast } from '@/hooks/use-toast';
 
 const AprovacoesPendentes: React.FC = () => {
-  const { pendentes, isLoading, handleApprove, handleReject } = useAprovacoes();
+  const { pendentes, isLoading, handleApprove, handleReject, fetchPendentes, statusFilter, setStatusFilter } = useAprovacoes();
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    // Initial load of data
+    fetchPendentes().catch(error => {
+      toast({
+        title: "Erro ao carregar aprovações",
+        description: "Não foi possível carregar as aprovações pendentes",
+        variant: "destructive"
+      });
+    });
+  }, []);
   
   const getTipoBadge = (tipo: string) => {
     switch (tipo) {
@@ -31,12 +44,13 @@ const AprovacoesPendentes: React.FC = () => {
         </div>
       ) : (
         <div className="wp-card">
-          <PendingHeader pendingCount={pendentes.length} />
+          <PendingHeader pendingCount={pendentes.length} statusFilter={statusFilter} />
           <PendingTable 
             pendentes={pendentes}
             onApprove={handleApprove}
             onReject={handleReject}
             getTipoBadge={getTipoBadge}
+            statusFilter={statusFilter}
           />
         </div>
       )}

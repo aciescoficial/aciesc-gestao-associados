@@ -1,106 +1,113 @@
 
 import React from 'react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { UserRole, UserTag } from '../../types';
-import { getUserTags } from '../../utils/roleUtils';
+import { getRoles, getUserTags } from '../../utils/roleUtils';
 
-interface NameFieldProps {
+// FIELD COMPONENTS
+
+export const NameField: React.FC<{
+  id: string;
   value: string;
   onChange: (value: string) => void;
-  id?: string;
-}
-
-export const NameField: React.FC<NameFieldProps> = ({ value, onChange, id = 'name' }) => (
-  <div className="space-y-2">
-    <Label htmlFor={id}>Nome</Label>
+}> = ({ id, value, onChange }) => (
+  <div>
+    <Label htmlFor={id} className="text-muted-foreground">
+      Nome
+    </Label>
     <Input
       id={id}
-      placeholder="Digite o nome completo"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      required
+      placeholder="Nome completo"
+      className="mt-1"
     />
   </div>
 );
 
-interface EmailFieldProps {
+export const EmailField: React.FC<{
+  id: string;
   value: string;
   onChange: (value: string) => void;
-  id?: string;
-}
-
-export const EmailField: React.FC<EmailFieldProps> = ({ value, onChange, id = 'email' }) => (
-  <div className="space-y-2">
-    <Label htmlFor={id}>Email</Label>
+}> = ({ id, value, onChange }) => (
+  <div>
+    <Label htmlFor={id} className="text-muted-foreground">
+      Email
+    </Label>
     <Input
       id={id}
       type="email"
-      placeholder="Digite o email"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      required
+      placeholder="email@exemplo.com"
+      className="mt-1"
     />
   </div>
 );
 
-interface RoleSelectProps {
-  value: UserRole | undefined;
+export const RoleSelect: React.FC<{
+  id: string;
+  value: UserRole;
   onChange: (value: UserRole) => void;
-  id?: string;
-}
-
-export const RoleSelect: React.FC<RoleSelectProps> = ({ value, onChange, id = 'role' }) => (
-  <div className="space-y-2">
-    <Label htmlFor={id}>Tipo de Usuário</Label>
-    <Select
-      value={value}
-      onValueChange={(value) => onChange(value as UserRole)}
-      required
-    >
-      <SelectTrigger id={id}>
-        <SelectValue placeholder="Selecione o tipo de usuário" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="admin">Administrador</SelectItem>
-        <SelectItem value="user">Associado</SelectItem>
-        <SelectItem value="empresa">Empresa</SelectItem>
-      </SelectContent>
-    </Select>
-  </div>
-);
-
-interface UserTagsFieldProps {
-  selectedTags: UserTag[] | undefined;
-  onTagChange: (tagId: UserTag, checked: boolean) => void;
-  prefix?: string;
-}
-
-export const UserTagsField: React.FC<UserTagsFieldProps> = ({ 
-  selectedTags, 
-  onTagChange,
-  prefix = ''
-}) => {
-  const availableTags = getUserTags();
+  disabled?: boolean;
+}> = ({ id, value, onChange, disabled = false }) => {
+  const roles = getRoles();
   
   return (
-    <div className="space-y-2">
-      <Label>Tags do Usuário</Label>
-      <div className="grid grid-cols-1 gap-2 mt-2">
-        {availableTags.map((tag) => (
-          <div className="flex items-center space-x-2" key={tag.id}>
+    <div>
+      <Label htmlFor={id} className="text-muted-foreground">
+        Tipo de Usuário
+      </Label>
+      <Select 
+        value={value} 
+        onValueChange={onChange as (value: string) => void}
+        disabled={disabled}
+      >
+        <SelectTrigger id={id} className="mt-1">
+          <SelectValue placeholder="Selecione um tipo" />
+        </SelectTrigger>
+        <SelectContent>
+          {roles.map((role) => (
+            <SelectItem key={role.id} value={role.id}>
+              {role.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+export const UserTagsField: React.FC<{
+  prefix: string;
+  selectedTags: UserTag[] | undefined;
+  onTagChange: (tag: UserTag, checked: boolean) => void;
+}> = ({ prefix, selectedTags, onTagChange }) => {
+  const tags = getUserTags();
+  const selectedTagIds = selectedTags || [];
+
+  // Verifica se tem a tag 'diretoria_aciesc'
+  const hasDiretoriaTag = selectedTagIds.includes('diretoria_aciesc');
+  
+  return (
+    <div className="space-y-3">
+      <Label className="text-muted-foreground">Tags do Usuário</Label>
+      <div className="grid grid-cols-2 gap-2">
+        {tags.map((tag) => (
+          <div key={tag.id} className="flex items-center space-x-2">
             <Checkbox 
               id={`${prefix}-tag-${tag.id}`}
-              checked={selectedTags?.includes(tag.id) || false}
-              onCheckedChange={(checked) => onTagChange(tag.id, checked === true)}
+              checked={selectedTagIds.includes(tag.id)}
+              onCheckedChange={(checked) => onTagChange(tag.id, !!checked)}
             />
             <Label 
               htmlFor={`${prefix}-tag-${tag.id}`}

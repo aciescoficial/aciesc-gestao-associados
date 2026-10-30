@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageStatus } from '../hooks/useMessages';
+import { MessageStatus } from '../types';
 
 interface MessageTabsProps {
   filter: MessageStatus;

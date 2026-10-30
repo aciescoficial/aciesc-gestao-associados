@@ -1,6 +1,6 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { BaseService } from './baseService';
+import { supabase } from '@/integrations/supabase/client';
 import { EmpresaData } from '@/types/empresa';
 
 class EmpresaService extends BaseService {

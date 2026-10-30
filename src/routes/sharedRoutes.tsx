@@ -9,6 +9,7 @@ import PluginLayout from '../components/PluginLayout';
 import Dashboard from '../components/Dashboard';
 import MessagesDashboard from '../components/mensagens/MessagesDashboard';
 import MensagensPage from '../components/mensagens/MensagensPage';
+import MessageDetail from '../components/mensagens/MessageDetail';
 import EmpresaSugestoes from '../components/empresa/EmpresaSugestoes';
 
 const ProfilePage = lazy(() => import("../components/auth/profile/ProfilePage"));
@@ -61,6 +62,14 @@ export const SharedRoutes = [
     <ProtectedRoute>
       <PluginLayout>
         <MensagensPage />
+      </PluginLayout>
+    </ProtectedRoute>
+  } />,
+  
+  <Route key="mensagens-detalhe" path="/mensagens/:id" element={
+    <ProtectedRoute>
+      <PluginLayout>
+        <MessageDetail />
       </PluginLayout>
     </ProtectedRoute>
   } />,

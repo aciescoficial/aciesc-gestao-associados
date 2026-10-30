@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase, checkDatabaseConnectivity } from '@/integrations/supabase/client';
 import { User, UserRole, UserTag } from '../types';
@@ -12,20 +11,25 @@ export const useUserFetch = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [connectionStatus, setConnectionStatus] = useState<boolean | null>(null);
   const { toast } = useToast();
+  const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
 
-  // Filter users based on search term
+  // Filter users based on search term and role
   const filteredUsers = useMemo(() => {
-    if (!searchTerm.trim()) return users;
+    if (!searchTerm.trim() && roleFilter === 'all') return users;
     
     const normalizedSearch = searchTerm.toLowerCase();
-    return users.filter(
-      user => 
+    return users.filter(user => {
+      const matchesSearch = !searchTerm.trim() || 
         user.name.toLowerCase().includes(normalizedSearch) ||
         user.email.toLowerCase().includes(normalizedSearch) ||
         (user.associado_cpf && user.associado_cpf.toLowerCase().includes(normalizedSearch)) ||
-        (user.empresa_cnpj && user.empresa_cnpj.toLowerCase().includes(normalizedSearch))
-    );
-  }, [users, searchTerm]);
+        (user.empresa_cnpj && user.empresa_cnpj.toLowerCase().includes(normalizedSearch));
+
+      const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+
+      return matchesSearch && matchesRole;
+    });
+  }, [users, searchTerm, roleFilter]);
 
   // Check database connectivity first
   const checkConnection = useCallback(async () => {
@@ -185,6 +189,8 @@ export const useUserFetch = () => {
     error,
     searchTerm,
     setSearchTerm,
+    roleFilter,
+    setRoleFilter,
     filteredUsers,
     fetchUsers,
     connectionStatus

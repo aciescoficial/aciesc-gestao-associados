@@ -21,17 +21,29 @@ class StatsService extends BaseService {
         pendentesEmpresasResult,
         carteirasResult
       ] = await Promise.all([
+        // Count all associados
         supabase.from('associados').select('*', { count: 'exact', head: true }),
+        
+        // Count all empresas
         supabase.from('empresas').select('*', { count: 'exact', head: true }),
+        
+        // Count pending associados
         supabase.from('associados').select('*', { count: 'exact', head: true }).eq('status', 'pendente'),
+        
+        // Count pending empresas
         supabase.from('empresas').select('*', { count: 'exact', head: true }).eq('status', 'pendente'),
+        
+        // Count pending carteirinha requests
         supabase.from('carteirinha_solicitacoes').select('*', { count: 'exact', head: true }).eq('status', 'pendente_pagamento')
       ]);
+      
+      // Calculate total pending items (associados + empresas)
+      const totalPendentes = (pendentesAssociadosResult.count || 0) + (pendentesEmpresasResult.count || 0);
       
       const stats: DashboardStats = {
         associados: associadosResult.count || 0,
         empresas: empresasResult.count || 0,
-        pendentes: (pendentesAssociadosResult.count || 0) + (pendentesEmpresasResult.count || 0),
+        pendentes: totalPendentes,
         carteirasPendentes: carteirasResult.count || 0
       };
 
@@ -40,7 +52,6 @@ class StatsService extends BaseService {
     } catch (error) {
       const errorMessage = "Erro ao buscar estatísticas do dashboard";
       this.handleError(error, errorMessage);
-      // Return default stats on error to maintain type safety
       return {
         associados: 0,
         empresas: 0,

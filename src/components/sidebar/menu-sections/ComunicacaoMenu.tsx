@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MessageCircle, Inbox, SendHorizonal } from 'lucide-react';
+import { MessageCircle, Inbox, SendHorizonal, Settings } from 'lucide-react';
 import { MenuItem } from '../types/MenuItem';
 
 // Create a function to return menu items
@@ -13,6 +13,7 @@ export const getComunicacaoMenuItems = (): MenuItem[] => {
       submenu: [
         { icon: Inbox, label: "Caixa de Entrada", path: "/mensagens", roles: ['admin', 'user', 'empresa'] },
         { icon: SendHorizonal, label: "Enviar Mensagem", path: "/mensagens/enviar", roles: ['admin', 'user', 'empresa'] },
+        { icon: Settings, label: "Configurações de Email", path: "/configuracoes/email", roles: ['admin'] },
       ]
     }
   ];

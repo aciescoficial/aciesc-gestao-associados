@@ -1,19 +1,20 @@
 
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
-  size?: 'small' | 'medium' | 'large';
   text?: string;
+  size?: number | 'small' | 'medium' | 'large';
   centered?: boolean;
   className?: string;
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = 'medium', 
   text = 'Carregando...', 
+  size = 24,
   centered = true,
-  className = ''
+  className = '' 
 }) => {
   // Define sizes in pixels
   const sizeMap = {
@@ -22,15 +23,29 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     large: 32
   };
   
-  const spinnerSize = sizeMap[size];
-  const containerClasses = centered 
-    ? `flex flex-col items-center justify-center ${className}`
-    : `flex flex-col items-start ${className}`;
+  // Calculate actual size in pixels
+  const actualSize = typeof size === 'string' ? sizeMap[size] : size;
   
+  const containerClasses = cn(
+    'flex flex-col p-4',
+    centered ? 'items-center justify-center' : 'items-start',
+    className
+  );
+  
+  const spinnerClasses = cn(
+    'animate-spin',
+    `h-[${actualSize}px] w-[${actualSize}px]`
+  );
+
   return (
     <div className={containerClasses}>
-      <Loader2 className={`animate-spin text-primary h-${spinnerSize/4} w-${spinnerSize/4}`} />
-      {text && <p className="mt-2 text-sm text-muted-foreground">{text}</p>}
+      <Loader2 
+        className={spinnerClasses}
+        style={{ width: `${actualSize}px`, height: `${actualSize}px` }}
+      />
+      {text && (
+        <p className="mt-2 text-sm text-muted-foreground">{text}</p>
+      )}
     </div>
   );
 };

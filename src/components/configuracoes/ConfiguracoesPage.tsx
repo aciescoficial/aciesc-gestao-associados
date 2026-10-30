@@ -1,8 +1,7 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Map, Users, ClipboardList, Mail, CreditCard, DollarSign, Shield } from 'lucide-react';
+import { Settings, Map, Users, ClipboardList, Mail, CreditCard, DollarSign, Shield, Code } from 'lucide-react';
 import GoogleMapsConfig from './GoogleMapsConfig';
 import { AuditLogSettings } from './AuditLogSettings';
 import EmailTemplatesConfig from './email-templates/EmailTemplatesConfig';
@@ -10,6 +9,7 @@ import CarteirinhaConfig from './CarteirinhaConfig';
 import IntegracaoFinanceira from '../IntegracaoFinanceira';
 import SecurityTabContent from './security/SecurityTabContent';
 import SystemConfig from './system/SystemConfig';
+import FormEmbed from './form/FormEmbed';
 
 const ConfiguracoesPage: React.FC = () => {
   const location = useLocation();
@@ -20,7 +20,7 @@ const ConfiguracoesPage: React.FC = () => {
     const queryParams = new URLSearchParams(location.search);
     const tabParam = queryParams.get('tab');
     
-    if (tabParam && ['geral', 'maps', 'carteirinha', 'seguranca', 'logs', 'emails', 'integracoes'].includes(tabParam)) {
+    if (tabParam && ['geral', 'maps', 'carteirinha', 'seguranca', 'logs', 'emails', 'integracoes', 'form'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [location]);
@@ -33,7 +33,7 @@ const ConfiguracoesPage: React.FC = () => {
       </h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="wp-card">
-        <TabsList className="grid grid-cols-7 mb-6">
+        <TabsList className="grid grid-cols-8 mb-6">
           <TabsTrigger value="geral" className="flex items-center gap-2">
             <Settings size={16} />
             Geral
@@ -61,6 +61,10 @@ const ConfiguracoesPage: React.FC = () => {
           <TabsTrigger value="integracoes" className="flex items-center gap-2">
             <DollarSign size={16} />
             Integrações
+          </TabsTrigger>
+          <TabsTrigger value="form" className="flex items-center gap-2">
+            <Code size={16} />
+            Form
           </TabsTrigger>
         </TabsList>
         
@@ -90,6 +94,10 @@ const ConfiguracoesPage: React.FC = () => {
         
         <TabsContent value="integracoes">
           <IntegracaoFinanceira />
+        </TabsContent>
+        
+        <TabsContent value="form">
+          <FormEmbed />
         </TabsContent>
       </Tabs>
     </div>

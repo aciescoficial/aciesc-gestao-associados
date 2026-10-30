@@ -1,15 +1,26 @@
 
 export interface Pagamento {
   id: string;
+  associado_id: string;
   valor: number;
   data_pagamento: string;
-  status: 'pago' | 'pendente' | 'atrasado' | 'cancelado';
-  metodo: string;
-  origem: 'manual' | 'asaas' | 'stripe';
-  comprovante_url?: string;
+  data_confirmacao?: string;
+  status: 'pendente' | 'pago' | 'cancelado';
+  metodo?: string;
+  origem: string;
+  origem_id?: string;
   descricao?: string;
+  comprovante_url?: string;
   ano_referencia: number;
-  associado_id: string;
+  created_at?: string;
+  updated_at?: string;
+  associado?: {
+    id: string;
+    nome?: string;
+    sobrenome?: string;
+    email?: string;
+    cpf?: string;
+  };
 }
 
 export interface SituacaoPagamento {

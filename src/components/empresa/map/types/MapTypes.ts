@@ -1,5 +1,5 @@
 
-import { EmpresaData } from "../../types";
+import { EmpresaData } from '../../types';
 
 export interface MapViewProps {
   companies: EmpresaData[];

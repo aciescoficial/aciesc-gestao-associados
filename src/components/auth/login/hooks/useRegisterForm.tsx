@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../AuthProvider';
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from '@/components/usuarios/types';
@@ -7,33 +7,6 @@ import { useNavigate } from 'react-router-dom';
 import { usePasswordManagement } from './usePasswordManagement';
 import { useRetryLogic } from './useRetryLogic';
 import { handleSignUpError } from '../services/errorHandlingService';
-
-// Define a generic error type to help with type checking
-interface ErrorWithMessage {
-  message: string;
-  [key: string]: any;
-}
-
-// Type guard to check if an error has a message property
-function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'message' in error &&
-    typeof (error as Record<string, unknown>).message === 'string'
-  );
-}
-
-// Extract error message from various error types
-function getErrorMessage(error: unknown): string {
-  if (typeof error === 'string') {
-    return error;
-  }
-  if (isErrorWithMessage(error)) {
-    return error.message;
-  }
-  return "Ocorreu um erro durante o cadastro";
-}
 
 export const useRegisterForm = () => {
   const { signUp } = useAuth();
@@ -107,6 +80,7 @@ export const useRegisterForm = () => {
       const { success, error } = await signUp(email, password, name, {
         role: organizationType,
         retryCount
+        // Development environment check is now done inside the signUp function
       });
       
       if (!success && error) {
@@ -114,10 +88,10 @@ export const useRegisterForm = () => {
         
         const errorResult = handleSignUpError(error);
         
-        if (errorResult?.isRateLimit) {
+        if (errorResult.isRateLimit) {
           setIsRateLimited(true);
           setRetryCount(prev => prev + 1);
-          setRetryCountdown(errorResult.retryTime);
+          setRetryCountdown(errorResult.retryTime || 60);
           
           toast({
             variant: "destructive",
@@ -125,13 +99,10 @@ export const useRegisterForm = () => {
             description: `${errorResult.message}. Tentativa: ${retryCount + 1}. Tente novamente em ${errorResult.retryTime} segundos.`,
           });
         } else {
-          // Handle the error object safely with our helper function
-          const errorMessage = getErrorMessage(error);
-          
           toast({
             variant: "destructive",
             title: "Erro ao criar conta",
-            description: errorMessage,
+            description: errorResult.message,
           });
         }
       } else {
@@ -151,11 +122,15 @@ export const useRegisterForm = () => {
         
         navigate('/login?registered=true');
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Exception during signup:", error);
       
-      // Handle the caught exception safely with our helper function
-      const errorMessage = getErrorMessage(error);
+      let errorMessage = "Ocorreu um erro inesperado durante o cadastro";
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = String(error.message);
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
       
       toast({
         variant: "destructive",

@@ -1,6 +1,9 @@
+
 import React from 'react';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { EmpresaFormData } from './types/formTypes';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface EmpresaEnderecoProps {
   register: UseFormRegister<EmpresaFormData>;
@@ -9,41 +12,41 @@ interface EmpresaEnderecoProps {
 
 const EmpresaEndereco: React.FC<EmpresaEnderecoProps> = ({ register, errors }) => {
   return (
-    <>
-      {/* Endereço */}
-      <div className="space-y-2 md:col-span-2">
-        <label className="block text-sm font-medium">Endereço*</label>
-        <input
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="md:col-span-2">
+        <Label htmlFor="endereco">Endereço*</Label>
+        <Input
+          id="endereco"
           type="text"
-          className={`wp-input w-full ${errors.endereco ? 'border-wp-error' : ''}`}
           {...register('endereco', { required: "Endereço é obrigatório" })}
+          className={errors.endereco ? "border-red-500" : ""}
         />
-        {errors.endereco && <p className="text-wp-error text-sm">{errors.endereco.message}</p>}
+        {errors.endereco && <p className="text-red-500 text-sm mt-1">{errors.endereco.message}</p>}
       </div>
       
-      {/* Cidade */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Cidade*</label>
-        <input
+      <div>
+        <Label htmlFor="cidade">Cidade*</Label>
+        <Input
+          id="cidade"
           type="text"
-          className={`wp-input w-full ${errors.cidade ? 'border-wp-error' : ''}`}
           {...register('cidade', { required: "Cidade é obrigatória" })}
+          className={errors.cidade ? "border-red-500" : ""}
         />
-        {errors.cidade && <p className="text-wp-error text-sm">{errors.cidade.message}</p>}
+        {errors.cidade && <p className="text-red-500 text-sm mt-1">{errors.cidade.message}</p>}
       </div>
       
-      {/* CEP */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">CEP*</label>
-        <input
+      <div>
+        <Label htmlFor="cep">CEP*</Label>
+        <Input
+          id="cep"
           type="text"
-          className={`wp-input w-full ${errors.cep ? 'border-wp-error' : ''}`}
           placeholder="00000-000"
           {...register('cep', { required: "CEP é obrigatório" })}
+          className={errors.cep ? "border-red-500" : ""}
         />
-        {errors.cep && <p className="text-wp-error text-sm">{errors.cep.message}</p>}
+        {errors.cep && <p className="text-red-500 text-sm mt-1">{errors.cep.message}</p>}
       </div>
-    </>
+    </div>
   );
 };
 

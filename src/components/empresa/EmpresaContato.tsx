@@ -1,6 +1,9 @@
+
 import React from 'react';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { EmpresaFormData } from './types/formTypes';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface EmpresaContatoProps {
   register: UseFormRegister<EmpresaFormData>;
@@ -9,25 +12,24 @@ interface EmpresaContatoProps {
 
 const EmpresaContato: React.FC<EmpresaContatoProps> = ({ register, errors }) => {
   return (
-    <>
-      {/* Telefone */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Telefone*</label>
-        <input
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <Label htmlFor="telefone">Telefone*</Label>
+        <Input
+          id="telefone"
           type="text"
-          className={`wp-input w-full ${errors.telefone ? 'border-wp-error' : ''}`}
           placeholder="(00) 00000-0000"
           {...register('telefone', { required: "Telefone é obrigatório" })}
+          className={errors.telefone ? "border-red-500" : ""}
         />
-        {errors.telefone && <p className="text-wp-error text-sm">{errors.telefone.message}</p>}
+        {errors.telefone && <p className="text-red-500 text-sm mt-1">{errors.telefone.message}</p>}
       </div>
       
-      {/* Email */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">E-mail*</label>
-        <input
+      <div>
+        <Label htmlFor="email">E-mail*</Label>
+        <Input
+          id="email"
           type="email"
-          className={`wp-input w-full ${errors.email ? 'border-wp-error' : ''}`}
           {...register('email', { 
             required: "E-mail é obrigatório",
             pattern: {
@@ -35,43 +37,41 @@ const EmpresaContato: React.FC<EmpresaContatoProps> = ({ register, errors }) => 
               message: "E-mail inválido"
             } 
           })}
+          className={errors.email ? "border-red-500" : ""}
         />
-        {errors.email && <p className="text-wp-error text-sm">{errors.email.message}</p>}
+        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
       </div>
       
-      {/* Site */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Site</label>
-        <input
+      <div>
+        <Label htmlFor="site">Site</Label>
+        <Input
+          id="site"
           type="url"
-          className="wp-input w-full"
           placeholder="https://www.example.com"
           {...register('site')}
         />
       </div>
       
-      {/* Instagram */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">Instagram</label>
-        <input
+      <div>
+        <Label htmlFor="instagram">Instagram</Label>
+        <Input
+          id="instagram"
           type="text"
-          className="wp-input w-full"
           placeholder="@seuinstagram"
           {...register('instagram')}
         />
       </div>
       
-      {/* WhatsApp */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">WhatsApp</label>
-        <input
+      <div>
+        <Label htmlFor="whatsapp">WhatsApp</Label>
+        <Input
+          id="whatsapp"
           type="text"
-          className="wp-input w-full"
           placeholder="(00) 00000-0000"
           {...register('whatsapp')}
         />
       </div>
-    </>
+    </div>
   );
 };
 

@@ -10,9 +10,9 @@ export const getAssociadosMenuItems = (): MenuItem[] => {
       icon: User,
       roles: ['admin'],
       submenu: [
-        { icon: FileCheck, label: "Aprovar Interessados", path: "/associados/pendentes", roles: ['admin'] },
-        { icon: UserPlus, label: "Cadastrar", path: "/associados/cadastro", roles: ['admin'] },
-        { icon: Search, label: "Pesquisar", path: "/associados/pesquisa", roles: ['admin', 'user'] },
+        { icon: FileCheck, label: "Interessados", path: "/associados/interessados", roles: ['admin'] },
+        { icon: UserPlus, label: "Cadastrar", path: "/associados/cadastrar", roles: ['admin'] },
+        { icon: Search, label: "Pesquisar", path: "/associados/pesquisar", roles: ['admin', 'user'] },
         { icon: CreditCard, label: "Gerar Carteirinha", path: "/associados/carteirinha", roles: ['admin'] },
       ]
     }

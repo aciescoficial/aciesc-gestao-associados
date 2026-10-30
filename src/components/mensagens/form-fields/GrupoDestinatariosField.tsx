@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Control } from 'react-hook-form';
-import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MensagemFormValues } from '../schema';
+import { FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface GrupoDestinatariosFieldProps {
   control: Control<MensagemFormValues>;
@@ -17,20 +17,19 @@ const GrupoDestinatariosField: React.FC<GrupoDestinatariosFieldProps> = ({ contr
       render={({ field }) => (
         <FormItem>
           <FormLabel>Grupo de Destinatários</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <FormControl>
+          <FormControl>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o grupo" />
+                <SelectValue placeholder="Selecione um grupo" />
               </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="associados">Associados</SelectItem>
-              <SelectItem value="conveniados">Empresas Conveniadas</SelectItem>
-              <SelectItem value="diretoria">Diretoria</SelectItem>
-              <SelectItem value="admin">Administradores</SelectItem>
-              <SelectItem value="todos">Todos</SelectItem>
-            </SelectContent>
-          </Select>
+              <SelectContent>
+                <SelectItem value="associados">Associados</SelectItem>
+                <SelectItem value="empresas">Empresas</SelectItem>
+                <SelectItem value="diretoria">Diretoria</SelectItem>
+                <SelectItem value="todos">Todos os Usuários</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormControl>
         </FormItem>
       )}
     />

@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
     // Component mount effect
   }, []);
 
-  // Redirect to company profile if user is company
+  // Check if user is a company
   if (user?.role === 'empresa') {
     return <EmpresasDashboard />;
   }

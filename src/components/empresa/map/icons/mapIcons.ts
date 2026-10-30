@@ -1,36 +1,47 @@
 
 import L from 'leaflet';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// Custom marker icon for selected company
-export const selectedIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+// Define icon paths with proper URL handling
+const iconPath = '/images/map/';
 
-// Regular marker icon
-export const defaultIcon = new L.Icon({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-// Fix for the missing default icon in webpack/vite
-export const setupLeafletIcons = () => {
-  delete L.Icon.Default.prototype._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: markerIcon2x,
-    iconUrl: markerIcon,
-    shadowUrl: markerShadow,
+// Helper function to create an icon
+const createIcon = (iconName: string, iconSize: [number, number] = [32, 32]) => {
+  return L.icon({
+    iconUrl: `${iconPath}${iconName}.png`,
+    iconSize: iconSize,
+    iconAnchor: [iconSize[0] / 2, iconSize[1]],
+    popupAnchor: [0, -iconSize[1]]
   });
 };
+
+// Create individual icons
+export const companyIcon = createIcon('company-marker', [32, 32]);
+export const companySelectedIcon = createIcon('company-marker-selected', [36, 36]);
+export const companyHoverIcon = createIcon('company-marker-hover', [34, 34]);
+export const userLocationIcon = createIcon('user-location', [24, 24]);
+export const smallClusterIcon = createIcon('cluster-small', [40, 40]);
+export const mediumClusterIcon = createIcon('cluster-medium', [50, 50]);
+export const largeClusterIcon = createIcon('cluster-large', [60, 60]);
+export const estateIcon = createIcon('category-estate', [28, 28]);
+export const serviceIcon = createIcon('category-service', [28, 28]);
+export const retailIcon = createIcon('category-retail', [28, 28]);
+export const defaultIcon = createIcon('category-default', [28, 28]);
+export const selectedIcon = createIcon('company-marker-selected', [36, 36]);
+
+// For backwards compatibility, also export the icons object
+const icons = {
+  company: companyIcon,
+  companySelected: companySelectedIcon,
+  companyHover: companyHoverIcon,
+  userLocation: userLocationIcon,
+  smallCluster: smallClusterIcon,
+  mediumCluster: mediumClusterIcon,
+  largeCluster: largeClusterIcon,
+  estate: estateIcon,
+  service: serviceIcon,
+  retail: retailIcon,
+  default: defaultIcon
+};
+
+// Export default icons for compatibility
+export default icons;

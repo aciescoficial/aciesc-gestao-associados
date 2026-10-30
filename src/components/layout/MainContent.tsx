@@ -7,14 +7,14 @@ interface MainContentProps {
 }
 
 // Error boundary component
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
   constructor(props: {children: React.ReactNode}) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
+  static getDerivedStateFromError() {
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
@@ -29,10 +29,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
           <p className="text-gray-700 mb-4">
             Ocorreu um erro ao carregar esta página. Por favor, tente recarregar ou contate o suporte.
           </p>
-          <pre className="mb-4 bg-gray-100 p-3 rounded text-xs text-red-700 overflow-auto whitespace-pre-wrap">
-            {this.state.error?.message}{"\n"}{this.state.error?.stack}
-          </pre>
-          <button
+          <button 
             className="bg-aciesc-primary text-white px-4 py-2 rounded hover:bg-aciesc-primary/90"
             onClick={() => window.location.reload()}
           >
@@ -48,8 +45,8 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 
 const MainContent: React.FC<MainContentProps> = React.memo(({ children }) => {
   return (
-    <main className="flex-1 bg-gray-100 overflow-auto">
-      <div className="p-4 w-full">
+    <main className="flex-1 bg-gray-100 overflow-auto w-full">
+      <div className="p-2 md:p-4 w-full max-w-[2000px] mx-auto">
         <ErrorBoundary>
           <Suspense fallback={
             <div className="flex justify-center items-center h-[50vh]">

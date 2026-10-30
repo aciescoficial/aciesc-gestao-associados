@@ -7,6 +7,7 @@ import { SharedRoutes } from "./routes/sharedRoutes";
 import { PublicRoutes } from "./routes/publicRoutes";
 import { AuthRoutes } from "./routes/authRoutes";
 import { FinanceiroRoutes } from "./routes/financeiroRoutes";
+import { EmpresaRoutes } from "./routes/empresaRoutes";
 import NotFound from "./pages/NotFound";
 
 const AppRoutes: React.FC = () => {
@@ -29,6 +30,9 @@ const AppRoutes: React.FC = () => {
       
       {/* Rotas Usuário */}
       {UserRoutes}
+      
+      {/* Rotas Empresa */}
+      {EmpresaRoutes}
       
       {/* Rotas Financeiro */}
       {FinanceiroRoutes}

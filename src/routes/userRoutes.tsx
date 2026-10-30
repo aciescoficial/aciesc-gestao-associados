@@ -3,25 +3,24 @@ import React, { Suspense, lazy } from "react";
 import { Route } from "react-router-dom";
 import { ProtectedRoute } from "../pages/AuthRoutes";
 import PluginLayout from "../components/PluginLayout";
-import IPTUStandaloneLayout from "../components/iptu/IPTUStandaloneLayout";
 import AppLoading from "../components/shared/AppLoading";
 
 // Lazily loaded components
-const PesquisaAssociado = lazy(() => import("../components/PesquisaAssociado"));
+const PesquisarAssociado = lazy(() => import("../components/associado/PesquisarAssociado"));
 const PagamentosAssociadoPage = lazy(() => import("../components/associado/PagamentosAssociadoPage"));
 const SolicitarCarteirinhaPage = lazy(() => import("../components/associado/SolicitarCarteirinhaPage"));
 const EmpresasConveniadas = lazy(() => import("../components/associado/EmpresasConveniadas"));
-const ConsultaIPTU = lazy(() => import("../components/iptu/ConsultaIPTU"));
+const UserManagementPage = lazy(() => import("../components/associado/user/UserManagementPage"));
 
 // Fallback component with custom loading time
 const PageLoading = () => <AppLoading message="Carregando página..." />;
 
 export const UserRoutes = [
-  <Route key="associados-pesquisa" path="/associados/pesquisa" element={
+  <Route key="associados-pesquisar" path="/associados/pesquisar" element={
     <ProtectedRoute allowedRoles={["admin", "user"]}>
       <PluginLayout>
         <Suspense fallback={<PageLoading />}>
-          <PesquisaAssociado />
+          <PesquisarAssociado />
         </Suspense>
       </PluginLayout>
     </ProtectedRoute>
@@ -57,12 +56,15 @@ export const UserRoutes = [
       </PluginLayout>
     </ProtectedRoute>
   } />,
-
-  <Route key="consulta-iptu" path="/consulta-iptu" element={
-    <ProtectedRoute allowedRoles={["user", "admin", "diretoria", "associado"]}>
-      <IPTUStandaloneLayout>
-        <ConsultaIPTU />
-      </IPTUStandaloneLayout>
+  
+  // Add user management route for associates
+  <Route key="associados-usuario" path="/associados/usuario/:id" element={
+    <ProtectedRoute allowedRoles={["admin", "user"]}>
+      <PluginLayout>
+        <Suspense fallback={<PageLoading />}>
+          <UserManagementPage />
+        </Suspense>
+      </PluginLayout>
     </ProtectedRoute>
-  } />,
+  } />
 ];

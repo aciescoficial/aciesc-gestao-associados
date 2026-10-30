@@ -18,8 +18,8 @@ export interface AuthContextType {
   }>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, name: string, options?: SignUpOptions) => Promise<{
-    error: Error | null;
-    data: any;
+    success: boolean;
+    error: any;
   }>;
   resetPassword: (email: string) => Promise<{
     error: Error | null;

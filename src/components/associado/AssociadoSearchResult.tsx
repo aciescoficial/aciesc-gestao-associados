@@ -1,9 +1,20 @@
 
 import React from 'react';
-import AssociadoCard from './AssociadoCard';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Eye, Pencil, User } from 'lucide-react';
 import AssociadoPagination from './AssociadoPagination';
 import EmptySearchResults from './EmptySearchResults';
 import { Associado } from './types';
+import { useNavigate } from 'react-router-dom';
+import { useAdminPermission } from '@/hooks/use-admin-permission';
 
 interface AssociadoSearchResultProps {
   results: Associado[];
@@ -22,23 +33,91 @@ const AssociadoSearchResult: React.FC<AssociadoSearchResultProps> = ({
   itemsPerPage,
   isSearching 
 }) => {
+  const navigate = useNavigate();
+  const { isAdmin } = useAdminPermission();
+
   if (isSearching || results.length === 0) {
     return <EmptySearchResults isSearching={isSearching} />;
   }
 
-  return (
-    <div className="mt-8">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">Resultados da Busca</h2>
-        <span className="text-sm text-gray-500">
-          Mostrando {results.length} de {totalCount} associados
-        </span>
-      </div>
+  const handleViewAssociado = (id: string) => {
+    navigate(`/associados/visualizar/${id}`);
+  };
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {results.map((associado) => (
-          <AssociadoCard key={associado.id} associado={associado} />
-        ))}
+  const handleEditAssociado = (id: string) => {
+    navigate(`/associados/editar/${id}`);
+  };
+
+  const handleUserManagement = (id: string) => {
+    navigate(`/associados/usuario/${id}`);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome Completo</TableHead>
+              <TableHead className="hidden md:table-cell">CPF</TableHead>
+              <TableHead className="hidden sm:table-cell">CRECI</TableHead>
+              <TableHead className="hidden lg:table-cell">Telefone</TableHead>
+              <TableHead className="hidden md:table-cell">E-mail</TableHead>
+              <TableHead>Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {results.map((associado) => (
+              <TableRow key={associado.id} className="hover:bg-muted/50">
+                <TableCell className="font-medium">
+                  {associado.nome} {associado.sobrenome}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {associado.cpf}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  {associado.creci || '-'}
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  {associado.telefone}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {associado.email}
+                </TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      title="Ver detalhes"
+                      onClick={() => handleViewAssociado(associado.id)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    {isAdmin && (
+                      <Button 
+                        size="sm"
+                        variant="default"
+                        title="Editar"
+                        onClick={() => handleEditAssociado(associado.id)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      title="Gerenciar usuário"
+                      onClick={() => handleUserManagement(associado.id)}
+                    >
+                      <User className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       <AssociadoPagination 
